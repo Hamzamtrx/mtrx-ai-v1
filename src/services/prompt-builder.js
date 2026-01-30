@@ -612,7 +612,10 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
         instructions.push(`• Full outfit visible or upper body showing the garment`);
         instructions.push(`• Natural pose: standing, walking, sitting casually`);
         instructions.push(`• Brand logo/design clearly visible on the garment being worn`);
-        instructions.push(`• Mirror selfie showing full outfit is ideal for UGC`);
+        instructions.push(`• SINGLE PERSON in frame - no mirror reflections showing second person`);
+        instructions.push(`• LOGO MUST READ CORRECTLY (left-to-right) - NOT mirrored/backwards`);
+        instructions.push(`• Even if selfie style, the logo text should be readable and correct`);
+        instructions.push(`• Prefer front-facing camera angle over mirror reflection`);
       } else if (imageType === 'model') {
         if (direction.includes('closeup')) {
           instructions.push(`\nFASHION CLOSE-UP (GARMENT DETAIL):`);
@@ -637,6 +640,11 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
       instructions.push(`• DO NOT show folded garment being presented`);
       instructions.push(`• DO NOT show wrong brand/logo on the garment`);
       instructions.push(`• The garment must be WORN or laid flat - NEVER held`);
+      instructions.push(`• NO mirror reflections showing duplicate/second person`);
+      instructions.push(`• SINGLE PERSON ONLY in frame - no reflections, no doubles`);
+      instructions.push(`• Logo must NOT be mirrored/reversed - text reads correctly left-to-right`);
+      instructions.push(`• Logo position: typically LEFT CHEST area, facing forward`);
+      instructions.push(`• If mirror selfie, the LOGO should still read correctly (not backwards)`);
 
     } else if (category === 'skincare') {
       instructions.push(`\nSKINCARE HANDLING:`);
@@ -726,7 +734,12 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
       'folded clothing being presented',
       'wrong logo on garment',
       'different brand name on clothing',
-      'treating clothing like a handheld product'
+      'treating clothing like a handheld product',
+      'mirrored/reversed logo text',
+      'backwards text on garment',
+      'mirror reflection showing two people',
+      'duplicate person in reflection',
+      'double heads'
     ];
 
     const maleNots = [
