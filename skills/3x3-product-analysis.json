@@ -1,0 +1,196 @@
+{
+  "skill_metadata": {
+    "name": "3x3_product_analysis",
+    "version": "1.0.0",
+    "description": "Exhaustive product analysis for AI image generation. Extracts visual details, brand DNA, and target persona to feed all downstream image skills.",
+    "author": "MTRX Media",
+    "created": "2026-01-29",
+    "platform": "nano_banana"
+  },
+
+  "overview": {
+    "purpose": "Create a comprehensive product description block that ensures AI image generators reproduce the product with pixel-perfect fidelity. This analysis runs in the background and feeds all image generation skills.",
+    "philosophy": "The more specific the product description, the more accurate the output. Vague descriptions = hallucinated details. Exhaustive descriptions = faithful reproduction."
+  },
+
+  "input_requirements": {
+    "required": {
+      "product_image": {
+        "type": "file",
+        "description": "Clear product image showing packaging, labels, and details",
+        "ideal": "Multiple angles if available, front-facing primary"
+      },
+      "website_url": {
+        "type": "url", 
+        "description": "Product page for brand research"
+      }
+    },
+    "optional": {
+      "additional_images": {
+        "type": "array",
+        "description": "Additional product angles, lifestyle shots, etc."
+      },
+      "about_page_url": {
+        "type": "url",
+        "description": "Brand about page for deeper voice/values analysis"
+      }
+    }
+  },
+
+  "analysis_framework": {
+    "section_1_visual_analysis": {
+      "description": "Detailed visual breakdown of the physical product",
+      
+      "1_1_product_overview": {
+        "brand": "Exact brand name as displayed",
+        "product_name": "Exact product name as displayed",
+        "product_category": "e.g., supplement, beverage, apparel, skincare",
+        "packaging_type": "e.g., pouch, bottle, jar, tube, box, bag",
+        "material": "e.g., foil pouch, glass bottle, plastic jar, cardboard box"
+      },
+
+      "1_2_shape_and_form": {
+        "silhouette": "Describe the overall shape - elongated, squat, rectangular, teardrop, etc.",
+        "dimensions_relative": "Tall and slim? Wide and short? Proportions matter.",
+        "neck_mouth": "If applicable - screw top, flip cap, pump, dropper, etc.",
+        "base": "Flat, rounded, weighted, tapered, etc.",
+        "distinctive_features": "Curved hem, embossing, unique structural elements"
+      },
+
+      "1_3_branding_and_graphics": {
+        "logo": {
+          "icon": "Describe any logo icon/symbol",
+          "icon_finish": "Metallic, matte, glossy, embossed, etc.",
+          "brand_name_text": "Exact text as displayed",
+          "font_style": "Serif, sans-serif, script, bold, thin, etc.",
+          "font_details": "Rounded terminals, sharp edges, custom typeface, etc."
+        },
+        "primary_text": {
+          "text_exact": "Copy EXACTLY what's written, including line breaks",
+          "font_style": "Describe the typography",
+          "color": "Exact color with HEX if determinable",
+          "placement": "Where on the packaging"
+        },
+        "secondary_text": {
+          "text_exact": "Any additional text - taglines, descriptors, certifications",
+          "font_style": "Usually smaller, different weight",
+          "color": "Often different from primary",
+          "placement": "Below logo, bottom of package, etc."
+        },
+        "additional_markings": "Small text, batch codes, certification badges, etc."
+      },
+
+      "1_4_color_palette": {
+        "primary_color": {
+          "name": "e.g., Teal, Hot Pink, Matte Black",
+          "hex_code": "#XXXXXX if determinable",
+          "coverage": "What percentage/area of packaging"
+        },
+        "secondary_colors": [
+          {
+            "name": "",
+            "hex_code": "",
+            "usage": "Where it appears"
+          }
+        ],
+        "accent_colors": [
+          {
+            "name": "",
+            "hex_code": "",
+            "usage": "Small details, text, icons"
+          }
+        ],
+        "color_relationships": "Complementary, contrasting, monochromatic, etc."
+      },
+
+      "1_5_textures_and_finishes": {
+        "primary_finish": "Matte, glossy, metallic, holographic, textured, etc.",
+        "secondary_finishes": "Different areas may have different finishes",
+        "tactile_elements": "Embossing, debossing, raised text, soft-touch coating",
+        "visual_texture": "Paint splatter, gradient, pattern, etc."
+      },
+
+      "1_6_light_interaction": {
+        "reflective_areas": "Where does light catch and create highlights",
+        "matte_areas": "Where does light absorb",
+        "transparency": "Any see-through elements, windows, clear sections",
+        "refraction": "If glass/liquid - how light bends through",
+        "shadows": "Where shadows naturally fall on the product"
+      }
+    },
+
+    "section_2_brand_analysis": {
+      "description": "Brand DNA extracted from website and copy",
+
+      "2_1_brand_voice": {
+        "tone": {
+          "options": ["nurturing", "aggressive", "clinical", "playful", "luxurious", "rebellious", "empowering", "scientific", "authentic", "premium"],
+          "primary": "",
+          "secondary": ""
+        },
+        "energy": {
+          "options": ["high", "calm", "balanced", "intense", "serene"],
+          "value": ""
+        },
+        "language_style": {
+          "options": ["scientific", "conversational", "empowering", "emotional", "direct", "poetic", "technical"],
+          "value": ""
+        },
+        "key_phrases": ["Exact phrases from their copy that define voice"],
+        "words_they_avoid": ["What language would feel off-brand"]
+      },
+
+      "2_2_brand_story": {
+        "founder_led": true,
+        "founder_name": "",
+        "origin_story_summary": "Brief version of their story",
+        "core_values": ["What they stand for"],
+        "positioning_statement": "How they differentiate",
+        "brand_name_meaning": "Any significance to the name"
+      },
+
+      "2_3_product_details": {
+        "key_ingredients": ["List actual ingredients/materials"],
+        "key_benefits": ["What it does for the customer"],
+        "unique_mechanism": "What makes it work differently",
+        "price_point": "Budget, mid-range, premium, luxury",
+        "guarantee": "Money-back period, warranty, etc."
+      }
+    },
+
+    "section_3_target_persona": {
+      "description": "Who buys this product - for influencer/lifestyle shots",
+
+      "3_1_demographics": {
+        "gender": "Male, Female, Both",
+        "age_range": "e.g., 28-45",
+        "income_level": "Budget-conscious, middle-class, affluent",
+        "location_vibe": "Urban, suburban, rural, coastal, etc."
+      },
+
+      "3_2_psychographics": {
+        "life_stage": "New parent, career-focused, retired, student, etc.",
+        "values": ["What matters to them beyond the product"],
+        "pain_points": ["What problems they're trying to solve"],
+        "aspirations": ["What they want to become/achieve"],
+        "frustrations": ["What they're fed up with"]
+      },
+
+      "3_3_visual_persona": {
+        "appearance": "How would this person look in an ad",
+        "style": "Clean girl, streetwear, outdoorsy, corporate, bohemian, etc.",
+        "setting": "Where would you find them - gym, office, kitchen, etc.",
+        "energy": "Calm, energetic, confident, approachable, aspirational"
+      }
+    }
+  },
+
+  "output_format": {
+    "product_description_block": {
+      "description": "The master block that gets inserted into ALL image prompts",
+      "template": "{{brand}} {{product_name}} - {{packaging_type}}. {{silhouette_description}}. {{material_description}}.\n\nBRANDING: {{logo_description}}. Brand name \"{{brand_name_text}}\" in {{font_style}} {{font_color}}. {{secondary_text_description}}.\n\nCOLORS: {{color_breakdown}}.\n\nFINISHES: {{finish_breakdown}}.\n\nKEY VISUAL ELEMENTS: {{distinctive_features}}. {{light_interaction_notes}}."
+    },
+
+    "product_fidelity_block": {
+      "description": "Non-negotiable accuracy requirements",
+      "template": "PRODUCT FIDELITY (CRITICAL - NON-NEGOTIABLE):\n• Reproduce the product EXACTLY as described above\n• Preserve all logos, brand names, labels, typography, packaging text, colors, materials, proportions, and design elements\n• Do not stylize, simpl
