@@ -861,11 +861,26 @@ async function start() {
       const tunnel = await localtunnel({ port: PORT });
       publicUrl = tunnel.url;
       console.log('🌐 Public URL: ' + tunnel.url + '\n');
-      tunnel.on('close', () => { publicUrl = null; });
+      tunnel.on('close', () => {
+        publicUrl = null;
+        console.log('Tunnel closed');
+      });
+      tunnel.on('error', (err) => {
+        console.log('Tunnel error:', err.message);
+        publicUrl = null;
+      });
     } catch (err) {
       console.log('Could not create tunnel:', err.message);
     }
   }
 }
+
+// Handle uncaught errors gracefully
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err.message);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err.message);
+});
 
 start();
