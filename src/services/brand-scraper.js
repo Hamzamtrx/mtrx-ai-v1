@@ -20,6 +20,7 @@ class BrandScraper {
     };
 
     this.categoryKeywords = {
+      fashion: ['shirt', 't-shirt', 'tee', 'hoodie', 'jacket', 'pants', 'jeans', 'dress', 'clothing', 'apparel', 'wear', 'outfit', 'fabric', 'cotton', 'size', 'fit', 'sleeve', 'collar', 'streetwear', 'fashion'],
       supplement: ['supplement', 'capsule', 'vitamin', 'mineral', 'nutrient', 'dose', 'serving'],
       skincare: ['skin', 'glow', 'radiant', 'serum', 'cream', 'moisturize', 'anti-aging', 'skincare'],
       fitness: ['workout', 'muscle', 'protein', 'gym', 'athlete', 'performance', 'energy'],

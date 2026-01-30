@@ -71,8 +71,9 @@ class PromptBuilder {
     // Add realism blocks
     prompt += '\n\n' + this.getRequiredRealismBlocks(imageType);
 
-    // Add NOT section with gender awareness (reuse targetGender from above)
-    prompt += '\n\n' + this.getNotSection(imageType, direction, targetGender);
+    // Add NOT section with gender and category awareness
+    const category = productAnalysis.product_info?.category || 'general';
+    prompt += '\n\n' + this.getNotSection(imageType, direction, targetGender, category);
 
     return prompt;
   }
@@ -125,7 +126,19 @@ class PromptBuilder {
 
     // Add category-specific styling hints adjusted for gender
     const category = analysis.product_info?.category || 'general';
-    if (targetGender === 'male') {
+    if (category === 'fashion') {
+      parts.push(`🎽 FASHION/APPAREL STYLING:`);
+      parts.push(`- This is CLOTHING - must be WORN by model or shown as flat lay`);
+      parts.push(`- Brand logo/design must be accurate and visible`);
+      parts.push(`- DO NOT treat like a handheld product`);
+      if (targetGender === 'male') {
+        parts.push(`- Masculine streetwear/casual aesthetic`);
+        parts.push(`- Urban, confident, lifestyle settings`);
+      } else {
+        parts.push(`- Fashion-forward, stylish aesthetic`);
+        parts.push(`- Lifestyle, aspirational settings`);
+      }
+    } else if (targetGender === 'male') {
       if (category === 'fragrance' || category === 'perfume') {
         parts.push(`Style: Masculine fragrance aesthetic - dark moody lighting, leather/wood props, sophisticated`);
       } else if (category === 'skincare') {
@@ -323,11 +336,49 @@ class PromptBuilder {
    */
   buildProductLockBlock(analysis) {
     const targetGender = analysis.brand_voice?.target_gender || 'female';
+    const category = analysis.product_info?.category || 'general';
     const genderText = targetGender === 'male' ? 'MAN/MALE' : 'WOMAN/FEMALE';
     const genderDescription = targetGender === 'male'
       ? 'This is a MENS product - use MALE models only, masculine styling, rugged/sophisticated aesthetic'
       : 'This is a WOMENS product - use FEMALE models only, feminine styling';
 
+    // Fashion-specific product lock
+    if (category === 'fashion') {
+      return `⚠️ CRITICAL INSTRUCTIONS — FASHION/APPAREL ⚠️
+
+THE GARMENT IN THIS IMAGE MUST BE: ${analysis.product_info.brand} ${analysis.product_info.product_name}
+
+🎽 THIS IS CLOTHING — SPECIAL HANDLING REQUIRED:
+• The garment must be WORN by a model OR displayed as a flat lay
+• DO NOT show someone holding the garment like a bottle/product
+• The EXACT logo, design, and colors from the reference must appear on the garment
+
+🎯 TARGET AUDIENCE: ${genderText}
+${genderDescription}
+Any model wearing this garment MUST be ${targetGender === 'male' ? 'a MAN (male)' : 'a WOMAN (female)'}.
+
+GARMENT APPEARANCE (COPY EXACTLY FROM REFERENCE IMAGE):
+${analysis.product_description_block}
+
+🚨 MANDATORY RULES FOR FASHION:
+1. The garment design MUST match the reference image EXACTLY
+2. The brand logo "${analysis.product_info.brand}" must be visible and accurate
+3. Copy the EXACT colors, graphics, and text from the reference
+4. If model is shown, they must be WEARING the garment - NOT holding it
+5. For flat lay: garment laid out neatly showing the design
+6. The logo position and size must match the reference
+
+⛔ FORBIDDEN FOR FASHION:
+- Person holding shirt/garment like a product bottle
+- Wrong logo or brand name on the garment
+- Different design than the reference
+- Garment being presented/shown to camera (not worn)
+- ${targetGender === 'male' ? 'Female models - this is MENS clothing' : 'Male models - this is WOMENS clothing'}
+
+The reference image shows the ONLY acceptable garment design. REPLICATE IT EXACTLY.`;
+    }
+
+    // Standard product lock for non-fashion
     return `⚠️ CRITICAL INSTRUCTIONS — MUST FOLLOW EXACTLY ⚠️
 
 THE PRODUCT IN THIS IMAGE MUST BE: ${analysis.product_info.brand} ${analysis.product_info.product_name}
@@ -539,6 +590,54 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
         instructions.push(`• Elegant, delicate grip`);
         instructions.push(`• Graceful feminine hand positioning`);
       }
+    } else if (category === 'fashion') {
+      // FASHION/APPAREL - completely different approach
+      instructions.push(`\n🎽 FASHION/APPAREL — CRITICAL DIFFERENT APPROACH:`);
+      instructions.push(`• This is CLOTHING - it must be WORN or displayed as a flat lay`);
+      instructions.push(`• DO NOT hold clothing like a product bottle`);
+      instructions.push(`• The BRAND LOGO must be visible and accurate`);
+
+      if (imageType === 'aesthetic') {
+        instructions.push(`\nFASHION AESTHETIC (FLAT LAY):`);
+        instructions.push(`• Show garment as FLAT LAY on styled surface`);
+        instructions.push(`• Garment laid flat, neatly arranged, visible logo/design`);
+        instructions.push(`• Style with complementary props: sunglasses, watch, shoes, coffee`);
+        instructions.push(`• Surface: wood table, concrete, fabric backdrop`);
+        instructions.push(`• Bird's eye view or slight angle`);
+        instructions.push(`• NO person in shot - just the garment styled`);
+      } else if (imageType === 'influencer' || imageType === 'ugc') {
+        instructions.push(`\nFASHION INFLUENCER/UGC (WORN):`);
+        instructions.push(`• Person must be WEARING the garment`);
+        instructions.push(`• NOT holding it, NOT showing it to camera like a bottle`);
+        instructions.push(`• Full outfit visible or upper body showing the garment`);
+        instructions.push(`• Natural pose: standing, walking, sitting casually`);
+        instructions.push(`• Brand logo/design clearly visible on the garment being worn`);
+        instructions.push(`• Mirror selfie showing full outfit is ideal for UGC`);
+      } else if (imageType === 'model') {
+        if (direction.includes('closeup')) {
+          instructions.push(`\nFASHION CLOSE-UP (GARMENT DETAIL):`);
+          instructions.push(`• Focus on GARMENT DETAILS - NOT face with held product`);
+          instructions.push(`• Show: fabric texture, logo detail, stitching quality`);
+          instructions.push(`• Close-up of the shirt/garment being worn on body`);
+          instructions.push(`• Chest/torso area showing the design and logo`);
+          instructions.push(`• Can include part of face/neck but focus is the GARMENT`);
+          instructions.push(`• NOT a person holding up a shirt to camera`);
+        } else {
+          instructions.push(`\nFASHION MODEL (LIFESTYLE WORN):`);
+          instructions.push(`• Person WEARING the garment in lifestyle setting`);
+          instructions.push(`• Full body or 3/4 shot showing the outfit`);
+          instructions.push(`• Natural pose in context: urban street, gym, cafe`);
+          instructions.push(`• Logo/brand visible on the worn garment`);
+        }
+      }
+
+      instructions.push(`\n⛔ FASHION FORBIDDEN:`);
+      instructions.push(`• DO NOT show person holding shirt like holding a bottle`);
+      instructions.push(`• DO NOT show person holding up garment to camera`);
+      instructions.push(`• DO NOT show folded garment being presented`);
+      instructions.push(`• DO NOT show wrong brand/logo on the garment`);
+      instructions.push(`• The garment must be WORN or laid flat - NEVER held`);
+
     } else if (category === 'skincare') {
       instructions.push(`\nSKINCARE HANDLING:`);
       instructions.push(`• Hold product naturally in one hand`);
@@ -583,9 +682,11 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
    * Get NOT section for prompt
    * @param {string} imageType
    * @param {string} direction
+   * @param {string} targetGender
+   * @param {string} category
    * @returns {string} - NOT section
    */
-  getNotSection(imageType, direction, targetGender = 'female') {
+  getNotSection(imageType, direction, targetGender = 'female', category = 'general') {
     const commonNots = [
       'symmetrical framing',
       'centered product',
@@ -617,6 +718,15 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
       'uniform AI green',
       'pristine leaves',
       'fantasy aesthetic'
+    ];
+
+    const fashionNots = [
+      'person holding shirt like a bottle',
+      'holding garment up to camera',
+      'folded clothing being presented',
+      'wrong logo on garment',
+      'different brand name on clothing',
+      'treating clothing like a handheld product'
     ];
 
     const maleNots = [
@@ -652,6 +762,11 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
       if (targetGender === 'male') {
         nots.push('feminine styling', 'pink', 'pastel', 'flowers', 'soft lighting');
       }
+    }
+
+    // Add fashion-specific NOTs
+    if (category === 'fashion') {
+      nots = [...nots, ...fashionNots];
     }
 
     return `NOT: ${nots.join(', ')}.`;
