@@ -4,7 +4,7 @@
   "description": "MTRX AI V1 - Product Image Generator",
   "main": "src/index.js",
   "scripts": {
-    "start": "NODE_ENV=production node server.js",
+    "start": "node server.js",
     "dev": "node server.js",
     "test:api": "node scripts/test-api.js",
     "generate": "node scripts/generate.js"

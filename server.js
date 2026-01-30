@@ -851,7 +851,7 @@ async function start() {
   await loadDirectionsConfig();
   await loadRegenCache();
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log('\n🚀 MTRX AI Server running at http://localhost:' + PORT + '\n');
   });
 
