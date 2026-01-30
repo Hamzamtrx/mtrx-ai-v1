@@ -21,10 +21,10 @@ class BrandScraper {
 
     this.categoryKeywords = {
       fashion: ['shirt', 't-shirt', 'tee', 'hoodie', 'jacket', 'pants', 'jeans', 'dress', 'clothing', 'apparel', 'wear', 'outfit', 'fabric', 'cotton', 'size', 'fit', 'sleeve', 'collar', 'streetwear', 'fashion'],
-      supplement: ['supplement', 'capsule', 'vitamin', 'mineral', 'nutrient', 'dose', 'serving'],
+      supplement: ['supplement', 'capsule', 'vitamin', 'mineral', 'nutrient', 'dose', 'serving', 'dietary'],
       skincare: ['skin', 'glow', 'radiant', 'serum', 'cream', 'moisturize', 'anti-aging', 'skincare'],
       fitness: ['workout', 'muscle', 'protein', 'gym', 'athlete', 'performance', 'energy'],
-      food_beverage: ['taste', 'flavor', 'drink', 'eat', 'delicious', 'recipe'],
+      food_beverage: ['taste', 'flavor', 'drink', 'eat', 'delicious', 'recipe', 'water', 'bottle', 'beverage', 'hydration', 'sparkling', 'mineral water', 'spring water', 'refreshing'],
       fragrance: ['fragrance', 'perfume', 'cologne', 'scent', 'eau de', 'toilette', 'parfum', 'oud', 'musk', 'notes']
     };
   }

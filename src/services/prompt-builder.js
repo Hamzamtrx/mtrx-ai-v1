@@ -373,7 +373,11 @@ ${analysis.product_description_block}
 - Wrong logo or brand name on the garment
 - Different design than the reference
 - Garment being presented/shown to camera (not worn)
+- PQ7, supplement pouches, water bottles, or ANY non-clothing product
 - ${targetGender === 'male' ? 'Female models - this is MENS clothing' : 'Male models - this is WOMENS clothing'}
+
+⚠️ IGNORE any example products mentioned elsewhere (PQ7, supplements, etc.)
+ONLY show the GARMENT from the reference image.
 
 The reference image shows the ONLY acceptable garment design. REPLICATE IT EXACTLY.`;
     }
@@ -399,9 +403,15 @@ ${analysis.product_description_block}
 6. Match the exact color scheme from the reference
 7. If showing a person, they MUST be ${targetGender === 'male' ? 'MALE' : 'FEMALE'}
 
-⛔ FORBIDDEN:
-- Do not show BYOMA, CeraVe, The Ordinary, or ANY other brand
+⛔ FORBIDDEN — NEVER SHOW THESE:
+- PQ7, Primal Queen, or any supplement pouch (unless that's what the reference shows)
+- Evian, Fiji, or any water bottle brand (unless that's what the reference shows)
+- BYOMA, CeraVe, The Ordinary, or ANY brand not in the reference
+- Any product that doesn't match the reference image
 - ${targetGender === 'male' ? 'Do NOT show women/females - this is a MENS product' : 'Do NOT show men/males - this is a WOMENS product'}
+
+⚠️ IGNORE any example products mentioned elsewhere in this prompt (like PQ7, supplement pouches, etc.)
+ONLY use the reference image as your product guide.
 
 The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`;
   }
