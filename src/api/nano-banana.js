@@ -30,14 +30,14 @@ class NanoBananaAPI {
       aspect_ratio: aspectRatio,
       resolution: '2K',
       output_format: 'png',
-      style_strength: 0.9,  // Higher value = follow reference more closely
-      creativity: 0.3       // Lower value = less deviation from reference
+      style_strength: 0.95,  // Maximum reference adherence
+      creativity: 0.15       // Minimal deviation from reference
     };
 
     // Add reference image URL if provided
     if (referenceImageUrl) {
       input.image_input = [referenceImageUrl];
-      input.image_strength = 0.85;  // Strong reference adherence
+      input.image_strength = 0.95;  // Maximum reference adherence
     }
 
     const payload = {
