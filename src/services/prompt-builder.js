@@ -596,6 +596,11 @@ The reference image shows the ONLY acceptable product design. CLONE IT EXACTLY.`
       instructions.push(`• This is CLOTHING - it must be WORN or displayed as a flat lay`);
       instructions.push(`• DO NOT hold clothing like a product bottle`);
       instructions.push(`• The BRAND LOGO must be visible and accurate`);
+      instructions.push(`\n📍 LOGO PLACEMENT — CRITICAL:`);
+      instructions.push(`• Logo is on the LEFT CHEST (wearer's left side)`);
+      instructions.push(`• When viewing the image: logo appears on VIEWER'S RIGHT side`);
+      instructions.push(`• For flat lay: logo on the RIGHT side of the shirt as you look at it`);
+      instructions.push(`• This is standard t-shirt logo placement - LEFT breast pocket area`);
 
       if (imageType === 'aesthetic') {
         instructions.push(`\nFASHION AESTHETIC (FLAT LAY):`);

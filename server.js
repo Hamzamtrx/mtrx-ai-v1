@@ -163,6 +163,9 @@ app.get('/', (req, res) => {
     .regen-btn { background: #f59e0b; color: #000; cursor: pointer; border: none; font-family: inherit; }
     .regen-btn:hover { background: #d97706; }
     .regen-btn.loading { opacity: 0.6; cursor: wait; }
+    .flip-btn { background: #8b5cf6; color: #fff; cursor: pointer; border: none; font-family: inherit; }
+    .flip-btn:hover { background: #7c3aed; }
+    .image-card img.flipped { transform: scaleX(-1); }
 
     /* Hide setup when generating */
     .setup-panel.hidden { display: none; }
@@ -529,10 +532,11 @@ app.get('/', (req, res) => {
       card.classList.remove('forging');
       card.dataset.direction = direction;
       card.dataset.imageType = imageType;
+      card.dataset.url = url;
       const placeholder = card.querySelector('.image-placeholder');
-      placeholder.outerHTML = '<img src="' + url + '" alt="Generated">';
+      placeholder.outerHTML = '<img src="' + url + '" alt="Generated" id="img-' + id + '">';
       const info = card.querySelector('.info');
-      info.innerHTML += '<div class="actions"><a href="' + url + '" target="_blank" class="view-btn">View</a><a href="' + url + '" download class="download-btn">Download</a><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button></div>';
+      info.innerHTML += '<div class="actions"><a href="' + url + '" target="_blank" class="view-btn">View</a><a href="' + url + '" download class="download-btn">DL</a><button class="flip-btn" onclick="flipImage(' + id + ')">Flip</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button></div>';
     }
 
     function updateCardError(id, error) {
@@ -578,6 +582,29 @@ app.get('/', (req, res) => {
       }
     });
 
+    // Flip/mirror an image horizontally
+    function flipImage(id) {
+      const card = imageCards[id];
+      if (!card) return;
+      const img = card.querySelector('img');
+      if (!img) return;
+
+      // Toggle flipped class
+      img.classList.toggle('flipped');
+
+      // Update flip button text
+      const flipBtn = card.querySelector('.flip-btn');
+      if (flipBtn) {
+        flipBtn.textContent = img.classList.contains('flipped') ? 'Unflip' : 'Flip';
+      }
+
+      // Mark as flipped in campaign data for download
+      const imgIndex = currentCampaignImages.findIndex(i => i.id === id);
+      if (imgIndex !== -1) {
+        currentCampaignImages[imgIndex].flipped = img.classList.contains('flipped');
+      }
+    }
+
     // Regenerate a single image
     async function regenerateImage(id) {
       const card = imageCards[id];
@@ -622,7 +649,7 @@ app.get('/', (req, res) => {
           // Update the actions
           const actions = card.querySelector('.actions');
           if (actions) {
-            actions.innerHTML = '<a href="' + data.url + '" target="_blank" class="view-btn">View</a><a href="' + data.url + '" download class="download-btn">Download</a><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+            actions.innerHTML = '<a href="' + data.url + '" target="_blank" class="view-btn">View</a><a href="' + data.url + '" download class="download-btn">DL</a><button class="flip-btn" onclick="flipImage(' + id + ')">Flip</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
           }
           // Update campaign images array
           const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
