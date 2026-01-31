@@ -130,9 +130,10 @@ class MTRXImageGenerator {
    * @param {string} options.outputDir - Directory to save outputs
    * @param {string} options.aspectRatio - Aspect ratio (1:1, 4:5, 9:16, 16:9)
    * @param {Object} options.cachedAnalysis - Pre-analyzed product data (optional)
+   * @param {string} options.customPrompt - Custom prompt to use instead of building one (for static designer)
    * @returns {Promise<Object>} - Generated image result
    */
-  async generateSingle({ productImagePath, productImageUrl, websiteUrl, imageType, direction, outputDir = './output', aspectRatio = '1:1', cachedAnalysis = null }) {
+  async generateSingle({ productImagePath, productImageUrl, websiteUrl, imageType, direction, outputDir = './output', aspectRatio = '1:1', cachedAnalysis = null, customPrompt = null, logoUrl = null }) {
     try {
       // Use cached analysis or perform new analysis
       let analysis = cachedAnalysis;
@@ -145,18 +146,25 @@ class MTRXImageGenerator {
         });
       }
 
-      // Build prompt for this specific direction
-      const prompt = await this.promptBuilder.buildPrompt({
-        imageType,
-        direction,
-        productAnalysis: analysis,
-        productAngle: 'front_hero'
-      });
+      // Use custom prompt if provided, otherwise build from photography skills
+      let prompt;
+      if (customPrompt) {
+        prompt = customPrompt;
+        console.log('   Using custom prompt from static skill');
+      } else {
+        prompt = await this.promptBuilder.buildPrompt({
+          imageType,
+          direction,
+          productAnalysis: analysis,
+          productAngle: 'front_hero'
+        });
+      }
 
       // Generate image via API
       const result = await this.api.generateImage({
         prompt,
         referenceImageUrl: productImageUrl,
+        logoUrl: logoUrl,
         aspectRatio: aspectRatio
       });
 

@@ -54,7 +54,11 @@ class ProductAnalyzer {
         target_gender: brandAnalysis.target_gender || 'female',
         target_age: brandAnalysis.target_age || '25-45'
       },
-      product_description_block: this.buildDescriptionBlock(visualAnalysis, brandAnalysis)
+      product_description_block: this.buildDescriptionBlock(visualAnalysis, brandAnalysis),
+      // Pass through scraped data for prompt customization
+      key_phrases: brandAnalysis.key_phrases || [],
+      benefits: brandAnalysis.benefits || [],
+      ingredients: brandAnalysis.ingredients || []
     };
 
     // Add recommended directions based on analysis

@@ -18,11 +18,13 @@
   "author": "MTRX Media",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "dotenv": "^16.0.0",
     "express": "^5.2.1",
     "formdata-node": "^6.0.3",
     "localtunnel": "^2.0.2",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5"
   },
   "engines": {
     "node": ">=18.0.0"

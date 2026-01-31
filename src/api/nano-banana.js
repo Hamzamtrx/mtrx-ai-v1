@@ -20,10 +20,11 @@ class NanoBananaAPI {
    * @param {Object} options
    * @param {string} options.prompt - The generation prompt
    * @param {string} options.referenceImageUrl - Public URL to reference image
+   * @param {string} options.logoUrl - Public URL to logo image (optional)
    * @param {string} options.aspectRatio - Aspect ratio (1:1, 9:16, 16:9, 4:3, etc.)
    * @returns {Promise<Object>} - Generated image data
    */
-  async generateImage({ prompt, referenceImageUrl, aspectRatio = '1:1' }) {
+  async generateImage({ prompt, referenceImageUrl, logoUrl = null, aspectRatio = '1:1' }) {
     // Build input payload
     const input = {
       prompt,
@@ -34,9 +35,13 @@ class NanoBananaAPI {
       creativity: 0.15       // Minimal deviation from reference
     };
 
-    // Add reference image URL if provided
-    if (referenceImageUrl) {
-      input.image_input = [referenceImageUrl];
+    // Add reference image URLs if provided (product + optional logo)
+    const imageInputs = [];
+    if (referenceImageUrl) imageInputs.push(referenceImageUrl);
+    if (logoUrl) imageInputs.push(logoUrl);
+
+    if (imageInputs.length > 0) {
+      input.image_input = imageInputs;
       input.image_strength = 0.95;  // Maximum reference adherence
     }
 

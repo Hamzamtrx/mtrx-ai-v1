@@ -8,8 +8,151 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const sharp = require('sharp');
 const MTRXImageGenerator = require('./src/index');
 const ImageHost = require('./src/utils/image-host');
+const CopyResearchService = require('./src/services/copy-research');
+
+/**
+ * Create a 4:5 version from a 9:16 image by center cropping
+ * @param {string} imageUrl - URL of the 9:16 image
+ * @returns {Promise<string>} - Public URL of the cropped 4:5 image
+ */
+async function create45FromTall(imageUrl) {
+  try {
+    // Download the image
+    const response = await fetch(imageUrl);
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Get image dimensions
+    const metadata = await sharp(buffer).metadata();
+    const { width, height } = metadata;
+
+    // Calculate 4:5 crop dimensions (keep width, calculate target height)
+    const targetHeight = Math.round(width * (5 / 4));
+
+    // Center crop - remove equal amounts from top and bottom
+    const cropTop = Math.round((height - targetHeight) / 2);
+
+    // Extract center portion
+    const croppedBuffer = await sharp(buffer)
+      .extract({
+        left: 0,
+        top: cropTop,
+        width: width,
+        height: targetHeight
+      })
+      .png()
+      .toBuffer();
+
+    // Save to temp file and upload
+    const tempPath = path.join('./output', `temp_45_${Date.now()}.png`);
+    await fs.writeFile(tempPath, croppedBuffer);
+
+    // Upload to get public URL
+    const publicUrl = await ImageHost.upload(tempPath);
+
+    // Clean up temp file
+    await fs.unlink(tempPath).catch(() => {});
+
+    return publicUrl;
+  } catch (err) {
+    console.error('   Error creating 4:5 crop:', err.message);
+    return null;
+  }
+}
+
+// Legacy function - kept for reference but no longer used
+async function create916Version_legacy(imageUrl, outputPath) {
+  try {
+    // Download the image
+    const response = await fetch(imageUrl);
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Get image dimensions
+    const metadata = await sharp(buffer).metadata();
+    const { width, height } = metadata;
+
+    // Target 9:16 dimensions (keep width, calculate new height)
+    const targetHeight = Math.round(width * (16 / 9));
+    const extraHeight = targetHeight - height;
+    const topPadding = Math.round(extraHeight / 2);
+    const bottomPadding = extraHeight - topPadding;
+
+    // Sample colors from top and bottom edges for natural extension
+    const topStrip = await sharp(buffer).extract({ left: 0, top: 0, width: width, height: 5 }).raw().toBuffer();
+    const bottomStrip = await sharp(buffer).extract({ left: 0, top: height - 5, width: width, height: 5 }).raw().toBuffer();
+
+    // Calculate average color from top strip
+    let topR = 0, topG = 0, topB = 0;
+    for (let i = 0; i < topStrip.length; i += 3) {
+      topR += topStrip[i];
+      topG += topStrip[i + 1];
+      topB += topStrip[i + 2];
+    }
+    const topPixels = topStrip.length / 3;
+    topR = Math.round(topR / topPixels);
+    topG = Math.round(topG / topPixels);
+    topB = Math.round(topB / topPixels);
+
+    // Calculate average color from bottom strip
+    let botR = 0, botG = 0, botB = 0;
+    for (let i = 0; i < bottomStrip.length; i += 3) {
+      botR += bottomStrip[i];
+      botG += bottomStrip[i + 1];
+      botB += bottomStrip[i + 2];
+    }
+    const botPixels = bottomStrip.length / 3;
+    botR = Math.round(botR / botPixels);
+    botG = Math.round(botG / botPixels);
+    botB = Math.round(botB / botPixels);
+
+    // Check if colors are too bright/saturated (like red banners) - fall back to dark
+    const isTooBright = (r, g, b) => {
+      const brightness = (r + g + b) / 3;
+      const maxChannel = Math.max(r, g, b);
+      const minChannel = Math.min(r, g, b);
+      const saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
+      // Too bright (>80) or too saturated with non-grey color
+      return brightness > 80 || (saturation > 0.4 && brightness > 40);
+    };
+
+    // Use dark fallback if edge colors are too bright/saturated
+    if (isTooBright(topR, topG, topB)) {
+      topR = 15; topG = 15; topB = 15;
+    }
+    if (isTooBright(botR, botG, botB)) {
+      botR = 15; botG = 15; botB = 15;
+    }
+
+    // Create top extension with sampled color
+    const topExtension = await sharp({
+      create: { width: width, height: topPadding, channels: 3, background: { r: topR, g: topG, b: topB } }
+    }).png().toBuffer();
+
+    // Create bottom extension with sampled color
+    const bottomExtension = await sharp({
+      create: { width: width, height: bottomPadding, channels: 3, background: { r: botR, g: botG, b: botB } }
+    }).png().toBuffer();
+
+    // Composite: stack top extension + original + bottom extension
+    await sharp({
+      create: { width: width, height: targetHeight, channels: 3, background: { r: topR, g: topG, b: topB } }
+    })
+      .composite([
+        { input: topExtension, top: 0, left: 0 },
+        { input: buffer, top: topPadding, left: 0 },
+        { input: bottomExtension, top: topPadding + height, left: 0 }
+      ])
+      .png()
+      .toFile(outputPath);
+
+    return outputPath;
+  } catch (err) {
+    console.error('   Failed to create 9:16 version:', err.message);
+    return null;
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -119,7 +262,7 @@ app.get('/', (req, res) => {
     .upload-box.has-file { border-style: solid; border-color: #06b6d4; padding: 16px; }
     .upload-box h3 { font-size: 13px; margin-bottom: 4px; }
     .upload-box p { color: #555; font-size: 11px; }
-    #preview { max-width: 100%; max-height: 150px; border-radius: 8px; display: none; }
+    #preview, #staticPreview { max-width: 100%; max-height: 150px; border-radius: 8px; display: none; }
     .url-input { margin-top: 12px; }
     .url-input input { width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 13px; outline: none; }
     .url-input input:focus { border-color: #06b6d4; }
@@ -151,7 +294,7 @@ app.get('/', (req, res) => {
     .status-text { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .status-text.queue { color: #555; }
     .status-text.forging { color: #06b6d4; }
-    .image-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .image-card img { width: 100%; aspect-ratio: 4/5; object-fit: contain; display: block; background: #0a0a0a; }
     .image-card .info { padding: 12px; }
     .image-card .direction { font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
     .image-card .type-badge { color: #06b6d4; font-size: 10px; }
@@ -166,6 +309,11 @@ app.get('/', (req, res) => {
     .flip-btn { background: #8b5cf6; color: #fff; cursor: pointer; border: none; font-family: inherit; }
     .flip-btn:hover { background: #7c3aed; }
     .image-card img.flipped { transform: scaleX(-1); }
+
+    /* Aspect ratio preview tabs */
+    .aspect-tab { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 4px 10px; color: #888; font-size: 11px; cursor: pointer; font-family: inherit; }
+    .aspect-tab:hover { border-color: #444; color: #fff; }
+    .aspect-tab.active { background: #06b6d4; border-color: #06b6d4; color: #000; font-weight: 600; }
 
     /* Hide setup when generating */
     .setup-panel.hidden { display: none; }
@@ -190,6 +338,23 @@ app.get('/', (req, res) => {
     .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3; }
     .empty-state p { font-size: 14px; }
 
+    /* Mode Toggle */
+    .mode-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
+    .mode-btn { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 12px 20px; color: #888; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+    .mode-btn:hover { border-color: #444; color: #fff; }
+    .mode-btn.active { background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border-color: #06b6d4; color: #06b6d4; }
+    .mode-btn svg { opacity: 0.6; }
+    .mode-btn.active svg { opacity: 1; }
+
+    /* Static Designer Styles */
+    .static-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 700px) { .static-grid { grid-template-columns: repeat(2, 1fr); } }
+    .static-launch { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+    .hidden { display: none !important; }
+    #staticDropZone { padding: 24px; min-height: auto; }
+    #staticDropZone.has-file { padding: 16px; }
+    #staticPreview { max-height: 120px; object-fit: contain; }
+
     /* Campaign Detail Modal */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; }
     .modal.active { display: block; }
@@ -212,6 +377,19 @@ app.get('/', (req, res) => {
     <h1>MTRX AI</h1>
     <p class="subtitle">Upload a product to instantly generate high-fidelity campaign assets.</p>
 
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="photography">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Photography
+      </button>
+      <button class="mode-btn" data-mode="static-designer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Static Designer
+      </button>
+    </div>
+
+    <!-- PHOTOGRAPHY SECTION -->
     <div class="setup-panel" id="setupPanel">
       <div class="card">
         <div class="card-title">Image Types (select multiple)</div>
@@ -236,6 +414,57 @@ app.get('/', (req, res) => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           Launch Campaign
           <span class="count" id="imageCount">2 images</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STATIC DESIGNER SECTION -->
+    <div class="setup-panel hidden" id="staticDesignerPanel">
+      <div class="card">
+        <div class="card-title">Static Ad Types (select multiple)</div>
+        <div class="type-grid static-grid">
+          <button class="type-btn selected" data-static="type1"><span class="name">Product Hero</span><span class="desc">Clean product focus</span></button>
+          <button class="type-btn" data-static="type2"><span class="name">Meme Static</span><span class="desc">Viral meme format</span></button>
+          <button class="type-btn" data-static="type3"><span class="name">Aesthetic Offer</span><span class="desc">Lifestyle + promo</span></button>
+          <button class="type-btn" data-static="type4"><span class="name">Illustrated</span><span class="desc">Hand-drawn style</span></button>
+          <button class="type-btn" data-static="type5"><span class="name">Vintage Magazine</span><span class="desc">Retro editorial</span></button>
+          <button class="type-btn" data-static="type6"><span class="name">UGC Caption</span><span class="desc">Model + handwritten text</span></button>
+        </div>
+        <div style="margin-top: 16px;">
+          <label style="color: #888; font-size: 12px; display: block; margin-bottom: 8px;">Variants per type (different angles)</label>
+          <div class="variant-selector" style="display: flex; gap: 8px;">
+            <button class="variant-btn" data-variants="1" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">1</button>
+            <button class="variant-btn selected" data-variants="2" style="padding: 8px 16px; background: #3b82f6; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
+            <button class="variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
+            <button class="variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display: flex; gap: 12px;">
+          <div class="upload-box" id="staticDropZone" style="flex: 1;">
+            <img id="staticPreview" alt="Preview">
+            <h3 id="staticUploadText">Product Image</h3>
+            <p>PNG, JPG up to 50MB</p>
+            <input type="file" id="staticImageInput" accept="image/*" hidden>
+          </div>
+          <div class="upload-box" id="logoDropZone" style="flex: 0 0 120px; min-height: 100px;">
+            <img id="logoPreview" alt="Logo" style="max-height: 60px;">
+            <h3 id="logoUploadText" style="font-size: 12px;">Logo (optional)</h3>
+            <p style="font-size: 10px;">PNG with transparency</p>
+            <input type="file" id="logoInput" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="url-input">
+          <input type="url" id="staticUrlInput" placeholder="Landing page URL">
+        </div>
+        <div class="url-input" style="margin-top: 8px;">
+          <input type="text" id="angleInput" placeholder="Proposed angle (e.g., durability, anti-fast-fashion, fit/confidence, health/toxicity)">
+        </div>
+        <button class="launch-btn static-launch" id="staticLaunchBtn" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Generate Statics
+          <span class="count" id="staticCount">1 static</span>
         </button>
       </div>
     </div>
@@ -304,6 +533,181 @@ app.get('/', (req, res) => {
     let completed = 0;
     let currentCampaignImages = [];
     let currentCampaignId = null;
+
+    // Static Designer state
+    let currentMode = 'photography';
+    let staticSelectedFile = null;
+    let selectedStaticTypes = ['type1'];
+    let variantsPerType = 2; // Default to 2 variants per type
+    const staticDesignerPanel = document.getElementById('staticDesignerPanel');
+    const staticDropZone = document.getElementById('staticDropZone');
+    const staticImageInput = document.getElementById('staticImageInput');
+    const staticPreview = document.getElementById('staticPreview');
+    const staticUploadText = document.getElementById('staticUploadText');
+    const staticUrlInput = document.getElementById('staticUrlInput');
+    const angleInput = document.getElementById('angleInput');
+    const logoDropZone = document.getElementById('logoDropZone');
+    const logoInput = document.getElementById('logoInput');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoUploadText = document.getElementById('logoUploadText');
+    let logoFile = null;
+    const staticLaunchBtn = document.getElementById('staticLaunchBtn');
+    const staticCount = document.getElementById('staticCount');
+
+    // Mode toggle
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+
+        if (currentMode === 'photography') {
+          setupPanel.classList.remove('hidden');
+          staticDesignerPanel.classList.add('hidden');
+        } else {
+          setupPanel.classList.add('hidden');
+          staticDesignerPanel.classList.remove('hidden');
+        }
+      });
+    });
+
+    // Static type selection
+    document.querySelectorAll('.static-grid .type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('selected');
+        const type = btn.dataset.static;
+        if (btn.classList.contains('selected')) {
+          if (!selectedStaticTypes.includes(type)) selectedStaticTypes.push(type);
+        } else {
+          selectedStaticTypes = selectedStaticTypes.filter(t => t !== type);
+        }
+        updateStaticCount();
+      });
+    });
+
+    // Variant selector
+    document.querySelectorAll('.variant-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.variant-btn').forEach(b => {
+          b.classList.remove('selected');
+          b.style.background = '#1a1a1a';
+          b.style.borderColor = '#333';
+        });
+        btn.classList.add('selected');
+        btn.style.background = '#3b82f6';
+        btn.style.borderColor = '#3b82f6';
+        variantsPerType = parseInt(btn.dataset.variants);
+        updateStaticCount();
+      });
+    });
+
+    function updateStaticCount() {
+      const totalCount = selectedStaticTypes.length * variantsPerType;
+      staticCount.textContent = totalCount + (totalCount === 1 ? ' static' : ' statics');
+      updateStaticLaunchBtn();
+    }
+
+    // Static upload handlers
+    staticDropZone.addEventListener('click', () => staticImageInput.click());
+    staticDropZone.addEventListener('dragover', e => { e.preventDefault(); staticDropZone.style.borderColor = '#8b5cf6'; });
+    staticDropZone.addEventListener('dragleave', () => { staticDropZone.style.borderColor = '#333'; });
+    staticDropZone.addEventListener('drop', e => { e.preventDefault(); staticDropZone.style.borderColor = '#333'; if (e.dataTransfer.files.length) handleStaticFile(e.dataTransfer.files[0]); });
+    staticImageInput.addEventListener('change', () => { if (staticImageInput.files[0]) handleStaticFile(staticImageInput.files[0]); });
+
+    // Logo upload handlers
+    logoDropZone.addEventListener('click', () => logoInput.click());
+    logoDropZone.addEventListener('dragover', e => { e.preventDefault(); logoDropZone.style.borderColor = '#8b5cf6'; });
+    logoDropZone.addEventListener('dragleave', () => { logoDropZone.style.borderColor = '#333'; });
+    logoDropZone.addEventListener('drop', e => { e.preventDefault(); logoDropZone.style.borderColor = '#333'; if (e.dataTransfer.files.length) handleLogoFile(e.dataTransfer.files[0]); });
+    logoInput.addEventListener('change', () => { if (logoInput.files[0]) handleLogoFile(logoInput.files[0]); });
+
+    function handleLogoFile(file) {
+      logoFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        logoPreview.src = e.target.result;
+        logoPreview.style.display = 'block';
+        logoUploadText.style.display = 'none';
+        logoDropZone.querySelector('p').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleStaticFile(file) {
+      staticSelectedFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        staticPreview.src = e.target.result;
+        staticPreview.style.display = 'block';
+        staticUploadText.style.display = 'none';
+        staticDropZone.querySelector('p').style.display = 'none';
+        staticDropZone.classList.add('has-file');
+        updateStaticLaunchBtn();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    staticUrlInput.addEventListener('input', updateStaticLaunchBtn);
+    function updateStaticLaunchBtn() {
+      staticLaunchBtn.disabled = !(staticSelectedFile && staticUrlInput.value.trim() && selectedStaticTypes.length > 0);
+    }
+
+    // Static Designer Launch
+    staticLaunchBtn.addEventListener('click', async () => {
+      if (!staticSelectedFile || !staticUrlInput.value.trim() || selectedStaticTypes.length === 0) return;
+
+      staticDesignerPanel.classList.add('hidden');
+      document.querySelector('.mode-toggle').style.display = 'none';
+      newBtn.style.display = 'block';
+      campaignStatus.classList.add('active');
+      imageGrid.innerHTML = '';
+      imageCards = {};
+      completed = 0;
+      totalImages = selectedStaticTypes.length * variantsPerType;
+      progressText.textContent = '0 / ' + totalImages;
+      completedCount.textContent = '0';
+      currentCampaignImages = [];
+      currentCampaignId = Date.now().toString();
+
+      const formData = new FormData();
+      formData.append('image', staticSelectedFile);
+      formData.append('url', staticUrlInput.value.trim());
+      formData.append('angle', angleInput.value.trim());
+      formData.append('staticTypes', JSON.stringify(selectedStaticTypes));
+      formData.append('variantsPerType', variantsPerType.toString());
+      formData.append('campaignId', currentCampaignId);
+      if (logoFile) {
+        formData.append('logo', logoFile);
+      }
+
+      try {
+        const response = await fetch('/generate-statics', { method: 'POST', body: formData });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                handleEvent(data);
+              } catch (e) {}
+            }
+          }
+        }
+
+        loadCampaigns();
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    });
 
     // Load previous campaigns on page load
     loadCampaigns();
@@ -386,8 +790,8 @@ app.get('/', (req, res) => {
       }
     });
 
-    // Type selection
-    document.querySelectorAll('.type-btn').forEach(btn => {
+    // Type selection (photography only - scope to setupPanel)
+    document.querySelectorAll('#setupPanel .type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('selected');
         const type = btn.dataset.type;
@@ -437,6 +841,7 @@ app.get('/', (req, res) => {
       if (!selectedFile || !urlInput.value.trim() || selectedTypes.length === 0) return;
 
       setupPanel.classList.add('hidden');
+      document.querySelector('.mode-toggle').style.display = 'none';
       newBtn.style.display = 'block';
       campaignStatus.classList.add('active');
       imageGrid.innerHTML = '';
@@ -492,8 +897,8 @@ app.get('/', (req, res) => {
       } else if (data.type === 'start') {
         updateCardStatus(data.id, 'forging');
       } else if (data.type === 'complete') {
-        updateCardComplete(data.id, data.url, data.direction, data.imageType);
-        currentCampaignImages.push({ id: data.id, url: data.url, success: true, direction: data.direction, imageType: data.imageType });
+        updateCardComplete(data.id, data.url, data.url916, data.direction, data.imageType);
+        currentCampaignImages.push({ id: data.id, url: data.url, url916: data.url916, success: true, direction: data.direction, imageType: data.imageType });
         completed++;
         progressText.textContent = completed + ' / ' + totalImages;
         progressBar.style.width = (completed / totalImages * 100) + '%';
@@ -526,17 +931,86 @@ app.get('/', (req, res) => {
       placeholder.querySelector('.status-text').textContent = 'FORGING';
     }
 
-    function updateCardComplete(id, url, direction, imageType) {
+    function updateCardComplete(id, url, url916, direction, imageType) {
       const card = imageCards[id];
       if (!card) return;
       card.classList.remove('forging');
       card.dataset.direction = direction;
       card.dataset.imageType = imageType;
       card.dataset.url = url;
+      card.dataset.url916 = url916 || '';
       const placeholder = card.querySelector('.image-placeholder');
-      placeholder.outerHTML = '<img src="' + url + '" alt="Generated" id="img-' + id + '">';
+
+      // Add aspect ratio toggle tabs above image
+      let tabsHtml = '<div class="aspect-tabs" style="display:flex;gap:4px;margin-bottom:8px;padding:0 8px;">';
+      tabsHtml += '<button class="aspect-tab active" data-aspect="4:5" onclick="switchAspect(' + id + ', \\'4:5\\')">4:5</button>';
+      if (url916) {
+        tabsHtml += '<button class="aspect-tab" data-aspect="9:16" onclick="switchAspect(' + id + ', \\'9:16\\')">9:16</button>';
+      }
+      tabsHtml += '</div>';
+
+      placeholder.outerHTML = tabsHtml + '<img src="' + url + '" alt="Generated" id="img-' + id + '" data-url45="' + url + '" data-url916="' + (url916 || '') + '">';
       const info = card.querySelector('.info');
-      info.innerHTML += '<div class="actions"><a href="' + url + '" target="_blank" class="view-btn">View</a><a href="' + url + '" download class="download-btn">DL</a><button class="flip-btn" onclick="flipImage(' + id + ')">Flip</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button></div>';
+
+      // Build action buttons
+      let actions = '<div class="actions">';
+      actions += '<a href="' + url + '" target="_blank" class="view-btn">4:5</a>';
+      if (url916) {
+        actions += '<a href="' + url916 + '" target="_blank" class="view-btn" style="background:#8b5cf6;color:#fff;">9:16</a>';
+      }
+      actions += '<button class="download-btn" onclick="downloadImage(\\'' + url + '\\', \\'' + direction + '_4x5.png\\')">DL</button>';
+      if (url916) {
+        actions += '<button class="download-btn" style="background:#8b5cf6;" onclick="downloadImage(\\'' + url916 + '\\', \\'' + direction + '_9x16.png\\')">DL</button>';
+      }
+      actions += '<button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+      actions += '</div>';
+      info.innerHTML += actions;
+    }
+
+    // Switch between 4:5 and 9:16 preview
+    function switchAspect(id, aspect) {
+      const img = document.getElementById('img-' + id);
+      if (!img) return;
+      const card = imageCards[id];
+      if (!card) return;
+
+      // Update image source
+      if (aspect === '9:16' && img.dataset.url916) {
+        img.src = img.dataset.url916;
+        img.style.aspectRatio = '9/16';
+      } else {
+        img.src = img.dataset.url45;
+        img.style.aspectRatio = '4/5';
+      }
+
+      // Update active tab
+      const tabs = card.querySelectorAll('.aspect-tab');
+      tabs.forEach(tab => {
+        if (tab.dataset.aspect === aspect) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+
+    // Download single image as blob (handles cross-origin)
+    async function downloadImage(url, filename) {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } catch (err) {
+        console.error('Download failed:', err);
+        window.open(url, '_blank');
+      }
     }
 
     function updateCardError(id, error) {
@@ -550,7 +1024,7 @@ app.get('/', (req, res) => {
       info.innerHTML += '<div class="error-msg">' + error + '</div>';
     }
 
-    // Download All button - handles cross-origin images
+    // Download All button - handles cross-origin images (both 4:5 and 9:16)
     document.getElementById('downloadAll').addEventListener('click', async () => {
       const successfulImages = currentCampaignImages.filter(img => img.success && img.url);
       if (successfulImages.length === 0) {
@@ -558,26 +1032,43 @@ app.get('/', (req, res) => {
         return;
       }
 
-      // Download each image by fetching as blob
+      // Download each image by fetching as blob (both 4:5 and 9:16)
       for (let i = 0; i < successfulImages.length; i++) {
         const img = successfulImages[i];
+        // Download 4:5 version
         try {
           const response = await fetch(img.url);
           const blob = await response.blob();
           const blobUrl = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = blobUrl;
-          link.download = img.imageType + '_' + img.direction + '.png';
+          link.download = img.imageType + '_' + img.direction + '_4x5.png';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(blobUrl);
-          // Small delay between downloads
-          await new Promise(r => setTimeout(r, 500));
+          await new Promise(r => setTimeout(r, 300));
         } catch (err) {
-          console.error('Failed to download:', img.url, err);
-          // Fallback: open in new tab
-          window.open(img.url, '_blank');
+          console.error('Failed to download 4:5:', img.url, err);
+        }
+
+        // Download 9:16 version if available
+        if (img.url916) {
+          try {
+            const response = await fetch(img.url916);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = img.imageType + '_' + img.direction + '_9x16.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+            await new Promise(r => setTimeout(r, 300));
+          } catch (err) {
+            console.error('Failed to download 9:16:', img.url916, err);
+          }
         }
       }
     });
@@ -675,10 +1166,23 @@ app.get('/', (req, res) => {
     }
 
     newBtn.addEventListener('click', () => {
-      setupPanel.classList.remove('hidden');
+      // Show mode toggle
+      document.querySelector('.mode-toggle').style.display = 'flex';
+
+      // Show appropriate panel based on current mode
+      if (currentMode === 'photography') {
+        setupPanel.classList.remove('hidden');
+        staticDesignerPanel.classList.add('hidden');
+      } else {
+        setupPanel.classList.add('hidden');
+        staticDesignerPanel.classList.remove('hidden');
+      }
+
       newBtn.style.display = 'none';
       campaignStatus.classList.remove('active');
       imageGrid.innerHTML = '';
+
+      // Reset photography state
       selectedFile = null;
       preview.style.display = 'none';
       uploadText.style.display = 'block';
@@ -687,6 +1191,17 @@ app.get('/', (req, res) => {
       urlInput.value = '';
       imageInput.value = '';
       launchBtn.disabled = true;
+
+      // Reset static designer state
+      staticSelectedFile = null;
+      staticPreview.style.display = 'none';
+      staticUploadText.style.display = 'block';
+      staticDropZone.querySelector('p').style.display = 'block';
+      staticDropZone.classList.remove('has-file');
+      staticUrlInput.value = '';
+      staticImageInput.value = '';
+      staticLaunchBtn.disabled = true;
+
       progressBar.style.width = '0%';
       currentCampaignImages = [];
     });
@@ -779,8 +1294,8 @@ app.post('/generate', upload.single('image'), async (req, res) => {
     });
     await saveRegenCache();
 
-    // Generate each image and stream results
-    for (const img of images) {
+    // Generate ALL images in PARALLEL
+    const generatePromises = images.map(async (img) => {
       send({ type: 'start', id: img.id });
 
       try {
@@ -796,16 +1311,20 @@ app.post('/generate', upload.single('image'), async (req, res) => {
 
         if (results.success) {
           send({ type: 'complete', id: img.id, url: results.url, direction: img.direction, imageType: img.imageType });
-          campaignImages.push({ id: img.id, url: results.url, success: true, direction: img.direction, imageType: img.imageType });
+          return { id: img.id, url: results.url, success: true, direction: img.direction, imageType: img.imageType };
         } else {
           send({ type: 'error', id: img.id, error: results.error, direction: img.direction, imageType: img.imageType });
-          campaignImages.push({ id: img.id, success: false, error: results.error, direction: img.direction, imageType: img.imageType });
+          return { id: img.id, success: false, error: results.error, direction: img.direction, imageType: img.imageType };
         }
       } catch (err) {
         send({ type: 'error', id: img.id, error: err.message, direction: img.direction, imageType: img.imageType });
-        campaignImages.push({ id: img.id, success: false, error: err.message, direction: img.direction, imageType: img.imageType });
+        return { id: img.id, success: false, error: err.message, direction: img.direction, imageType: img.imageType };
       }
-    }
+    });
+
+    // Wait for ALL parallel generations to complete
+    const results = await Promise.all(generatePromises);
+    campaignImages.push(...results);
 
     // Save campaign to history
     const campaign = {
@@ -866,6 +1385,360 @@ app.post('/regenerate', async (req, res) => {
   } catch (error) {
     console.error('Regeneration error:', error);
     res.json({ success: false, error: error.message });
+  }
+});
+
+// Static Designer generation endpoint
+app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'logo', maxCount: 1 }]), async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  const keepAlive = setInterval(() => { res.write(': keepalive\n\n'); }, 10000);
+  const send = (data) => res.write('data: ' + JSON.stringify(data) + '\n\n');
+
+  const campaignImages = [];
+  const campaignId = req.body.campaignId || Date.now().toString();
+
+  try {
+    const productImageFile = req.files?.image?.[0];
+    const logoImageFile = req.files?.logo?.[0];
+
+    if (!productImageFile) {
+      clearInterval(keepAlive);
+      send({ type: 'error', error: 'No image uploaded' });
+      res.end();
+      return;
+    }
+
+    // Upload product image to hosting service
+    console.log('📤 Uploading product image for static designer...');
+    let imagePublicUrl = null;
+    try {
+      imagePublicUrl = await ImageHost.upload(productImageFile.path);
+    } catch (err) {
+      console.error('Image upload failed:', err.message);
+      imagePublicUrl = publicUrl ? publicUrl + '/uploads/' + productImageFile.filename : null;
+    }
+
+    // Upload logo image if provided
+    let logoPublicUrl = null;
+    if (logoImageFile) {
+      console.log('📤 Uploading brand logo...');
+      try {
+        logoPublicUrl = await ImageHost.upload(logoImageFile.path);
+        console.log('   ✓ Logo uploaded:', logoPublicUrl);
+      } catch (err) {
+        console.error('Logo upload failed:', err.message);
+      }
+    }
+
+    const staticTypes = JSON.parse(req.body.staticTypes || '["type1"]');
+    const variantsPerType = parseInt(req.body.variantsPerType) || 1; // Default to 1, can be 1-4
+
+    // Static type names for display
+    const staticTypeNames = {
+      type1: 'product_hero',
+      type2: 'meme_static',
+      type3: 'aesthetic_offer',
+      type4: 'illustrated',
+      type5: 'vintage_magazine',
+      type6: 'ugc_caption'
+    };
+
+    // Build image queue with multiple variants per type
+    const images = [];
+    let imgId = 0;
+    staticTypes.forEach(type => {
+      for (let v = 0; v < variantsPerType; v++) {
+        images.push({
+          id: imgId++,
+          imageType: 'static',
+          direction: `${staticTypeNames[type] || type}_v${v + 1}`,
+          staticType: type,
+          variantIndex: v  // Track which variant to use
+        });
+      }
+    });
+
+    console.log(`   Generating ${images.length} statics (${variantsPerType} variants per type)`);
+
+    // Send init
+    send({ type: 'init', images });
+
+    const generator = new MTRXImageGenerator();
+
+    // Analyze product and scrape landing page
+    console.log('🔍 Analyzing product for statics...');
+    console.log('   Landing page:', req.body.url);
+    let cachedAnalysis = null;
+    let brandName = 'Unknown Brand';
+    let copyResearch = null;
+
+    try {
+      cachedAnalysis = await generator.analyzeProduct({
+        productImagePath: productImageFile.path,
+        websiteUrl: req.body.url
+      });
+      brandName = cachedAnalysis.product_info?.brand || 'Unknown Brand';
+      console.log('   ✓ Brand:', brandName);
+      console.log('   ✓ Category:', cachedAnalysis.product_info?.category);
+      console.log('   ✓ Tone:', cachedAnalysis.brand_voice?.tone);
+      console.log('   ✓ Target:', cachedAnalysis.brand_voice?.target_gender, cachedAnalysis.brand_voice?.target_age);
+      if (cachedAnalysis.key_phrases?.length > 0) {
+        console.log('   ✓ Key phrases:', cachedAnalysis.key_phrases.slice(0, 3).join(' | '));
+      }
+      if (cachedAnalysis.benefits?.length > 0) {
+        console.log('   ✓ Benefits:', cachedAnalysis.benefits.slice(0, 3).join(', '));
+      }
+    } catch (err) {
+      console.error('Analysis error:', err.message);
+    }
+
+    // Do AI-powered research and copy generation
+    try {
+      const copyService = new CopyResearchService();
+
+      // Fetch landing page content for research
+      let pageContent = '';
+      try {
+        const pageResponse = await fetch(req.body.url);
+        const html = await pageResponse.text();
+        // Strip HTML tags for cleaner text
+        pageContent = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      } catch (e) {
+        console.log('   Could not fetch page content');
+      }
+
+      const proposedAngle = req.body.angle || '';
+      if (proposedAngle) {
+        console.log('   🎯 Proposed angle:', proposedAngle);
+      }
+
+      copyResearch = await copyService.researchAndGenerateCopy({
+        websiteUrl: req.body.url,
+        websiteContent: pageContent,
+        brandName: brandName,
+        productName: cachedAnalysis?.product_info?.product_name || 'product',
+        category: cachedAnalysis?.product_info?.category || 'apparel',
+        proposedAngle: proposedAngle
+      });
+    } catch (err) {
+      console.error('   Copy research error:', err.message);
+    }
+
+    // Store params for regeneration
+    imageParamsCache.set(campaignId, {
+      productImagePath: productImageFile.path,
+      productImageUrl: imagePublicUrl,
+      logoUrl: logoPublicUrl,
+      websiteUrl: req.body.url,
+      cachedAnalysis: cachedAnalysis,
+      isStatic: true
+    });
+    await saveRegenCache();
+
+    // Skill folder mapping
+    const skillFolders = {
+      type1: 'type1-product-hero',
+      type2: 'type2-meme-static',
+      type3: 'type3-aesthetic-offer',
+      type4: 'type4-illustrated-static',
+      type5: 'type5-vintage-magazine',
+      type6: 'type6-ugc-caption'
+    };
+
+    // Create the copy service for building prompts
+    const copyService = new CopyResearchService();
+
+    // Generate ALL statics in PARALLEL
+    const generatePromises = images.map(async (img) => {
+      send({ type: 'start', id: img.id });
+
+      try {
+        // Use the variant index from the image object (set during queue building)
+        const variantIndex = img.variantIndex || 0;
+
+        let prompt = '';
+
+        // PRIORITY: Use AI-generated complete prompts if research is available
+        if (copyResearch && copyResearch.copy) {
+          const generatedPrompt = copyService.buildCompletePrompt(
+            img.staticType,
+            copyResearch,
+            variantIndex,
+            brandName,
+            logoPublicUrl  // Pass uploaded logo URL if available
+          );
+
+          if (generatedPrompt) {
+            prompt = generatedPrompt;
+            const variant = copyService.getVariant(img.staticType, copyResearch, variantIndex);
+            console.log(`   ${img.staticType} using variant ${variantIndex}:`);
+            if (variant?.angle) console.log(`      Angle: ${variant.angle}`);
+            if (variant?.format) console.log(`      Format: ${variant.format}`);
+            if (variant?.composition) console.log(`      Composition: ${variant.composition}`);
+            if (variant?.setting) console.log(`      Setting: ${variant.setting}`);
+            if (variant?.headline) console.log(`      Headline: ${variant.headline.substring(0, 40)}...`);
+            if (variant?.caption) console.log(`      Caption: ${variant.caption.substring(0, 40)}...`);
+          }
+        }
+
+        // FALLBACK: Load skill file if no AI prompt was generated
+        if (!prompt) {
+          const skillFolder = skillFolders[img.staticType] || img.staticType;
+          const skillPath = path.join(__dirname, 'skills/static-designer/apparel', skillFolder, 'SKILL.md');
+          let skillContent = '';
+          try {
+            skillContent = await fs.readFile(skillPath, 'utf-8');
+            console.log('   Loaded skill:', skillFolder);
+          } catch (err) {
+            console.log('   Skill not found at:', skillPath);
+          }
+
+          // Extract the WORKING prompt from skill (not the ASCII diagram)
+          if (skillContent) {
+            // Look for "Example" section which contains the actual working prompt
+            const exampleMatch = skillContent.match(/## .*Example.*\n+```\n?([\s\S]*?)```/i);
+            if (exampleMatch) {
+              prompt = exampleMatch[1].trim();
+            } else {
+              // Fallback: find code blocks and get the longest one that's not a diagram
+              const codeBlockRegex = /```\n?([\s\S]*?)```/g;
+              let match;
+              let longestPrompt = '';
+              while ((match = codeBlockRegex.exec(skillContent)) !== null) {
+                const block = match[1].trim();
+                // Skip diagrams and short blocks
+                if (block.length > 100 && !block.includes('┌') && !block.includes('└') && !block.includes('───')) {
+                  if (block.length > longestPrompt.length) {
+                    longestPrompt = block;
+                  }
+                }
+              }
+              prompt = longestPrompt;
+            }
+            console.log('   Extracted prompt length:', prompt.length);
+            if (prompt.length > 0) {
+              console.log('   Prompt preview:', prompt.substring(0, 80) + '...');
+            }
+          }
+
+          // Apply AI copy as replacement in skill prompt if available
+          if (copyResearch && copyResearch.copy) {
+            prompt = copyService.buildCustomPrompt(img.staticType, copyResearch, prompt, variantIndex);
+          }
+        }
+
+        // Replace remaining placeholders with product info from analysis
+        if (cachedAnalysis && prompt) {
+          const brandNameLocal = cachedAnalysis.product_info?.brand || 'Brand';
+          const productName = cachedAnalysis.product_info?.product_name || 'product';
+          const category = cachedAnalysis.product_info?.category || 'apparel';
+          const benefits = cachedAnalysis.benefits || [];
+          const keyPhrases = cachedAnalysis.key_phrases || [];
+
+          // Build a caption from key phrases or benefits
+          let keyPhrase = keyPhrases[0] || benefits[0] || 'Quality that lasts. Style that fits.';
+
+          // Build benefits list for prompts that need it
+          const benefitsList = benefits.length > 0
+            ? benefits.slice(0, 3).join(', ')
+            : 'durable, comfortable, premium quality';
+
+          // Replace example brand/product names (case insensitive)
+          prompt = prompt.replace(/UndrDog/gi, brandNameLocal);
+          prompt = prompt.replace(/hemp t-shirt/gi, productName);
+          prompt = prompt.replace(/hemp tee/gi, productName);
+
+          // Replace ALL bracket placeholders (various formats)
+          prompt = prompt.replace(/\[BRAND\]/gi, brandNameLocal);
+          prompt = prompt.replace(/\[Brand\]/g, brandNameLocal);
+          prompt = prompt.replace(/\[PRODUCT\]/gi, productName);
+          prompt = prompt.replace(/\[CAPTION\]/gi, keyPhrase);
+          prompt = prompt.replace(/\[PRODUCT TYPE\]/gi, category);
+          prompt = prompt.replace(/\[BRAND NAME\]/gi, brandNameLocal);
+          prompt = prompt.replace(/\[BENEFITS\]/gi, benefitsList);
+          prompt = prompt.replace(/\[OFFER TEXT\]/gi, 'Lifetime Guarantee');
+          prompt = prompt.replace(/\[CTA TEXT\]/gi, 'SHOP NOW');
+          prompt = prompt.replace(/\[HEADLINE[^\]]*\]/gi, keyPhrase);
+
+          console.log('   Brand applied:', brandNameLocal);
+        }
+
+        // Generate at 9:16 first (taller format), then crop to 4:5
+        // This ensures both versions share the EXACT same content
+        const results = await generator.generateSingle({
+          productImagePath: productImageFile.path,
+          productImageUrl: imagePublicUrl,
+          websiteUrl: req.body.url,
+          imageType: 'aesthetic', // Use aesthetic as base
+          direction: 'bold_color_pop', // Default direction
+          outputDir: './output',
+          aspectRatio: '9:16', // Generate tall first, then crop to 4:5
+          cachedAnalysis: cachedAnalysis,
+          customPrompt: prompt || undefined,
+          logoUrl: logoPublicUrl  // Pass logo as second reference image
+        });
+
+        if (results.success) {
+          const url916 = results.url; // The 9:16 is our master image
+
+          // Create 4:5 by center cropping the 9:16
+          let url45 = null;
+          try {
+            console.log('   Creating 4:5 crop from 9:16...');
+            url45 = await create45FromTall(url916);
+            if (url45) {
+              console.log('   ✓ Created 4:5 version (center crop)');
+            }
+          } catch (err45) {
+            console.error('   4:5 crop failed:', err45.message);
+          }
+
+          // Use the cropped 4:5 as primary, with 9:16 as the tall version
+          const primaryUrl = url45 || url916; // Fall back to 9:16 if crop fails
+          send({ type: 'complete', id: img.id, url: primaryUrl, url916: url916, direction: img.direction, imageType: 'static' });
+          return { id: img.id, url: primaryUrl, url916: url916, success: true, direction: img.direction, imageType: 'static' };
+        } else {
+          send({ type: 'error', id: img.id, error: results.error, direction: img.direction, imageType: 'static' });
+          return { id: img.id, success: false, error: results.error, direction: img.direction, imageType: 'static' };
+        }
+      } catch (err) {
+        send({ type: 'error', id: img.id, error: err.message, direction: img.direction, imageType: 'static' });
+        return { id: img.id, success: false, error: err.message, direction: img.direction, imageType: 'static' };
+      }
+    });
+
+    // Wait for ALL parallel generations to complete
+    const results = await Promise.all(generatePromises);
+    campaignImages.push(...results);
+
+    // Save campaign
+    const campaign = {
+      id: campaignId,
+      createdAt: new Date().toISOString(),
+      brand: brandName,
+      types: ['static-designer'],
+      staticTypes: staticTypes,
+      images: campaignImages
+    };
+    await saveCampaign(campaign);
+    console.log('📁 Static campaign saved:', campaignId);
+
+    clearInterval(keepAlive);
+    res.end();
+  } catch (error) {
+    console.error('Static generation error:', error);
+    clearInterval(keepAlive);
+    send({ type: 'error', error: error.message });
+    res.end();
   }
 });
 
