@@ -125,31 +125,102 @@ class ImageHost {
 
   /**
    * Upload image using catbox.moe (permanent, free)
+   * Uses axios + form-data for proper multipart handling
    * @param {string} filePath - Path to image file
    * @returns {Promise<string>} - Public URL
    */
   static async uploadToCatbox(filePath) {
+    const FormDataLib = require('form-data');
+    const fsSync = require('fs');
+    const axios = require('axios');
+
+    const form = new FormDataLib();
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', fsSync.createReadStream(filePath));
+
+    const response = await axios.post('https://catbox.moe/user/api.php', form, {
+      headers: {
+        ...form.getHeaders(),
+      },
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
+    });
+
+    const url = response.data;
+    if (typeof url !== 'string' || !url.startsWith('http')) {
+      throw new Error('catbox returned invalid URL: ' + url);
+    }
+    return url.trim();
+  }
+
+  /**
+   * Upload to 0x0.st (simple, no API key required)
+   * @param {string} filePath - Path to image file
+   * @returns {Promise<string>} - Public URL
+   */
+  static async uploadTo0x0(filePath) {
     const FormData = (await import('formdata-node')).FormData;
     const { fileFromPath } = await import('formdata-node/file-from-path');
 
     const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', await fileFromPath(filePath));
+    form.append('file', await fileFromPath(filePath));
 
-    const response = await fetch('https://catbox.moe/user/api.php', {
+    const response = await fetch('https://0x0.st', {
       method: 'POST',
       body: form
     });
 
     if (!response.ok) {
-      throw new Error('catbox upload failed: ' + response.status);
+      throw new Error('0x0.st upload failed: ' + response.status);
     }
 
     const url = await response.text();
     if (!url.startsWith('http')) {
-      throw new Error('catbox returned invalid URL: ' + url);
+      throw new Error('0x0.st returned invalid URL: ' + url);
     }
     return url.trim();
+  }
+
+  /**
+   * Upload to litterbox.catbox.moe (temporary hosting, 72h, reliable)
+   * @param {string} filePath - Path to image file
+   * @returns {Promise<string>} - Public URL
+   */
+  static async uploadToLitterbox(filePath) {
+    const FormData = (await import('formdata-node')).FormData;
+    const { fileFromPath } = await import('formdata-node/file-from-path');
+
+    const form = new FormData();
+    form.append('reqtype', 'fileupload');
+    form.append('time', '72h'); // Keep for 72 hours
+    form.append('fileToUpload', await fileFromPath(filePath));
+
+    const response = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
+      method: 'POST',
+      body: form
+    });
+
+    if (!response.ok) {
+      throw new Error('litterbox upload failed: ' + response.status);
+    }
+
+    const url = await response.text();
+    if (!url.startsWith('http')) {
+      throw new Error('litterbox returned invalid URL: ' + url);
+    }
+    return url.trim();
+  }
+
+  /**
+   * Upload with timeout wrapper
+   */
+  static async withTimeout(promise, ms, name) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`${name} timed out after ${ms/1000}s`)), ms)
+      )
+    ]);
   }
 
   /**
@@ -158,17 +229,24 @@ class ImageHost {
    * @returns {Promise<string>} - Public URL
    */
   static async upload(filePath) {
+    // Prioritize catbox first (confirmed working)
     const services = [
-      { name: 'imgbb', fn: this.uploadToImgbb },
-      { name: 'freeimage.host', fn: this.uploadToFreeImage },
-      { name: 'catbox.moe', fn: this.uploadToCatbox },
-      { name: 'file.io', fn: this.uploadToFileIO }
+      { name: 'catbox.moe', fn: this.uploadToCatbox, timeout: 30000 },
+      { name: '0x0.st', fn: this.uploadTo0x0, timeout: 30000 },
+      { name: 'litterbox', fn: this.uploadToLitterbox, timeout: 30000 },
+      { name: 'freeimage.host', fn: this.uploadToFreeImage, timeout: 60000 },
+      { name: 'imgbb', fn: this.uploadToImgbb, timeout: 30000 },
+      { name: 'file.io', fn: this.uploadToFileIO, timeout: 30000 }
     ];
 
     for (const service of services) {
       try {
         console.log(`    Uploading to ${service.name}...`);
-        const url = await service.fn(filePath);
+        const url = await this.withTimeout(
+          service.fn(filePath),
+          service.timeout,
+          service.name
+        );
         console.log(`    Uploaded: ${url}`);
         return url;
       } catch (err) {

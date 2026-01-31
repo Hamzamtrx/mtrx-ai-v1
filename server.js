@@ -284,8 +284,8 @@ app.get('/', (req, res) => {
     .download-all:hover { border-color: #06b6d4; color: #fff; }
 
     /* Image Grid */
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; }
-    .image-card { background: #111; border: 1px solid #222; border-radius: 10px; overflow: hidden; transition: all 0.2s; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; min-height: 50px; }
+    .image-card { background: #111; border: 1px solid #222; border-radius: 10px; overflow: hidden; transition: all 0.2s; min-height: 280px; }
     .image-card.forging { border-color: #06b6d4; }
     .image-card.error { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
     .image-placeholder { aspect-ratio: 1; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -297,23 +297,25 @@ app.get('/', (req, res) => {
     .image-card img { width: 100%; aspect-ratio: 4/5; object-fit: contain; display: block; background: #0a0a0a; }
     .image-card .info { padding: 12px; }
     .image-card .direction { font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
-    .image-card .type-badge { color: #06b6d4; font-size: 10px; }
+    .image-card .type-badge { color: #7f78c5; font-size: 11px; font-weight: 500; }
     .image-card .error-msg { color: #ef4444; font-size: 11px; margin-top: 8px; }
     .image-card .actions { display: flex; gap: 6px; margin-top: 10px; }
-    .image-card .actions a { flex: 1; text-align: center; padding: 8px; font-size: 11px; font-weight: 500; border-radius: 6px; text-decoration: none; }
+    .image-card .actions a, .image-card .actions button { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; font-weight: 600; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .view-btn { background: #1a1a1a; color: #fff; border: 1px solid #333; }
-    .download-btn { background: #06b6d4; color: #000; }
-    .regen-btn { background: #f59e0b; color: #000; cursor: pointer; border: none; font-family: inherit; }
-    .regen-btn:hover { background: #d97706; }
+    .view-btn:hover { background: #252525; border-color: #7f78c5; }
+    .download-btn { background: #7f78c5; color: #fff; border: none; }
+    .download-btn:hover { background: #6b64b0; }
+    .regen-btn { background: #eebf12; color: #000; cursor: pointer; border: none; font-family: inherit; }
+    .regen-btn:hover { background: #d4a910; }
     .regen-btn.loading { opacity: 0.6; cursor: wait; }
     .flip-btn { background: #8b5cf6; color: #fff; cursor: pointer; border: none; font-family: inherit; }
     .flip-btn:hover { background: #7c3aed; }
     .image-card img.flipped { transform: scaleX(-1); }
 
     /* Aspect ratio preview tabs */
-    .aspect-tab { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 4px 10px; color: #888; font-size: 11px; cursor: pointer; font-family: inherit; }
-    .aspect-tab:hover { border-color: #444; color: #fff; }
-    .aspect-tab.active { background: #06b6d4; border-color: #06b6d4; color: #000; font-weight: 600; }
+    .aspect-tab { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 6px 12px; color: #888; font-size: 11px; cursor: pointer; font-family: inherit; font-weight: 500; transition: all 0.15s; }
+    .aspect-tab:hover { border-color: #7f78c5; color: #fff; }
+    .aspect-tab.active { background: #7f78c5; border-color: #7f78c5; color: #fff; font-weight: 600; }
 
     /* Hide setup when generating */
     .setup-panel.hidden { display: none; }
@@ -333,7 +335,7 @@ app.get('/', (req, res) => {
     .campaign-thumb .asset-count { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 12px; font-size: 11px; color: #888; }
     .campaign-info { padding: 14px; }
     .campaign-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-    .campaign-brand { color: #666; font-size: 12px; }
+    .campaign-brand { color: #7f78c5; font-size: 12px; font-weight: 500; text-transform: uppercase; }
     .empty-state { text-align: center; padding: 60px 20px; color: #555; }
     .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3; }
     .empty-state p { font-size: 14px; }
@@ -363,12 +365,25 @@ app.get('/', (req, res) => {
     .modal-header h2 { font-size: 24px; }
     .close-modal { background: #222; border: none; color: #fff; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; font-size: 20px; }
     .close-modal:hover { background: #333; }
-    .modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    .modal-image { border-radius: 8px; overflow: hidden; background: #111; }
-    .modal-image img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-    .modal-image .info { padding: 10px; }
-    .modal-image .direction { font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .modal-image .type { color: #06b6d4; font-size: 10px; }
+    .modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+    .modal-image { border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #222; transition: all 0.2s; }
+    .modal-image:hover { border-color: #444; transform: translateY(-2px); }
+    .modal-image img { width: 100%; aspect-ratio: 4/5; object-fit: contain; background: #0a0a0a; cursor: pointer; }
+    .modal-image .info { padding: 14px; }
+    .modal-image .direction { font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .modal-image .type { color: #7f78c5; font-size: 11px; font-weight: 500; }
+    .modal-image .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-image .modal-actions button, .modal-image .modal-actions a {
+      flex: 1; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; text-align: center; text-decoration: none; border: none; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s;
+    }
+    .modal-btn-view { background: #1a1a1a; color: #fff; border: 1px solid #333 !important; }
+    .modal-btn-view:hover { background: #252525; border-color: #7f78c5 !important; }
+    .modal-btn-download { background: #7f78c5; color: #fff; }
+    .modal-btn-download:hover { background: #6b64b0; }
+    .modal-btn-916 { background: #eebf12; color: #000; }
+    .modal-btn-916:hover { background: #d4a910; }
   </style>
 </head>
 <body>
@@ -421,22 +436,50 @@ app.get('/', (req, res) => {
     <!-- STATIC DESIGNER SECTION -->
     <div class="setup-panel hidden" id="staticDesignerPanel">
       <div class="card">
-        <div class="card-title">Static Ad Types (select multiple)</div>
-        <div class="type-grid static-grid">
-          <button class="type-btn selected" data-static="type1"><span class="name">Product Hero</span><span class="desc">Clean product focus</span></button>
-          <button class="type-btn" data-static="type2"><span class="name">Meme Static</span><span class="desc">Viral meme format</span></button>
-          <button class="type-btn" data-static="type3"><span class="name">Aesthetic Offer</span><span class="desc">Lifestyle + promo</span></button>
-          <button class="type-btn" data-static="type4"><span class="name">Illustrated</span><span class="desc">Hand-drawn style</span></button>
-          <button class="type-btn" data-static="type5"><span class="name">Vintage Magazine</span><span class="desc">Retro editorial</span></button>
-          <button class="type-btn" data-static="type6"><span class="name">UGC Caption</span><span class="desc">Model + handwritten text</span></button>
+        <!-- Category Toggle -->
+        <div class="card-title">Category</div>
+        <div class="category-toggle" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button class="category-btn active" data-category="apparel" style="flex: 1; padding: 10px 16px; background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid #06b6d4; border-radius: 8px; color: #06b6d4; font-size: 13px; font-weight: 600; cursor: pointer;">Apparel</button>
+          <button class="category-btn" data-category="supplements" style="flex: 1; padding: 10px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #888; font-size: 13px; font-weight: 600; cursor: pointer;">Supplements</button>
         </div>
-        <div style="margin-top: 16px;">
-          <label style="color: #888; font-size: 12px; display: block; margin-bottom: 8px;">Variants per type (different angles)</label>
-          <div class="variant-selector" style="display: flex; gap: 8px;">
-            <button class="variant-btn" data-variants="1" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">1</button>
-            <button class="variant-btn selected" data-variants="2" style="padding: 8px 16px; background: #3b82f6; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
-            <button class="variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
-            <button class="variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
+
+        <!-- Apparel Static Types -->
+        <div id="apparelTypes">
+          <div class="card-title">Static Ad Types (select multiple)</div>
+          <div class="type-grid static-grid">
+            <button class="type-btn selected" data-static="type1"><span class="name">Product Hero</span><span class="desc">Clean product focus</span></button>
+            <button class="type-btn" data-static="type2"><span class="name">Meme Static</span><span class="desc">Viral meme format</span></button>
+            <button class="type-btn" data-static="type3"><span class="name">Aesthetic Offer</span><span class="desc">Lifestyle + promo</span></button>
+            <button class="type-btn" data-static="type4"><span class="name">Illustrated</span><span class="desc">Hand-drawn style</span></button>
+            <button class="type-btn" data-static="type5"><span class="name">Vintage Magazine</span><span class="desc">Retro editorial</span></button>
+            <button class="type-btn" data-static="type6"><span class="name">UGC Caption</span><span class="desc">Model + handwritten text</span></button>
+          </div>
+          <div style="margin-top: 16px;">
+            <label style="color: #888; font-size: 12px; display: block; margin-bottom: 8px;">Variants per type (different angles)</label>
+            <div class="variant-selector" style="display: flex; gap: 8px;">
+              <button class="variant-btn" data-variants="1" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">1</button>
+              <button class="variant-btn selected" data-variants="2" style="padding: 8px 16px; background: #3b82f6; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
+              <button class="variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
+              <button class="variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplements Static Types -->
+        <div id="supplementsTypes" style="display: none;">
+          <div class="card-title">Static Ad Types (select multiple)</div>
+          <div class="type-grid static-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <button class="type-btn supp-type selected" data-static="supp-benefit-checklist"><span class="name">Benefit Checklist</span><span class="desc">Product + checkmark benefits</span></button>
+            <button class="type-btn supp-type" data-static="supp-ingredient-halo"><span class="name">Ingredient Halo</span><span class="desc">Ingredients orbiting product</span></button>
+          </div>
+          <div style="margin-top: 16px;">
+            <label style="color: #888; font-size: 12px; display: block; margin-bottom: 8px;">Variants per type (different copy angles)</label>
+            <div class="supp-variant-selector" style="display: flex; gap: 8px;">
+              <button class="supp-variant-btn selected" data-variants="1" style="padding: 8px 16px; background: #3b82f6; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; cursor: pointer;">1</button>
+              <button class="supp-variant-btn" data-variants="2" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
+              <button class="supp-variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
+              <button class="supp-variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
+            </div>
           </div>
         </div>
       </div>
@@ -539,6 +582,9 @@ app.get('/', (req, res) => {
     let staticSelectedFile = null;
     let selectedStaticTypes = ['type1'];
     let variantsPerType = 2; // Default to 2 variants per type
+    let selectedCategory = 'apparel'; // apparel or supplements
+    let selectedSuppTypes = ['supp-benefit-checklist']; // supplements types
+    let suppVariantsPerType = 1; // Default to 1 variant for supplements
     const staticDesignerPanel = document.getElementById('staticDesignerPanel');
     const staticDropZone = document.getElementById('staticDropZone');
     const staticImageInput = document.getElementById('staticImageInput');
@@ -553,6 +599,8 @@ app.get('/', (req, res) => {
     let logoFile = null;
     const staticLaunchBtn = document.getElementById('staticLaunchBtn');
     const staticCount = document.getElementById('staticCount');
+    const apparelTypes = document.getElementById('apparelTypes');
+    const supplementsTypes = document.getElementById('supplementsTypes');
 
     // Mode toggle
     document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -571,8 +619,48 @@ app.get('/', (req, res) => {
       });
     });
 
-    // Static type selection
-    document.querySelectorAll('.static-grid .type-btn').forEach(btn => {
+    // Category toggle (Apparel vs Supplements)
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.category-btn').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = '#1a1a1a';
+          b.style.borderColor = '#333';
+          b.style.color = '#888';
+        });
+        btn.classList.add('active');
+        btn.style.background = 'linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))';
+        btn.style.borderColor = '#06b6d4';
+        btn.style.color = '#06b6d4';
+        selectedCategory = btn.dataset.category;
+
+        if (selectedCategory === 'apparel') {
+          apparelTypes.style.display = 'block';
+          supplementsTypes.style.display = 'none';
+        } else {
+          apparelTypes.style.display = 'none';
+          supplementsTypes.style.display = 'block';
+        }
+        updateStaticCount();
+      });
+    });
+
+    // Supplement type selection
+    document.querySelectorAll('.supp-type').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('selected');
+        const type = btn.dataset.static;
+        if (btn.classList.contains('selected')) {
+          if (!selectedSuppTypes.includes(type)) selectedSuppTypes.push(type);
+        } else {
+          selectedSuppTypes = selectedSuppTypes.filter(t => t !== type);
+        }
+        updateStaticCount();
+      });
+    });
+
+    // Static type selection (apparel)
+    document.querySelectorAll('#apparelTypes .static-grid .type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('selected');
         const type = btn.dataset.static;
@@ -585,7 +673,7 @@ app.get('/', (req, res) => {
       });
     });
 
-    // Variant selector
+    // Variant selector (apparel)
     document.querySelectorAll('.variant-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.variant-btn').forEach(b => {
@@ -601,8 +689,29 @@ app.get('/', (req, res) => {
       });
     });
 
+    // Variant selector (supplements)
+    document.querySelectorAll('.supp-variant-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.supp-variant-btn').forEach(b => {
+          b.classList.remove('selected');
+          b.style.background = '#1a1a1a';
+          b.style.borderColor = '#333';
+        });
+        btn.classList.add('selected');
+        btn.style.background = '#3b82f6';
+        btn.style.borderColor = '#3b82f6';
+        suppVariantsPerType = parseInt(btn.dataset.variants);
+        updateStaticCount();
+      });
+    });
+
     function updateStaticCount() {
-      const totalCount = selectedStaticTypes.length * variantsPerType;
+      let totalCount;
+      if (selectedCategory === 'apparel') {
+        totalCount = selectedStaticTypes.length * variantsPerType;
+      } else {
+        totalCount = selectedSuppTypes.length * suppVariantsPerType;
+      }
       staticCount.textContent = totalCount + (totalCount === 1 ? ' static' : ' statics');
       updateStaticLaunchBtn();
     }
@@ -649,12 +758,18 @@ app.get('/', (req, res) => {
 
     staticUrlInput.addEventListener('input', updateStaticLaunchBtn);
     function updateStaticLaunchBtn() {
-      staticLaunchBtn.disabled = !(staticSelectedFile && staticUrlInput.value.trim() && selectedStaticTypes.length > 0);
+      const hasTypes = selectedCategory === 'apparel'
+        ? selectedStaticTypes.length > 0
+        : selectedSuppTypes.length > 0;
+      staticLaunchBtn.disabled = !(staticSelectedFile && staticUrlInput.value.trim() && hasTypes);
     }
 
     // Static Designer Launch
     staticLaunchBtn.addEventListener('click', async () => {
-      if (!staticSelectedFile || !staticUrlInput.value.trim() || selectedStaticTypes.length === 0) return;
+      const hasTypes = selectedCategory === 'apparel'
+        ? selectedStaticTypes.length > 0
+        : selectedSuppTypes.length > 0;
+      if (!staticSelectedFile || !staticUrlInput.value.trim() || !hasTypes) return;
 
       staticDesignerPanel.classList.add('hidden');
       document.querySelector('.mode-toggle').style.display = 'none';
@@ -663,18 +778,66 @@ app.get('/', (req, res) => {
       imageGrid.innerHTML = '';
       imageCards = {};
       completed = 0;
-      totalImages = selectedStaticTypes.length * variantsPerType;
+
+      // Calculate total images based on category
+      if (selectedCategory === 'apparel') {
+        totalImages = selectedStaticTypes.length * variantsPerType;
+      } else {
+        totalImages = selectedSuppTypes.length * suppVariantsPerType;
+      }
       progressText.textContent = '0 / ' + totalImages;
       completedCount.textContent = '0';
       currentCampaignImages = [];
       currentCampaignId = Date.now().toString();
 
+      // Create placeholder cards immediately so user sees something
+      const staticTypeNames = {
+        type1: 'product_hero',
+        type2: 'meme_static',
+        type3: 'aesthetic_offer',
+        type4: 'illustrated',
+        type5: 'vintage_magazine',
+        type6: 'ugc_caption'
+      };
+      const suppTypeNames = {
+        'supp-benefit-checklist': 'benefit_checklist',
+        'supp-ingredient-halo': 'ingredient_halo'
+      };
+
+      let cardId = 0;
+      if (selectedCategory === 'apparel') {
+        selectedStaticTypes.forEach(type => {
+          for (let v = 0; v < variantsPerType; v++) {
+            const direction = (staticTypeNames[type] || type) + '_v' + (v + 1);
+            createCard({ id: cardId, direction: direction, imageType: 'static' });
+            cardId++;
+          }
+        });
+      } else {
+        // Supplements: loop over variants
+        selectedSuppTypes.forEach(type => {
+          for (let v = 0; v < suppVariantsPerType; v++) {
+            const direction = (suppTypeNames[type] || type) + '_v' + (v + 1);
+            createCard({ id: cardId, direction: direction, imageType: 'supplement' });
+            cardId++;
+          }
+        });
+      }
+      console.log('Created', cardId, 'placeholder cards for', selectedCategory);
+
       const formData = new FormData();
       formData.append('image', staticSelectedFile);
       formData.append('url', staticUrlInput.value.trim());
+      formData.append('category', selectedCategory);
       formData.append('angle', angleInput.value.trim());
-      formData.append('staticTypes', JSON.stringify(selectedStaticTypes));
-      formData.append('variantsPerType', variantsPerType.toString());
+
+      if (selectedCategory === 'apparel') {
+        formData.append('staticTypes', JSON.stringify(selectedStaticTypes));
+        formData.append('variantsPerType', variantsPerType.toString());
+      } else {
+        formData.append('staticTypes', JSON.stringify(selectedSuppTypes));
+        formData.append('variantsPerType', suppVariantsPerType.toString());
+      }
       formData.append('campaignId', currentCampaignId);
       if (logoFile) {
         formData.append('logo', logoFile);
@@ -698,7 +861,9 @@ app.get('/', (req, res) => {
               try {
                 const data = JSON.parse(line.slice(6));
                 handleEvent(data);
-              } catch (e) {}
+              } catch (e) {
+                console.error('SSE error:', e, line);
+              }
             }
           }
         }
@@ -768,11 +933,27 @@ app.get('/', (req, res) => {
       campaign.images.filter(img => img.success).forEach(img => {
         const div = document.createElement('div');
         div.className = 'modal-image';
+
+        // Build action buttons - two rows: View row and Download row
+        let actionsHtml = '<div class="modal-actions">';
+        actionsHtml += '<a href="' + img.url + '" target="_blank" class="modal-btn-view">4:5</a>';
+        if (img.url916) {
+          actionsHtml += '<a href="' + img.url916 + '" target="_blank" class="modal-btn-916">9:16</a>';
+        }
+        actionsHtml += '</div>';
+        actionsHtml += '<div class="modal-actions" style="margin-top:6px;">';
+        actionsHtml += '<button class="modal-btn-download" onclick="downloadImage(\\'' + img.url + '\\', \\'' + img.direction + '_4x5.png\\')">DL 4:5</button>';
+        if (img.url916) {
+          actionsHtml += '<button class="modal-btn-download" style="background:#eebf12;color:#000;" onclick="downloadImage(\\'' + img.url916 + '\\', \\'' + img.direction + '_9x16.png\\')">DL 9:16</button>';
+        }
+        actionsHtml += '</div>';
+
         div.innerHTML =
-          '<img src="' + img.url + '" alt="' + img.direction + '">' +
+          '<img src="' + img.url + '" alt="' + img.direction + '" onclick="window.open(\\'' + img.url + '\\', \\'_blank\\')">' +
           '<div class="info">' +
             '<div class="direction">' + img.direction.replace(/_/g, ' ') + '</div>' +
             '<div class="type">' + img.imageType.toUpperCase() + '</div>' +
+            actionsHtml +
           '</div>';
         modalGrid.appendChild(div);
       });
@@ -877,7 +1058,9 @@ app.get('/', (req, res) => {
               try {
                 const data = JSON.parse(line.slice(6));
                 handleEvent(data);
-              } catch (e) {}
+              } catch (e) {
+                console.error('SSE error:', e, line);
+              }
             }
           }
         }
@@ -890,10 +1073,18 @@ app.get('/', (req, res) => {
     });
 
     function handleEvent(data) {
+      console.log('handleEvent received:', data.type, data);
       if (data.type === 'init') {
+        // Cards already created on launch, just verify count
         totalImages = data.images.length;
         progressText.textContent = '0 / ' + totalImages;
-        data.images.forEach(img => createCard(img));
+        console.log('Init event - verifying', data.images.length, 'cards exist');
+        // Create any missing cards (in case IDs don't match)
+        data.images.forEach(img => {
+          if (!imageCards[img.id]) {
+            createCard(img);
+          }
+        });
       } else if (data.type === 'start') {
         updateCardStatus(data.id, 'forging');
       } else if (data.type === 'complete') {
@@ -903,6 +1094,15 @@ app.get('/', (req, res) => {
         progressText.textContent = completed + ' / ' + totalImages;
         progressBar.style.width = (completed / totalImages * 100) + '%';
         completedCount.textContent = completed;
+      } else if (data.type === 'extending') {
+        // Show that 9:16 is being generated
+        showExtendingStatus(data.id);
+      } else if (data.type === 'update916') {
+        // 9:16 version is ready - add it to the existing card
+        updateCard916(data.id, data.url916);
+        // Update the stored campaign image
+        const img = currentCampaignImages.find(i => i.id === data.id);
+        if (img) img.url916 = data.url916;
       } else if (data.type === 'error') {
         updateCardError(data.id, data.error);
         currentCampaignImages.push({ id: data.id, success: false, error: data.error, direction: data.direction, imageType: data.imageType });
@@ -913,12 +1113,24 @@ app.get('/', (req, res) => {
     }
 
     function createCard(img) {
-      const card = document.createElement('div');
-      card.className = 'image-card';
-      card.id = 'card-' + img.id;
-      card.innerHTML = '<div class="image-placeholder"><div class="spinner" style="display:none;"></div><span class="status-text queue">Queue</span></div><div class="info"><div class="direction">' + img.direction.replace(/_/g, ' ') + '</div><div class="type-badge">' + img.imageType.toUpperCase() + '</div></div>';
-      imageGrid.appendChild(card);
-      imageCards[img.id] = card;
+      console.log('Creating card:', img);
+      if (!imageGrid) {
+        console.error('imageGrid is null!');
+        return;
+      }
+      try {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        card.id = 'card-' + img.id;
+        const directionText = img.direction ? img.direction.replace(/_/g, ' ') : 'Unknown';
+        const typeText = img.imageType ? img.imageType.toUpperCase() : 'STATIC';
+        card.innerHTML = '<div class="image-placeholder"><div class="spinner" style="display:none;"></div><span class="status-text queue">Queue</span></div><div class="info"><div class="direction">' + directionText + '</div><div class="type-badge">' + typeText + '</div></div>';
+        imageGrid.appendChild(card);
+        imageCards[img.id] = card;
+        console.log('Card created, imageGrid children:', imageGrid.children.length, 'Grid display:', getComputedStyle(imageGrid).display);
+      } catch (err) {
+        console.error('createCard error:', err);
+      }
     }
 
     function updateCardStatus(id, status) {
@@ -1011,6 +1223,97 @@ app.get('/', (req, res) => {
         console.error('Download failed:', err);
         window.open(url, '_blank');
       }
+    }
+
+    function showExtendingStatus(id) {
+      const card = imageCards[id];
+      if (!card) {
+        console.log('showExtendingStatus: card not found for id', id);
+        return;
+      }
+      console.log('showExtendingStatus: showing badge for id', id);
+
+      // Add a prominent badge showing 9:16 is being generated
+      let badge = card.querySelector('.extending-badge');
+      if (!badge) {
+        // Create wrapper around the image if not already wrapped
+        const img = card.querySelector('img');
+        let wrapper = card.querySelector('.img-wrapper');
+        if (img && !wrapper) {
+          wrapper = document.createElement('div');
+          wrapper.className = 'img-wrapper';
+          wrapper.style.cssText = 'position: relative; display: inline-block; width: 100%;';
+          img.parentNode.insertBefore(wrapper, img);
+          wrapper.appendChild(img);
+        }
+
+        badge = document.createElement('div');
+        badge.className = 'extending-badge';
+        badge.innerHTML = '<div class="extending-spinner"></div><span>Generating 9:16...</span>';
+        badge.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(238,191,18,0.95); color: #000; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+
+        // Append to wrapper or card
+        (wrapper || card).appendChild(badge);
+
+        // Add spinner animation
+        const spinner = badge.querySelector('.extending-spinner');
+        spinner.style.cssText = 'width: 16px; height: 16px; border: 3px solid #000; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;';
+      }
+    }
+
+    function updateCard916(id, url916) {
+      const card = imageCards[id];
+      if (!card || !url916) return;
+      console.log('updateCard916: adding 9:16 for id', id);
+
+      // Remove extending badge
+      const badge = card.querySelector('.extending-badge');
+      if (badge) {
+        console.log('updateCard916: removing extending badge');
+        badge.remove();
+      }
+
+      // Update data attribute
+      card.dataset.url916 = url916;
+
+      // Add 9:16 tab if not already present
+      const tabsContainer = card.querySelector('.aspect-tabs');
+      if (tabsContainer && !tabsContainer.querySelector('[data-aspect="9:16"]')) {
+        const tab916 = document.createElement('button');
+        tab916.className = 'aspect-tab';
+        tab916.dataset.aspect = '9:16';
+        tab916.textContent = '9:16';
+        tab916.onclick = function() { switchAspect(id, '9:16'); };
+        tabsContainer.appendChild(tab916);
+      }
+
+      // Add 9:16 view and download buttons if not already present
+      const actions = card.querySelector('.actions');
+      if (actions && !actions.querySelector('.btn-916-view')) {
+        const viewBtn = document.createElement('a');
+        viewBtn.href = url916;
+        viewBtn.target = '_blank';
+        viewBtn.className = 'view-btn btn-916-view';
+        viewBtn.style.background = '#eebf12';
+        viewBtn.style.color = '#000';
+        viewBtn.style.fontWeight = '600';
+        viewBtn.textContent = 'View 9:16';
+        actions.appendChild(viewBtn);
+
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'download-btn btn-916-dl';
+        dlBtn.style.background = '#d4a910';
+        dlBtn.style.color = '#000';
+        dlBtn.onclick = function() { downloadImage(url916, card.dataset.direction + '_9x16.png'); };
+        dlBtn.textContent = 'DL 9:16';
+        actions.appendChild(dlBtn);
+      }
+
+      // Store url916 on the image for aspect switching
+      const img = card.querySelector('img');
+      if (img) img.dataset.url916 = url916;
+
+      console.log('9:16 added to card', id);
     }
 
     function updateCardError(id, error) {
@@ -1394,9 +1697,13 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders(); // Force headers to be sent immediately
 
   const keepAlive = setInterval(() => { res.write(': keepalive\n\n'); }, 10000);
-  const send = (data) => res.write('data: ' + JSON.stringify(data) + '\n\n');
+  const send = (data) => {
+    res.write('data: ' + JSON.stringify(data) + '\n\n');
+    if (res.flush) res.flush();
+  };
 
   const campaignImages = [];
   const campaignId = req.body.campaignId || Date.now().toString();
@@ -1417,25 +1724,39 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
     let imagePublicUrl = null;
     try {
       imagePublicUrl = await ImageHost.upload(productImageFile.path);
+      console.log('   ✓ Product image uploaded:', imagePublicUrl);
     } catch (err) {
-      console.error('Image upload failed:', err.message);
-      imagePublicUrl = publicUrl ? publicUrl + '/uploads/' + productImageFile.filename : null;
+      console.error('   Image upload to external host failed:', err.message);
+      // Fallback: use local tunnel URL if available
+      if (publicUrl) {
+        imagePublicUrl = publicUrl + '/uploads/' + productImageFile.filename;
+        console.log('   ✓ Using local tunnel URL:', imagePublicUrl);
+      } else {
+        console.error('   ✗ No public URL available - product image will not be used as reference!');
+      }
     }
 
     // Upload logo image if provided
     let logoPublicUrl = null;
+    console.log('   Logo file received:', logoImageFile ? 'yes' : 'no');
     if (logoImageFile) {
       console.log('📤 Uploading brand logo...');
       try {
         logoPublicUrl = await ImageHost.upload(logoImageFile.path);
         console.log('   ✓ Logo uploaded:', logoPublicUrl);
       } catch (err) {
-        console.error('Logo upload failed:', err.message);
+        console.error('   Logo upload to external host failed:', err.message);
+        // Fallback: use local tunnel URL if available
+        if (publicUrl) {
+          logoPublicUrl = publicUrl + '/uploads/' + logoImageFile.filename;
+          console.log('   ✓ Using local tunnel URL for logo:', logoPublicUrl);
+        }
       }
     }
 
     const staticTypes = JSON.parse(req.body.staticTypes || '["type1"]');
     const variantsPerType = parseInt(req.body.variantsPerType) || 1; // Default to 1, can be 1-4
+    const category = req.body.category || 'apparel'; // apparel or supplements
 
     // Static type names for display
     const staticTypeNames = {
@@ -1447,22 +1768,45 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
       type6: 'ugc_caption'
     };
 
-    // Build image queue with multiple variants per type
+    // Supplements type names
+    const suppTypeNames = {
+      'supp-benefit-checklist': 'benefit_checklist',
+      'supp-ingredient-halo': 'ingredient_halo'
+    };
+
+    // Build image queue
     const images = [];
     let imgId = 0;
-    staticTypes.forEach(type => {
-      for (let v = 0; v < variantsPerType; v++) {
-        images.push({
-          id: imgId++,
-          imageType: 'static',
-          direction: `${staticTypeNames[type] || type}_v${v + 1}`,
-          staticType: type,
-          variantIndex: v  // Track which variant to use
-        });
-      }
-    });
 
-    console.log(`   Generating ${images.length} statics (${variantsPerType} variants per type)`);
+    if (category === 'supplements') {
+      // Supplements: multiple variants per type with different copy angles
+      staticTypes.forEach(type => {
+        for (let v = 0; v < variantsPerType; v++) {
+          images.push({
+            id: imgId++,
+            imageType: 'supplement',
+            direction: `${suppTypeNames[type] || type}_v${v + 1}`,
+            staticType: type,
+            variantIndex: v
+          });
+        }
+      });
+      console.log(`   Generating ${images.length} supplement statics (${variantsPerType} variants per type)`);
+    } else {
+      // Apparel: multiple variants per type
+      staticTypes.forEach(type => {
+        for (let v = 0; v < variantsPerType; v++) {
+          images.push({
+            id: imgId++,
+            imageType: 'static',
+            direction: `${staticTypeNames[type] || type}_v${v + 1}`,
+            staticType: type,
+            variantIndex: v  // Use sequential variants from research
+          });
+        }
+      });
+      console.log(`   Generating ${images.length} statics (${variantsPerType} variants per type)`);
+    }
 
     // Send init
     send({ type: 'init', images });
@@ -1521,14 +1865,26 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
         console.log('   🎯 Proposed angle:', proposedAngle);
       }
 
-      copyResearch = await copyService.researchAndGenerateCopy({
-        websiteUrl: req.body.url,
-        websiteContent: pageContent,
-        brandName: brandName,
-        productName: cachedAnalysis?.product_info?.product_name || 'product',
-        category: cachedAnalysis?.product_info?.category || 'apparel',
-        proposedAngle: proposedAngle
-      });
+      // Use different research based on category
+      if (category === 'supplements') {
+        copyResearch = await copyService.researchSupplementCopy({
+          websiteUrl: req.body.url,
+          websiteContent: pageContent,
+          brandName: brandName,
+          productName: cachedAnalysis?.product_info?.product_name || 'Supplement',
+          keyIngredients: cachedAnalysis?.product_info?.key_ingredients || [],
+          productImageUrl: imagePublicUrl // Pass product image for capsule analysis
+        });
+      } else {
+        copyResearch = await copyService.researchAndGenerateCopy({
+          websiteUrl: req.body.url,
+          websiteContent: pageContent,
+          brandName: brandName,
+          productName: cachedAnalysis?.product_info?.product_name || 'product',
+          category: cachedAnalysis?.product_info?.category || 'apparel',
+          proposedAngle: proposedAngle
+        });
+      }
     } catch (err) {
       console.error('   Copy research error:', err.message);
     }
@@ -1562,85 +1918,190 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
       send({ type: 'start', id: img.id });
 
       try {
-        // Use the variant index from the image object (set during queue building)
-        const variantIndex = img.variantIndex || 0;
-
         let prompt = '';
 
-        // PRIORITY: Use AI-generated complete prompts if research is available
-        if (copyResearch && copyResearch.copy) {
-          const generatedPrompt = copyService.buildCompletePrompt(
-            img.staticType,
-            copyResearch,
-            variantIndex,
-            brandName,
-            logoPublicUrl  // Pass uploaded logo URL if available
-          );
+        // ═══════════════════════════════════════════════════════════════
+        // SUPPLEMENTS CATEGORY - Use AI research for copy generation
+        // ═══════════════════════════════════════════════════════════════
+        if (category === 'supplements') {
+          // Get product info from analysis
+          const productName = cachedAnalysis?.product_info?.product_name || 'Supplement';
+          const productDesc = cachedAnalysis?.product_description_block || 'supplement pouch';
 
-          if (generatedPrompt) {
-            prompt = generatedPrompt;
-            const variant = copyService.getVariant(img.staticType, copyResearch, variantIndex);
-            console.log(`   ${img.staticType} using variant ${variantIndex}:`);
-            if (variant?.angle) console.log(`      Angle: ${variant.angle}`);
-            if (variant?.format) console.log(`      Format: ${variant.format}`);
-            if (variant?.composition) console.log(`      Composition: ${variant.composition}`);
-            if (variant?.setting) console.log(`      Setting: ${variant.setting}`);
-            if (variant?.headline) console.log(`      Headline: ${variant.headline.substring(0, 40)}...`);
-            if (variant?.caption) console.log(`      Caption: ${variant.caption.substring(0, 40)}...`);
+          // Use AI-generated copy from research if available
+          if (copyResearch?.supplement_copy) {
+            const suppCopy = copyResearch.supplement_copy;
+            const variantIdx = img.variantIndex || 0;
+            console.log(`   ${img.staticType} using AI-generated copy (variant ${variantIdx + 1})`);
+
+            if (img.staticType === 'supp-benefit-checklist' && suppCopy.benefit_checklist) {
+              // benefit_checklist is now an array of variants
+              const bcVariants = Array.isArray(suppCopy.benefit_checklist)
+                ? suppCopy.benefit_checklist
+                : [suppCopy.benefit_checklist]; // fallback for old format
+              const bc = bcVariants[variantIdx % bcVariants.length] || bcVariants[0];
+              console.log(`      H1: ${bc.h1_line1 || 'N/A'}`);
+              prompt = copyService.buildSupplementBenefitChecklistPrompt({
+                productName: productName,
+                productDescription: productDesc,
+                brandName: brandName,
+                capsuleStyle: suppCopy.capsule_style || 'capsules',
+                accentColor: suppCopy.accent_color || 'pink',
+                textColor1: suppCopy.text_color_1 || 'dark purple',
+                textColor2: suppCopy.text_color_2 || 'pink',
+                background: suppCopy.background || 'soft light pink/lavender',
+                h1Line1: bc.h1_line1,
+                h1Line2: bc.h1_line2,
+                benefits: bc.benefits,
+                cta: bc.cta,
+                trust: suppCopy.trust || '365-Day Money Back Guarantee',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'supp-ingredient-halo' && suppCopy.ingredient_halo) {
+              // ingredient_halo is now an array of variants
+              const ihVariants = Array.isArray(suppCopy.ingredient_halo)
+                ? suppCopy.ingredient_halo
+                : [suppCopy.ingredient_halo]; // fallback for old format
+              const ih = ihVariants[variantIdx % ihVariants.length] || ihVariants[0];
+              console.log(`      H1: ${ih.h1 || 'N/A'}`);
+              prompt = copyService.buildSupplementIngredientHaloPrompt({
+                productName: productName,
+                productDescription: productDesc,
+                brandName: brandName,
+                accentColor: suppCopy.accent_color || 'pink',
+                background: suppCopy.halo_background || 'dark purple gradient with subtle particle bokeh',
+                ingredients: suppCopy.ingredients || [],
+                h1: ih.h1,
+                h2: ih.h2,
+                cta: ih.cta,
+                aspectRatio: '4:5'
+              });
+            }
+          }
+
+          // Fallback if no AI copy was generated
+          if (!prompt) {
+            console.log(`   ${img.staticType} using fallback copy`);
+            if (img.staticType === 'supp-benefit-checklist') {
+              prompt = copyService.buildSupplementBenefitChecklistPrompt({
+                productName: productName,
+                productDescription: productDesc,
+                brandName: brandName,
+                capsuleStyle: 'capsules',
+                accentColor: 'teal',
+                textColor1: 'dark gray',
+                textColor2: 'teal',
+                background: 'soft light gradient',
+                h1Line1: 'Finally, a supplement that works.',
+                h1Line2: null,
+                benefits: ['Clinically studied ingredients', 'No proprietary blends', 'Money back guarantee', 'Real results'],
+                cta: 'Try it risk-free',
+                trust: '365-Day Money Back Guarantee',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'supp-ingredient-halo') {
+              prompt = copyService.buildSupplementIngredientHaloPrompt({
+                productName: productName,
+                productDescription: productDesc,
+                brandName: brandName,
+                accentColor: 'teal',
+                background: 'dark gradient with subtle particle bokeh',
+                ingredients: [
+                  { name: 'Key Ingredient 1', visual: 'Natural botanical element' },
+                  { name: 'Key Ingredient 2', visual: 'Natural botanical element' },
+                  { name: 'Key Ingredient 3', visual: 'Natural botanical element' }
+                ],
+                h1: 'What\'s inside matters.',
+                h2: 'Premium ingredients, transparently sourced.',
+                cta: 'See the science',
+                aspectRatio: '4:5'
+              });
+            }
           }
         }
 
-        // FALLBACK: Load skill file if no AI prompt was generated
+        // ═══════════════════════════════════════════════════════════════
+        // APPAREL CATEGORY - Use AI research or skill files
+        // ═══════════════════════════════════════════════════════════════
         if (!prompt) {
-          const skillFolder = skillFolders[img.staticType] || img.staticType;
-          const skillPath = path.join(__dirname, 'skills/static-designer/apparel', skillFolder, 'SKILL.md');
-          let skillContent = '';
-          try {
-            skillContent = await fs.readFile(skillPath, 'utf-8');
-            console.log('   Loaded skill:', skillFolder);
-          } catch (err) {
-            console.log('   Skill not found at:', skillPath);
+          // Use the variant index from the image object (set during queue building)
+          const variantIndex = img.variantIndex || 0;
+
+          // PRIORITY: Use AI-generated complete prompts if research is available
+          if (copyResearch && copyResearch.copy) {
+            const generatedPrompt = copyService.buildCompletePrompt(
+              img.staticType,
+              copyResearch,
+              variantIndex,
+              brandName,
+              logoPublicUrl  // Pass uploaded logo URL if available
+            );
+
+            if (generatedPrompt) {
+              prompt = generatedPrompt;
+              const variant = copyService.getVariant(img.staticType, copyResearch, variantIndex);
+              console.log(`   ${img.staticType} using variant ${variantIndex}:`);
+              if (variant?.angle) console.log(`      Angle: ${variant.angle}`);
+              if (variant?.format) console.log(`      Format: ${variant.format}`);
+              if (variant?.composition) console.log(`      Composition: ${variant.composition}`);
+              if (variant?.setting) console.log(`      Setting: ${variant.setting}`);
+              if (variant?.headline) console.log(`      Headline: ${variant.headline.substring(0, 40)}...`);
+              if (variant?.caption) console.log(`      Caption: ${variant.caption.substring(0, 40)}...`);
+            }
           }
 
-          // Extract the WORKING prompt from skill (not the ASCII diagram)
-          if (skillContent) {
-            // Look for "Example" section which contains the actual working prompt
-            const exampleMatch = skillContent.match(/## .*Example.*\n+```\n?([\s\S]*?)```/i);
-            if (exampleMatch) {
-              prompt = exampleMatch[1].trim();
-            } else {
-              // Fallback: find code blocks and get the longest one that's not a diagram
-              const codeBlockRegex = /```\n?([\s\S]*?)```/g;
-              let match;
-              let longestPrompt = '';
-              while ((match = codeBlockRegex.exec(skillContent)) !== null) {
-                const block = match[1].trim();
-                // Skip diagrams and short blocks
-                if (block.length > 100 && !block.includes('┌') && !block.includes('└') && !block.includes('───')) {
-                  if (block.length > longestPrompt.length) {
-                    longestPrompt = block;
+          // FALLBACK: Load skill file if no AI prompt was generated (apparel only)
+          if (!prompt) {
+            const skillFolder = skillFolders[img.staticType] || img.staticType;
+            const skillPath = path.join(__dirname, 'skills/static-designer/apparel', skillFolder, 'SKILL.md');
+            let skillContent = '';
+            try {
+              skillContent = await fs.readFile(skillPath, 'utf-8');
+              console.log('   Loaded skill:', skillFolder);
+            } catch (err) {
+              console.log('   Skill not found at:', skillPath);
+            }
+
+            // Extract the WORKING prompt from skill (not the ASCII diagram)
+            if (skillContent) {
+              // Look for "Example" section which contains the actual working prompt
+              const exampleMatch = skillContent.match(/## .*Example.*\n+```\n?([\s\S]*?)```/i);
+              if (exampleMatch) {
+                prompt = exampleMatch[1].trim();
+              } else {
+                // Fallback: find code blocks and get the longest one that's not a diagram
+                const codeBlockRegex = /```\n?([\s\S]*?)```/g;
+                let match;
+                let longestPrompt = '';
+                while ((match = codeBlockRegex.exec(skillContent)) !== null) {
+                  const block = match[1].trim();
+                  // Skip diagrams and short blocks
+                  if (block.length > 100 && !block.includes('┌') && !block.includes('└') && !block.includes('───')) {
+                    if (block.length > longestPrompt.length) {
+                      longestPrompt = block;
+                    }
                   }
                 }
+                prompt = longestPrompt;
               }
-              prompt = longestPrompt;
+              console.log('   Extracted prompt length:', prompt.length);
+              if (prompt.length > 0) {
+                console.log('   Prompt preview:', prompt.substring(0, 80) + '...');
+              }
             }
-            console.log('   Extracted prompt length:', prompt.length);
-            if (prompt.length > 0) {
-              console.log('   Prompt preview:', prompt.substring(0, 80) + '...');
-            }
-          }
 
-          // Apply AI copy as replacement in skill prompt if available
-          if (copyResearch && copyResearch.copy) {
-            prompt = copyService.buildCustomPrompt(img.staticType, copyResearch, prompt, variantIndex);
+            // Apply AI copy as replacement in skill prompt if available
+            if (copyResearch && copyResearch.copy) {
+              prompt = copyService.buildCustomPrompt(img.staticType, copyResearch, prompt, variantIndex);
+            }
           }
         }
 
-        // Replace remaining placeholders with product info from analysis
-        if (cachedAnalysis && prompt) {
+        // Replace remaining placeholders with product info from analysis (apparel only)
+        if (cachedAnalysis && prompt && category === 'apparel') {
           const brandNameLocal = cachedAnalysis.product_info?.brand || 'Brand';
-          const productName = cachedAnalysis.product_info?.product_name || 'product';
-          const category = cachedAnalysis.product_info?.category || 'apparel';
+          const productNameLocal = cachedAnalysis.product_info?.product_name || 'product';
+          const productCategory = cachedAnalysis.product_info?.category || 'apparel';
           const benefits = cachedAnalysis.benefits || [];
           const keyPhrases = cachedAnalysis.key_phrases || [];
 
@@ -1654,15 +2115,15 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
 
           // Replace example brand/product names (case insensitive)
           prompt = prompt.replace(/UndrDog/gi, brandNameLocal);
-          prompt = prompt.replace(/hemp t-shirt/gi, productName);
-          prompt = prompt.replace(/hemp tee/gi, productName);
+          prompt = prompt.replace(/hemp t-shirt/gi, productNameLocal);
+          prompt = prompt.replace(/hemp tee/gi, productNameLocal);
 
           // Replace ALL bracket placeholders (various formats)
           prompt = prompt.replace(/\[BRAND\]/gi, brandNameLocal);
           prompt = prompt.replace(/\[Brand\]/g, brandNameLocal);
-          prompt = prompt.replace(/\[PRODUCT\]/gi, productName);
+          prompt = prompt.replace(/\[PRODUCT\]/gi, productNameLocal);
           prompt = prompt.replace(/\[CAPTION\]/gi, keyPhrase);
-          prompt = prompt.replace(/\[PRODUCT TYPE\]/gi, category);
+          prompt = prompt.replace(/\[PRODUCT TYPE\]/gi, productCategory);
           prompt = prompt.replace(/\[BRAND NAME\]/gi, brandNameLocal);
           prompt = prompt.replace(/\[BENEFITS\]/gi, benefitsList);
           prompt = prompt.replace(/\[OFFER TEXT\]/gi, 'Lifetime Guarantee');
@@ -1672,47 +2133,97 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
           console.log('   Brand applied:', brandNameLocal);
         }
 
-        // Generate at 9:16 first (taller format), then crop to 4:5
-        // This ensures both versions share the EXACT same content
+        // STEP 1: Generate 4:5 first (the primary creative)
         const results = await generator.generateSingle({
           productImagePath: productImageFile.path,
           productImageUrl: imagePublicUrl,
           websiteUrl: req.body.url,
-          imageType: 'aesthetic', // Use aesthetic as base
-          direction: 'bold_color_pop', // Default direction
+          imageType: 'aesthetic',
+          direction: 'bold_color_pop',
           outputDir: './output',
-          aspectRatio: '9:16', // Generate tall first, then crop to 4:5
+          aspectRatio: '4:5', // Primary format
           cachedAnalysis: cachedAnalysis,
           customPrompt: prompt || undefined,
-          logoUrl: logoPublicUrl  // Pass logo as second reference image
+          logoUrl: logoPublicUrl
         });
 
         if (results.success) {
-          const url916 = results.url; // The 9:16 is our master image
+          const url45 = results.url; // The 4:5 is our master image
 
-          // Create 4:5 by center cropping the 9:16
-          let url45 = null;
+          // Show 4:5 immediately so user sees progress
+          send({ type: 'complete', id: img.id, url: url45, url916: null, direction: img.direction, imageType: img.imageType });
+
+          // STEP 2: Use 4:5 as reference to generate 9:16 extension (in background)
+          let url916 = null;
           try {
-            console.log('   Creating 4:5 crop from 9:16...');
-            url45 = await create45FromTall(url916);
-            if (url45) {
-              console.log('   ✓ Created 4:5 version (center crop)');
+            console.log('   Extending to 9:16 using 4:5 as reference...');
+            send({ type: 'extending', id: img.id });
+
+            // Get brand colors for extension prompt (supplements have them in copyResearch)
+            let brandColorInfo = '';
+            if (copyResearch?.supplement_copy) {
+              const sc = copyResearch.supplement_copy;
+              brandColorInfo = `
+EXACT BRAND COLORS TO PRESERVE:
+• Background: ${sc.background || sc.halo_background || 'from reference image'}
+• Accent color: ${sc.accent_color || 'from reference image'}
+• Text colors: ${sc.text_color_1 || 'dark'} and ${sc.text_color_2 || 'accent'}
+`;
+            } else if (cachedAnalysis?.visual_identity) {
+              const vi = cachedAnalysis.visual_identity;
+              brandColorInfo = `
+EXACT BRAND COLORS TO PRESERVE:
+• Primary: ${vi.primary_color || 'from reference image'}
+• Secondary: ${vi.secondary_colors?.join(', ') || 'from reference image'}
+• Accent: ${vi.accent_colors?.join(', ') || 'from reference image'}
+`;
             }
-          } catch (err45) {
-            console.error('   4:5 crop failed:', err45.message);
+
+            // Extension prompt - simple background extension
+            const extensionPrompt = `Extend this image to 9:16 vertical format.
+
+SIMPLE TASK: Add more of the SAME background color/gradient at top and bottom.
+${brandColorInfo}
+RULES:
+1. Keep the ENTIRE original image exactly as-is in the center
+2. Just extend the background - same color, same gradient, same style
+3. DO NOT change any text, product, colors, or layout
+4. DO NOT add new elements - only extend the existing background
+
+This is a simple background extension, not a redesign.
+Output: 9:16 aspect ratio.`;
+
+            const results916 = await generator.generateSingle({
+              productImagePath: productImageFile.path,
+              productImageUrl: url45, // Use 4:5 output as reference!
+              websiteUrl: req.body.url,
+              imageType: 'aesthetic',
+              direction: 'bold_color_pop',
+              outputDir: './output',
+              aspectRatio: '9:16',
+              cachedAnalysis: cachedAnalysis,
+              customPrompt: extensionPrompt, // Use extension prompt
+              logoUrl: null // Don't need logo again - it's in the 4:5 reference
+            });
+
+            if (results916.success) {
+              url916 = results916.url;
+              console.log('   ✓ Extended to 9:16 version');
+              // Send update with 9:16 URL
+              send({ type: 'update916', id: img.id, url916: url916 });
+            }
+          } catch (err916) {
+            console.error('   9:16 extension failed:', err916.message);
           }
 
-          // Use the cropped 4:5 as primary, with 9:16 as the tall version
-          const primaryUrl = url45 || url916; // Fall back to 9:16 if crop fails
-          send({ type: 'complete', id: img.id, url: primaryUrl, url916: url916, direction: img.direction, imageType: 'static' });
-          return { id: img.id, url: primaryUrl, url916: url916, success: true, direction: img.direction, imageType: 'static' };
+          return { id: img.id, url: url45, url916: url916, success: true, direction: img.direction, imageType: img.imageType };
         } else {
-          send({ type: 'error', id: img.id, error: results.error, direction: img.direction, imageType: 'static' });
-          return { id: img.id, success: false, error: results.error, direction: img.direction, imageType: 'static' };
+          send({ type: 'error', id: img.id, error: results.error, direction: img.direction, imageType: img.imageType });
+          return { id: img.id, success: false, error: results.error, direction: img.direction, imageType: img.imageType };
         }
       } catch (err) {
-        send({ type: 'error', id: img.id, error: err.message, direction: img.direction, imageType: 'static' });
-        return { id: img.id, success: false, error: err.message, direction: img.direction, imageType: 'static' };
+        send({ type: 'error', id: img.id, error: err.message, direction: img.direction, imageType: img.imageType });
+        return { id: img.id, success: false, error: err.message, direction: img.direction, imageType: img.imageType };
       }
     });
 

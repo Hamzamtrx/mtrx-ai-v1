@@ -150,11 +150,55 @@ How real customers talk:
 
 STEP 5: GENERATE COPY VARIANTS
 
-HEADLINE RULES:
-- BE SPECIFIC: "4x stronger than cotton" not "stronger than ever"
-- BE DIRECT: "Stop buying garbage shirts" not "Elevate your wardrobe journey"
-- BE PROVOCATIVE: Challenge them, call them out
-- NO FLUFF: Cut "meets", "elevate", "journey", "game-changer"
+═══════════════════════════════════════════════════════════════
+COPYWRITING RULES (Cashvertising + Breakthrough Advertising + Your Research)
+═══════════════════════════════════════════════════════════════
+
+STEP 1: USE YOUR RESEARCH
+Take the cultural references, Reddit phrases, and emotional triggers you found and turn them into headlines.
+
+Example research → headline transformation:
+- Reddit: "I'm so tired of buying new shirts every 6 months" → "STOP REPLACING YOUR SHIRTS EVERY 6 MONTHS."
+- Cultural ref: BIFL community obsession with durability → "THE BUY-IT-FOR-LIFE SHIRT ACTUALLY EXISTS."
+- Emotional trigger: frustration with shrinking → "100 WASHES. ZERO SHRINKAGE. FINALLY."
+- Customer language: "fits like it's tailored" → "FITS LIKE IT WAS MADE FOR YOU. BECAUSE THE MATERIAL ADAPTS."
+
+STEP 2: APPLY DIRECT RESPONSE PRINCIPLES
+
+From CASHVERTISING:
+- Lead with the biggest benefit or pain point
+- Use specific numbers from your research (4x stronger, 100 washes, etc.)
+- Make it personal - use "you" and "your"
+- Create urgency or scarcity when real
+
+From BREAKTHROUGH ADVERTISING:
+- Match the customer's awareness level
+- Meet them where they are (frustrated, skeptical, hopeful)
+- Promise the transformation they want
+- Prove it with specifics
+
+CLARITY OVER CLEVERNESS:
+- Headlines must make IMMEDIATE sense to a stranger scrolling
+- If you found a great Reddit phrase, use it directly - don't make it "clever"
+- The reader should instantly understand the benefit or feel the pain
+
+HEADLINE FORMULAS (combine with your research):
+1. PROBLEM-AGITATE: "[Frustration from research]. [Solution]."
+   "TIRED OF SHIRTS THAT SHRINK? THIS ONE WON'T."
+
+2. CUSTOMER LANGUAGE + PROOF: Use their exact words + back it up
+   "FINALLY, A SHIRT THAT LASTS." (if that's what customers say)
+
+3. CULTURAL HOOK + BENEFIT: Reference they'll recognize + why they care
+   "BUILT LIKE YOUR GRANDPA'S WORKWEAR. 4X STRONGER THAN COTTON."
+
+4. SPECIFIC CLAIM: Number from research + clear benefit
+   "100 WASHES. STILL FITS LIKE DAY ONE."
+
+BANNED (vague, no research backing):
+❌ "America Classic", "Dad Closet Energy", "Timeless Quality"
+❌ "Energy", "Vibe", "Aesthetic", "Game-changer"
+❌ Any headline that doesn't connect to your actual research
 
 TYPE 1 - PRODUCT HERO (4 variants):
 ${proposedAngle ? `⚠️ ALL 4 headlines MUST be about "${proposedAngle}". NO generic durability copy.` : 'Angles: BIFL/Durability, Health/Toxicity, Fast Fashion Rebellion, Fed-Up Frustration'}
@@ -176,19 +220,57 @@ Headlines: 3-8 words MAX. MUST be PROVOCATIVE or SPECIFIC, never generic.
 offer_line: ONLY if on landing page, otherwise ""
 
 TYPE 4 - ILLUSTRATED (4 variants):
-Compositions: Floating, Split Comparison, Action Demo, Warning
+Compositions: Floating, Split, Action Demo, Warning
 ${proposedAngle ? `⚠️ ALL 4 variants MUST be about "${proposedAngle}".` : ''}
-Headlines: PROBLEM-focused or DIRECT comparison
-⚠️ CRITICAL: Benefits MUST directly support/prove the SPECIFIC headline above them.
-Example: If headline is "VALENTINE'S DAY: EXPECTATION VS REALITY" then benefits should be:
-  - "Look sharp, not sloppy"
-  - "No awkward tugging"
-  - "She'll notice the difference"
-NOT generic benefits like "4x stronger" or "Lasts longer" that don't relate to the headline.
+
+CRITICAL HEADLINE RULES FOR TYPE 4:
+1. The headline must IMMEDIATELY make sense to a stranger
+2. AVOID "vs" or comparison formats - they often don't make sense
+3. Use DIRECT statements, problems, or benefits instead
+
+⚠️⚠️⚠️ ABSOLUTELY BANNED ⚠️⚠️⚠️
+❌ Any "X vs Y" or "X vs Reality" format
+❌ "Panic vs Prepared", "Expectation vs Reality"
+❌ "Dad Closet Energy", "Date Night Essential"
+❌ "America Classic", any vague 2-word phrases
+❌ Any phrase with "Energy", "Vibe", "Essential", "Classic"
+
+✓ GOOD TYPE 4 HEADLINES (direct, clear):
+${proposedAngle === 'valentines day' || proposedAngle?.includes('valentine') ? `
+FOR VALENTINES DAY:
+✓ "DON'T SHOW UP LOOKING LIKE A SLOB." (direct callout)
+✓ "SHE'LL NOTICE THE DIFFERENCE." (consequence)
+✓ "LOOK GOOD. GET LUCKY." (benefit)
+✓ "YOUR SHIRT SHOULDN'T RUIN THE DATE." (problem)
+` : ''}
+✓ "STOP BUYING SHIRTS THAT SHRINK." (problem)
+✓ "100 WASHES. STILL FITS PERFECT." (proof)
+✓ "YOUR SHIRT IS THE PROBLEM." (direct callout)
+✓ "FINALLY, A SHIRT THAT LASTS." (solution)
+✓ "4X STRONGER. FEELS SOFTER." (benefit + proof)
+
+The headline must pass this test: "Would a stranger scrolling understand this in 2 seconds?"
+
+Benefits MUST directly support/prove the headline.
+Example: Headline "SHE'LL NOTICE THE DIFFERENCE"
+→ Benefits: "Fits your body, not a tent" / "No pit stains" / "Stays tucked"
 
 TYPE 5 - VINTAGE MAGAZINE (4 variants):
-Settings: Gas Station, Workshop, Farm, Factory
-${proposedAngle ? `⚠️ ALL 4 headlines MUST connect to "${proposedAngle}". Nostalgic but on-angle.` : 'Headlines: Nostalgic but SPECIFIC.'}
+Settings: Classic Diner, Workshop, Barbershop, General Store
+${proposedAngle ? `⚠️ ALL 4 headlines MUST connect to "${proposedAngle}". Nostalgic but on-angle.` : ''}
+
+CRITICAL: Headlines must be MEANINGFUL sentences, not vague 2-word phrases.
+⚠️ BANNED: "America Classic", "Timeless Quality", "Heritage Built", "Old School Cool", "Date Night Essential"
+
+${proposedAngle === 'valentines day' || proposedAngle?.includes('valentine') ? `
+FOR VALENTINES DAY:
+✓ "YOUR GRANDFATHER NEVER SHOWED UP TO A DATE LOOKING SLOPPY." (nostalgic + relevant)
+✓ "BACK WHEN MEN DRESSED TO IMPRESS." (nostalgic + challenge)
+✓ "1955: SHIRTS FIT. 2026: MOST DON'T." (specific comparison)
+` : ''}
+✓ GOOD: "GRANDPA'S SHIRT LASTED 40 YEARS. YOURS WON'T." (clear comparison)
+✓ GOOD: "THEY DON'T MAKE 'EM LIKE THIS ANYMORE. UNTIL NOW." (promise)
+✓ GOOD: "BEFORE PLANNED OBSOLESCENCE." (provocative, makes you think)
 
 TYPE 6 - UGC CAPTION (4 variants):
 Settings: Gym, Bathroom, Car, Bedroom
@@ -284,7 +366,16 @@ Return ONLY the JSON, no other text.`;
       if (jsonMatch) {
         const research = JSON.parse(jsonMatch[0]);
         console.log('   ✓ Research complete');
-        console.log('   ✓ Cultural insight:', research.cultural_insights?.frustration?.substring(0, 50) + '...');
+        // Log research insights
+        if (research.angle_research) {
+          const refs = research.angle_research.cultural_references;
+          if (refs && refs.length > 0) {
+            console.log('   ✓ Cultural refs:', refs.slice(0, 3).join(', '));
+          }
+          if (research.angle_research.emotional_triggers?.length > 0) {
+            console.log('   ✓ Triggers:', research.angle_research.emotional_triggers.slice(0, 3).join(', '));
+          }
+        }
         console.log('   ✓ Generated copy variants for all 6 static types');
 
         // Log variant counts
@@ -305,6 +396,268 @@ Return ONLY the JSON, no other text.`;
       }
     } catch (error) {
       console.error('   ✗ Research failed:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Research and generate copy specifically for supplement products
+   * @param {Object} options
+   * @returns {Promise<Object>} - Research with supplement_copy
+   */
+  async researchSupplementCopy({ websiteUrl, websiteContent, brandName, productName, keyIngredients, productImageUrl }) {
+    console.log('🧠 Starting supplement-specific AI research...');
+
+    // First, analyze the product image for capsule/pill appearance if image URL provided
+    let capsuleAnalysis = 'capsules (color and style to be determined from reference image)';
+    if (productImageUrl) {
+      try {
+        console.log('   🔍 Analyzing product image for capsule appearance...');
+        const imageAnalysis = await this.client.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'url', url: productImageUrl }
+              },
+              {
+                type: 'text',
+                text: `Look at this supplement product image. Describe ONLY the capsules/pills visible:
+1. Are they capsules, tablets, softgels, or gummies?
+2. What COLOR are they? (clear/transparent, white, tan, brown, gold, green, etc.)
+3. Are they single-color or two-tone?
+4. Any other notable features?
+
+Reply in ONE sentence like: "clear transparent vegetarian capsules" or "two-tone tan and white capsules" or "soft gold-colored softgels"
+
+If no capsules are visible, say "capsules not visible in image".`
+              }
+            ]
+          }]
+        });
+        capsuleAnalysis = imageAnalysis.content[0].text.trim();
+        console.log('   ✓ Capsule analysis:', capsuleAnalysis);
+      } catch (err) {
+        console.log('   ⚠ Could not analyze product image:', err.message);
+      }
+    }
+
+    const prompt = `You are an expert direct response copywriter specializing in supplement marketing.
+
+═══════════════════════════════════════════════════════════════
+SUPPLEMENT PRODUCT ANALYSIS
+═══════════════════════════════════════════════════════════════
+
+BRAND: ${brandName}
+PRODUCT: ${productName}
+WEBSITE: ${websiteUrl}
+KEY INGREDIENTS: ${keyIngredients.length > 0 ? keyIngredients.join(', ') : 'Extract from page content'}
+
+WEBSITE CONTENT:
+${websiteContent?.substring(0, 8000) || 'No content available'}
+
+═══════════════════════════════════════════════════════════════
+YOUR TASK
+═══════════════════════════════════════════════════════════════
+
+1. EXTRACT from the landing page:
+   - Brand colors (background, text, accent)
+   - Key ingredients (with visual descriptions for each)
+   - Main benefits and claims
+   - Target audience signals
+   - Any guarantees or offers
+
+CAPSULE APPEARANCE (from product image analysis): ${capsuleAnalysis}
+*** CRITICAL: Copy this EXACT text to capsule_style in your output. Do NOT change, reword, or guess. ***
+If it says "capsules not visible" or "clear capsules", use that EXACTLY.
+
+2. DETECT the primary TARGET AVATAR based on the messaging:
+   - Skeptic: Questions supplements, wants proof
+   - Food Noise Sufferer: Can't stop thinking about food
+   - 3PM Crash: Afternoon energy crash problems
+   - Ozempic-Curious: Looking for natural weight loss alternative
+   - Emotional Eater: Stress/emotional eating patterns
+   - Perimenopause: 40s metabolism changes
+   - Diet Veteran: Tried everything, nothing works long-term
+
+3. GENERATE 4 COPY VARIANTS for each static ad type:
+
+   A) BENEFIT CHECKLIST (product + 4 checkmark benefits) - Generate 4 variants:
+
+      *** CRITICAL: H1 AND BENEFITS MUST BE THEMATICALLY CONNECTED ***
+
+      The logic flow MUST be:
+      1. H1 → Hooks with HER words about HER specific problem
+      2. Benefits → Answer the objections someone with THAT EXACT problem would have
+      3. CTA → Promises the resolution to THAT problem
+
+      For each variant:
+      - h1_line1: Hook headline about the avatar's specific situation
+      - h1_line2: Optional second line (can be null)
+      - benefits: 4 checkmark items that DIRECTLY address the H1's problem (not generic benefits)
+      - cta: Resolution/action that completes the H1's story
+
+      EXAMPLE - Emotional Eater avatar:
+      - H1: "You're not eating because you're hungry."
+      - Benefits (all about emotional eating, matching the H1):
+        ✓ Saffron supports serotonin (your mood signal)
+        ✓ Helps break the stress-eat cycle
+        ✓ Reduces emotional snacking urges
+        ✓ Works on the WHY, not just the what
+      - CTA: "It's not about willpower. It's about chemistry."
+
+      EXAMPLE - Food Noise avatar:
+      - H1: "Your brain won't shut up about food."
+      - Benefits (all about food noise, matching the H1):
+        ✓ Quiets the constant food thoughts
+        ✓ Supports natural fullness signals
+        ✓ Reduces the "always hungry" feeling
+        ✓ Works on the noise, not just the hunger
+      - CTA: "Finally turn the volume down."
+
+      DO NOT MIX AVATARS: If H1 is about emotional eating, benefits MUST be about emotional eating.
+      If H1 is about food noise, benefits MUST be about food noise. They must match.
+
+   B) INGREDIENT HALO (product surrounded by ingredients) - Generate 4 variants:
+      For each variant:
+      - h1: Hook about the ingredients or transparency
+      - h2: Supporting statement
+      - cta: Action statement
+
+*** EACH VARIANT MUST BE COMPLETELY DIFFERENT - NOT SIMILAR ***
+
+VARIANT 1 - Problem-aware (lead with pain):
+  H1 format: "You [pain point]" or "[Relatable struggle statement]"
+  Example: "You're not eating because you're hungry."
+
+VARIANT 2 - Skeptic angle (address distrust):
+  H1 format: "Another [product]? We get it." or "[Acknowledge their doubt]"
+  Example: "Another supplement? We'd be skeptical too."
+
+VARIANT 3 - Outcome-focused (promise the result):
+  H1 format: "What if [desired outcome]?" or "Imagine [result]"
+  Example: "What if you just... stopped thinking about food all day?"
+
+VARIANT 4 - Social proof/Authority:
+  H1 format: "[Number] [proof point]" or "[Credibility statement]"
+  Example: "7 clinically studied ingredients. Zero proprietary blends."
+
+DO NOT generate 4 variants that all sound similar. Each must use a DIFFERENT angle and tone.
+
+COPYWRITING PRINCIPLES:
+- Lead with their PAIN POINT, not your product
+- Use SPECIFIC numbers and claims from the page
+- Benefits MUST directly relate to the H1 (not generic supplement benefits)
+- CTA should promise the OUTCOME they want
+- Keep it CONVERSATIONAL and DIRECT
+
+═══════════════════════════════════════════════════════════════
+OUTPUT FORMAT (JSON)
+═══════════════════════════════════════════════════════════════
+
+{
+  "detected_avatar": "skeptic|food-noise|3pm-crash|ozempic-curious|emotional-eater|perimenopause|diet-veteran",
+  "supplement_copy": {
+    "accent_color": "extracted brand accent color (e.g., 'pink', 'teal', 'gold')",
+    "text_color_1": "primary text color from brand (e.g., 'dark purple', 'navy')",
+    "text_color_2": "secondary/accent text color from brand",
+    "background": "soft gradient using BRAND COLORS for benefit checklist (e.g., 'soft pink to lavender gradient')",
+    "halo_background": "dark/premium gradient using BRAND COLORS for ingredient halo (e.g., 'deep purple to dark navy gradient' - must match brand palette)",
+    "capsule_style": "COPY EXACTLY from CAPSULE APPEARANCE above - do NOT change or invent colors",
+    "trust": "guarantee text from page or '365-Day Money Back Guarantee'",
+    "ingredients": [
+      { "name": "Ingredient Name", "visual": "Visual description for image generation" },
+      { "name": "...", "visual": "..." }
+    ],
+    "benefit_checklist": [
+      {
+        "h1_line1": "Variant 1 headline",
+        "h1_line2": "Second line or null",
+        "benefits": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
+        "cta": "CTA button text"
+      },
+      {
+        "h1_line1": "Variant 2 headline (different angle)",
+        "h1_line2": "Second line or null",
+        "benefits": ["Different benefit framing 1", "2", "3", "4"],
+        "cta": "Different CTA"
+      },
+      {
+        "h1_line1": "Variant 3 headline",
+        "h1_line2": "Second line or null",
+        "benefits": ["..."],
+        "cta": "..."
+      },
+      {
+        "h1_line1": "Variant 4 headline",
+        "h1_line2": "Second line or null",
+        "benefits": ["..."],
+        "cta": "..."
+      }
+    ],
+    "ingredient_halo": [
+      {
+        "h1": "Variant 1 headline",
+        "h2": "Subheadline",
+        "cta": "CTA"
+      },
+      {
+        "h1": "Variant 2 headline (different angle)",
+        "h2": "Subheadline",
+        "cta": "CTA"
+      },
+      {
+        "h1": "Variant 3 headline",
+        "h2": "Subheadline",
+        "cta": "CTA"
+      },
+      {
+        "h1": "Variant 4 headline",
+        "h2": "Subheadline",
+        "cta": "CTA"
+      }
+    ]
+  }
+}
+
+Return ONLY the JSON, no other text.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [
+          { role: 'user', content: prompt }
+        ]
+      });
+
+      const content = response.content[0].text;
+
+      // Parse JSON from response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const research = JSON.parse(jsonMatch[0]);
+        console.log('   ✓ Supplement research complete');
+        console.log('   ✓ Detected avatar:', research.detected_avatar);
+        if (research.supplement_copy?.benefit_checklist?.h1_line1) {
+          console.log('   ✓ Benefit Checklist H1:', research.supplement_copy.benefit_checklist.h1_line1);
+        }
+        if (research.supplement_copy?.ingredient_halo?.h1) {
+          console.log('   ✓ Ingredient Halo H1:', research.supplement_copy.ingredient_halo.h1);
+        }
+        if (research.supplement_copy?.ingredients?.length > 0) {
+          console.log('   ✓ Ingredients found:', research.supplement_copy.ingredients.length);
+        }
+        return research;
+      } else {
+        console.log('   ⚠ Could not parse supplement research JSON');
+        return null;
+      }
+    } catch (error) {
+      console.error('   ✗ Supplement research failed:', error.message);
       return null;
     }
   }
@@ -766,6 +1119,435 @@ Handwritten style text in white marker/paint pen, slightly messy and casual like
 
     return prompt;
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // SUPPLEMENTS CATEGORY - Avatar-based pre-defined copy
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Get pre-defined supplement copy by avatar, type, and version
+   */
+  getSupplementCopy(avatar, staticType, version = 'A') {
+    const copy = SUPPLEMENT_COPY[avatar];
+    if (!copy) return null;
+
+    if (staticType === 'supp-benefit-checklist') {
+      return version === 'A' ? copy.benefitChecklist.versionA : copy.benefitChecklist.versionB;
+    } else if (staticType === 'supp-ingredient-halo') {
+      return version === 'A' ? copy.ingredientHalo.versionA : copy.ingredientHalo.versionB;
+    }
+    return null;
+  }
+
+  /**
+   * Build complete prompt for Supplement Benefit Checklist type
+   */
+  buildSupplementBenefitChecklistPrompt(options) {
+    const {
+      productName = 'PQ7',
+      productDescription = 'teal pouch with pink/green splash design',
+      brandName = 'Primal Queen',
+      capsuleStyle = 'two tan/beige capsules',
+      accentColor = 'pink',
+      textColor1 = 'dark purple',
+      textColor2 = 'pink',
+      background = 'soft light pink/lavender',
+      h1Line1,
+      h1Line2,
+      benefits,
+      cta,
+      trust = '365-Day Money Back Guarantee',
+      aspectRatio = '4:5'
+    } = options;
+
+    const benefitsList = benefits.map((b, i) => `✓ ${b}`).join('\\n');
+
+    let headlineText = `"${h1Line1}"`;
+    let h2Text = '';
+    if (h1Line2) {
+      h2Text = `\nBelow H1: "${h1Line2}" in SMALLER text (about 50% size of H1), ${textColor2}`;
+    }
+
+    return `Clean supplement static ad, ${aspectRatio} aspect ratio.
+
+BRAND COLOR SCHEME — CRITICAL:
+• Background: ${background} (soft gradient, clean)
+• Primary accent: ${accentColor}
+• TEXT COLORS (use ONLY these 2, no other colors for text):
+  - Primary text: ${textColor1}
+  - Accent/highlight text: ${textColor2}
+• Use ONLY these brand colors - NO random colors
+
+PRODUCT REFERENCE — CRITICAL:
+• Use the EXACT product from the reference image
+• Match ALL packaging colors, logos, text, and design EXACTLY
+• Product must be pixel-perfect to reference
+
+LAYOUT (follow this EXACTLY):
+
+TOP SECTION (full width, centered):
+Large bold headline ${headlineText} in ${textColor1}${h2Text}
+This headline should be PROMINENT and span the width
+
+MIDDLE SECTION (two columns):
+LEFT: Product (${brandName} ${productName}) from reference image, with ${capsuleStyle} at base
+RIGHT: Benefit checklist with ${accentColor} checkmarks:
+${benefitsList}
+
+BOTTOM SECTION (centered):
+Rounded ${accentColor} button: "${cta}"
+Below: "★★★★★ ${trust}" in ${accentColor}
+
+STYLE: Clean, minimal, modern. Professional supplement brand aesthetic.
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build complete prompt for Supplement Ingredient Halo type
+   */
+  buildSupplementIngredientHaloPrompt(options) {
+    const {
+      productName = 'PQ7',
+      productDescription = 'teal pouch with pink/green splash design',
+      brandName = 'Primal Queen',
+      accentColor = 'pink',
+      background = 'dark purple gradient with subtle particle bokeh',
+      ingredients,
+      h1,
+      h2,
+      cta,
+      aspectRatio = '4:5'
+    } = options;
+
+    // Map ingredient positions around the product
+    const positions = ['TOP', 'TOP LEFT', 'TOP RIGHT', 'LEFT', 'RIGHT', 'BOTTOM LEFT', 'BOTTOM RIGHT'];
+    let ingredientText = '';
+    ingredients.forEach((ing, i) => {
+      if (i < positions.length) {
+        ingredientText += `- ${positions[i]}: ${ing.visual}, labeled "${ing.name}"\\n`;
+      }
+    });
+
+    return `Supplement ingredient showcase static ad, ${aspectRatio} aspect ratio.
+
+BRAND COLOR SCHEME — CRITICAL:
+• Background: ${background}
+• This background MUST match ${brandName}'s brand palette exactly
+• Accent color: ${accentColor} for text, labels, and UI elements
+• Use ONLY the brand's colors - NO random colors
+• Ingredients should be rendered in MUTED, NATURAL tones (NOT bright/colorful)
+• The overall palette must feel cohesive with ${brandName}'s website aesthetic
+
+PRODUCT REFERENCE — CRITICAL:
+• Use the EXACT product from the reference image as center element
+• Match ALL packaging colors, logos, text, design EXACTLY
+• Product must be pixel-perfect to reference
+• Product is the HERO - must dominate center
+
+LAYOUT:
+CENTER: Product (${brandName} ${productName}) from reference image - large, prominent
+
+SURROUNDING: ${ingredients.length} natural ingredients floating around the product in a balanced halo.
+Render each ingredient in MUTED, DESATURATED, ELEGANT tones (NOT bright/colorful).
+Small ${accentColor} labels:
+${ingredientText}
+Subtle energy lines connecting to product.
+
+TOP: "${h1}" in ${accentColor} or white
+Below: "${h2}" in smaller text
+
+BOTTOM: Rounded ${accentColor} button: "${cta}"
+
+STYLE: Dark, luxurious, premium. Cohesive brand aesthetic matching ${brandName}.
+
+${aspectRatio} aspect ratio.`;
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SUPPLEMENT AVATAR COPY DATABASE
+// Pre-defined copy for each avatar from the skill files
+// ═══════════════════════════════════════════════════════════════
+
+const SUPPLEMENT_COPY = {
+  'skeptic': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "Another supplement?",
+        h1Line2: "We'd be skeptical too.",
+        benefits: [
+          "7 ingredients you can actually research",
+          "No proprietary blend nonsense",
+          "365-day money back guarantee",
+          "If it doesn't work, you pay nothing"
+        ],
+        cta: "Try it. Test it. Return it if we're wrong."
+      },
+      versionB: {
+        h1Line1: "We're not going to call it a miracle.",
+        h1Line2: null,
+        benefits: [
+          "Clinically studied ingredients",
+          "Full transparency (no hidden blends)",
+          "Real research, not paid testimonials",
+          "365 days to decide if it works"
+        ],
+        cta: "Skeptical? Good. So were we."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "Berberine. Saffron. Colostrum. Chromium. Red orange. Lemon verbena. Hibiscus. AstraGin.",
+        h2: "That's it. That's what's in it.",
+        cta: "Nothing hidden. Nothing sketchy."
+      },
+      versionB: {
+        h1: "We didn't just throw 7 things in a capsule and hope for the best.",
+        h2: "Each ingredient targets a different reason you can't stop thinking about food.",
+        cta: "There's a reason it's called PQ7."
+      }
+    }
+  },
+  'food-noise': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "Your brain won't shut up about food.",
+        h1Line2: "That's not weakness.",
+        benefits: [
+          "Quiets the constant food thoughts",
+          "Supports natural fullness signals",
+          "Reduces the 'always hungry' feeling",
+          "Works on the noise, not just the hunger"
+        ],
+        cta: "Finally turn the volume down."
+      },
+      versionB: {
+        h1Line1: "What if you just... stopped thinking about food all day?",
+        h1Line2: null,
+        benefits: [
+          "Targets food noise at the source",
+          "Supports serotonin (your satisfaction signal)",
+          "Helps your brain feel 'done' after eating",
+          "No stimulants, no jitters"
+        ],
+        cta: "Quiet the loop. Get your brain back."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "What if the noise just... stopped?",
+        h2: "The constant loop. The mental battle. The radio that won't turn off.",
+        cta: "7 ingredients to finally quiet your brain."
+      },
+      versionB: {
+        h1: "You're not hungry. Your brain just won't shut up.",
+        h2: "Food noise isn't weakness. It's chemistry.",
+        cta: "Target the noise, not just the hunger."
+      }
+    }
+  },
+  '3pm-crash': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "It's 3pm.",
+        h1Line2: "You don't have to white-knuckle it.",
+        benefits: [
+          "Stabilizes blood sugar",
+          "Ends the spike-crash cycle",
+          "No caffeine needed",
+          "No afternoon willpower battle"
+        ],
+        cta: "Stay you all day. Not just until 2pm."
+      },
+      versionB: {
+        h1Line1: "What if 3pm just felt like... 11am?",
+        h1Line2: null,
+        benefits: [
+          "Steady energy (no crash)",
+          "Steady focus (no fog)",
+          "Steady mood (no hanger)",
+          "Steady you (no snack drawer)"
+        ],
+        cta: "Skip the crash. Keep going."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "It's 3pm. You know what happens next.",
+        h2: "The crash. The pantry. The promise you'll start fresh tomorrow.",
+        cta: "What if you just... didn't crash?"
+      },
+      versionB: {
+        h1: "Your blood sugar is a roller coaster.",
+        h2: "And 3pm is the big drop.",
+        cta: "Steady energy. All day."
+      }
+    }
+  },
+  'ozempic-curious': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "This is NOT Ozempic.",
+        h1Line2: null,
+        benefits: [
+          "$59.99/month (not $1,000)",
+          "Natural ingredients",
+          "No needles",
+          "No scary side effects"
+        ],
+        cta: "Feel full sooner. Stay satisfied longer. Naturally."
+      },
+      versionB: {
+        h1Line1: "The Ozempic alternative",
+        h1Line2: "no one's gatekeeping.",
+        benefits: [
+          "No prescription required",
+          "No needles",
+          "No $1,000/month",
+          "No waiting list"
+        ],
+        cta: "Same pathways. Plants instead of injections."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "Same pathways. No needle.",
+        h2: "Berberine supports natural GLP-1 production—the same pathway as the $1,000/month stuff.",
+        cta: "What they're taking instead."
+      },
+      versionB: {
+        h1: "You've seen the Ozempic results.",
+        h2: "What if you could support the same pathways naturally?",
+        cta: "No prescription. No waiting list."
+      }
+    }
+  },
+  'emotional-eater': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "You're not eating because you're hungry.",
+        h1Line2: null,
+        benefits: [
+          "Saffron supports serotonin (your mood signal)",
+          "Helps break the stress-eat cycle",
+          "Reduces emotional snacking urges",
+          "Works on the WHY, not just the what"
+        ],
+        cta: "It's not about willpower. It's about chemistry."
+      },
+      versionB: {
+        h1Line1: "Stress eating isn't a character flaw.",
+        h1Line2: null,
+        benefits: [
+          "Supports your brain's satisfaction signals",
+          "Reduces the urge to eat when you're not hungry",
+          "Helps break the emotion → food loop",
+          "Clinically studied saffron extract"
+        ],
+        cta: "Stop fighting yourself. Start supporting yourself."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "You're not weak. Your serotonin is low.",
+        h2: "Saffron boosts the satisfaction signal your brain is missing. That's why willpower doesn't work.",
+        cta: "It's not you. It's chemistry."
+      },
+      versionB: {
+        h1: "You know you're not hungry.",
+        h2: "But you eat anyway. That's not a character flaw—it's a signal problem.",
+        cta: "Fix the signal."
+      }
+    }
+  },
+  'perimenopause': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "Your 40s changed everything.",
+        h1Line2: "Your supplements should too.",
+        benefits: [
+          "Formulated for hormonal shifts",
+          "Supports metabolism changes",
+          "Works WITH your new biology",
+          "No extreme dieting required"
+        ],
+        cta: "Stop fighting your body. Start working with it."
+      },
+      versionB: {
+        h1Line1: "'Nothing works anymore.'",
+        h1Line2: "We hear that a lot.",
+        benefits: [
+          "Designed for the 40+ metabolism",
+          "Supports natural hormone balance",
+          "Helps with stubborn midsection weight",
+          "No starvation required"
+        ],
+        cta: "Your body changed. This was made for that."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "In your 40s, everything changed.",
+        h2: "What used to work doesn't work anymore. Your body isn't broken—it's different.",
+        cta: "Your supplements should change too."
+      },
+      versionB: {
+        h1: "Your metabolism isn't what it was.",
+        h2: "These ingredients work WITH your changing hormones, not against them.",
+        cta: "Formulated for the 40+ body."
+      }
+    }
+  },
+  'diet-veteran': {
+    benefitChecklist: {
+      versionA: {
+        h1Line1: "You don't need more diet advice.",
+        h1Line2: null,
+        benefits: [
+          "Works on the wanting, not the eating",
+          "Reduces constant food thoughts",
+          "No tracking required",
+          "No foods off-limits"
+        ],
+        cta: "You know enough. Now get support that actually helps."
+      },
+      versionB: {
+        h1Line1: "Keto. WW. IF. Macros.",
+        h1Line2: "You've done them all.",
+        benefits: [
+          "Not another diet",
+          "No counting, no tracking",
+          "Targets why you can't stop wanting more",
+          "Supports your brain, not just your plate"
+        ],
+        cta: "Finally. Help that works on the actual problem."
+      }
+    },
+    ingredientHalo: {
+      versionA: {
+        h1: "You don't need another diet.",
+        h2: "You need your brain to stop screaming for food. Knowledge isn't your problem. The constant mental battle is.",
+        cta: "Not about eating less. About wanting less."
+      },
+      versionB: {
+        h1: "You know what to eat.",
+        h2: "You just can't stop wanting more.",
+        cta: "Target the wanting."
+      }
+    }
+  }
+};
+
+// Default ingredients for PQ7 (Primal Queen)
+const DEFAULT_INGREDIENTS = [
+  { name: 'Berberine', visual: 'Golden-brown root with red berries' },
+  { name: 'Saffron', visual: 'Red/orange saffron threads' },
+  { name: 'Colostrum', visual: 'Creamy white pearl spheres' },
+  { name: 'Chromium', visual: 'Shimmering silver metallic particles' },
+  { name: 'Red Orange', visual: 'Vibrant red-orange citrus slice' },
+  { name: 'Lemon Verbena', visual: 'Green leaves' },
+  { name: 'Hibiscus', visual: 'Pink/red hibiscus flower' }
+];
 
 module.exports = CopyResearchService;
