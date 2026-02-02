@@ -1,0 +1,275 @@
+{
+  "skill_metadata": {
+    "name": "3x3_product_grid",
+    "version": "1.0.0",
+    "description": "Generate a 3x3 grid of product angles from a single product image. Creates 9 different views for use as reference images in downstream generation.",
+    "author": "MTRX Media",
+    "created": "2026-01-29",
+    "platform": "nano_banana",
+    "purpose": "Foundation skill - outputs feed into Aesthetic, Influencer, and Plain image skills"
+  },
+
+  "input_requirements": {
+    "product_image": {
+      "type": "file",
+      "required": true,
+      "description": "Single product image to analyze and recreate from multiple angles",
+      "formats": ["jpg", "png", "webp"]
+    },
+    "website_url": {
+      "type": "url",
+      "required": false,
+      "description": "Product page URL for additional context (brand name, product name)"
+    }
+  },
+
+  "step_1_product_analysis": {
+    "description": "Before generating the 3x3, analyze the product to create a detailed description block",
+    "output_format": "product_description_block",
+    "analysis_points": {
+      "product_overview": {
+        "brand": "Exact brand name as it appears on packaging",
+        "product_name": "Exact product name",
+        "product_type": "Category (lip balm, supplement pouch, water bottle, etc.)",
+        "packaging_type": "Container type (tube, pouch, bottle, jar, tin, box)"
+      },
+      "shape_and_form": {
+        "silhouette": "Overall shape description (elongated tube, rounded jar, tear-drop bottle, flat pouch)",
+        "proportions": "Height to width ratio, any unique proportions",
+        "cap_closure": "Type of cap/closure (screw cap, flip cap, pump, squeeze tip, resealable)",
+        "base": "Base shape and stability features"
+      },
+      "materials_and_finish": {
+        "primary_material": "Main material (plastic, glass, foil, aluminum, etc.)",
+        "finish": "Surface finish (matte, glossy, satin, metallic, soft-touch)",
+        "transparency": "Opaque, translucent, transparent, or mixed",
+        "texture": "Any tactile texture (smooth, ribbed, embossed, soft-squeeze)"
+      },
+      "colors": {
+        "primary_color": "Dominant color with HEX code",
+        "secondary_colors": "Any additional colors with HEX codes",
+        "color_distribution": "Where each color appears on the product"
+      },
+      "branding_and_graphics": {
+        "logo_placement": "Where logo appears (front center, side, cap, etc.)",
+        "logo_style": "Logo description (wordmark, icon, combination)",
+        "font_style": "Typography style (serif, sans-serif, script, custom)",
+        "text_on_packaging": "ALL text exactly as it appears, spelled correctly",
+        "text_colors": "Color of each text element",
+        "graphic_elements": "Any patterns, illustrations, icons"
+      },
+      "special_features": {
+        "embossing_debossing": "Any raised or recessed elements",
+        "metallic_elements": "Foil stamping, metallic inks, chrome details",
+        "unique_details": "Anything distinctive about this product"
+      },
+      "light_interaction": {
+        "reflective_areas": "Where light creates highlights",
+        "shadow_behavior": "How shadows fall on/around product",
+        "refraction": "If transparent, how light passes through"
+      }
+    }
+  },
+
+  "step_2_grid_positions": {
+    "description": "The 9 angles to generate",
+    "positions": {
+      "pos_1": {
+        "name": "Front Hero",
+        "angle": "Straight on, front facing",
+        "rotation": "0°",
+        "tilt": "Slight upward tilt (5-10°) for heroic feel",
+        "purpose": "Primary marketing shot"
+      },
+      "pos_2": {
+        "name": "Front 3/4 Left",
+        "angle": "45° rotated left from front",
+        "rotation": "45° left",
+        "tilt": "Level",
+        "purpose": "Shows front + left side dimension"
+      },
+      "pos_3": {
+        "name": "Front 3/4 Right",
+        "angle": "45° rotated right from front",
+        "rotation": "45° right",
+        "tilt": "Level",
+        "purpose": "Shows front + right side dimension"
+      },
+      "pos_4": {
+        "name": "Side Left",
+        "angle": "90° left profile",
+        "rotation": "90° left",
+        "tilt": "Level",
+        "purpose": "Full left side view"
+      },
+      "pos_5": {
+        "name": "Side Right",
+        "angle": "90° right profile",
+        "rotation": "90° right",
+        "tilt": "Level",
+        "purpose": "Full right side view"
+      },
+      "pos_6": {
+        "name": "Back",
+        "angle": "180° back view",
+        "rotation": "180°",
+        "tilt": "Level",
+        "purpose": "Shows back label/info"
+      },
+      "pos_7": {
+        "name": "Top Down",
+        "angle": "Directly above looking down",
+        "rotation": "N/A",
+        "tilt": "90° down",
+        "purpose": "Shows cap/top and shape from above"
+      },
+      "pos_8": {
+        "name": "Low 3/4 Left",
+        "angle": "45° left, camera below product",
+        "rotation": "45° left",
+        "tilt": "Camera 20° below product, looking up",
+        "purpose": "Dramatic hero angle"
+      },
+      "pos_9": {
+        "name": "Low 3/4 Right",
+        "angle": "45° right, camera below product",
+        "rotation": "45° right",
+        "tilt": "Camera 20° below product, looking up",
+        "purpose": "Dramatic hero angle"
+      }
+    }
+  },
+
+  "step_3_prompt_template": {
+    "description": "Master prompt template for generating each angle",
+    "platform_prefix": "Use the uploaded product image as exact reference for the product appearance.\n\n",
+    
+    "prompt_template": "Professional product photography of {{product_description_block}}.\n\nANGLE: {{angle_description}}\n\nPRODUCT POSITION: Product {{position_details}}, {{rotation_description}}. {{tilt_description}}.\n\nBACKGROUND: Pure white infinity backdrop (#FFFFFF). Seamless, no visible horizon line. Clean commercial studio environment.\n\nLIGHTING: Soft, diffused studio lighting. Key light from upper left at 45°. Fill light from right. Subtle rim light for edge definition. No harsh shadows. Product evenly lit with gentle gradients showing form.\n\nPRODUCT FIDELITY (CRITICAL - NON-NEGOTIABLE):\n• Reproduce the product EXACTLY as shown in reference image\n• Preserve ALL logos, brand names, text, typography with 100% accuracy\n• Text must be LEGIBLE, CORRECTLY SPELLED, and PROPERLY POSITIONED\n• Colors must match reference exactly - no color shifts\n• Materials and finishes must be accurate (matte stays matte, glossy stays glossy)\n• Proportions must be exact - no stretching, squishing, or distortion\n• Surface details (embossing, texture, seams) must be preserved\n\nQUALITY:\n• Ultra-high resolution, commercial photography quality\n• Crisp focus across entire product\n• No artifacts, no noise, no compression\n• The product must look like a flawless photograph of the real physical item\n\nANTI-AI ARTIFACTS:\n• No warped text or gibberish characters\n• No melted or merged elements\n• No impossible geometry\n• No floating shadows or disconnected reflections\n• No plastic/CGI smoothing - maintain real material properties",
+
+    "negative_prompt": "blurry, low quality, distorted text, misspelled text, warped logo, wrong colors, stretched proportions, CGI look, plastic skin, colored background, gradient background, environmental elements, props, hands, people, lifestyle context, shadows on background, harsh shadows, overexposed, underexposed, noise, grain, artifacts"
+  },
+
+  "step_4_individual_prompts": {
+    "description": "Generate these 9 prompts with the product_description_block filled in",
+    
+    "prompt_1_front_hero": {
+      "angle_description": "Front facing hero shot, straight on view",
+      "position_details": "standing upright, centered in frame",
+      "rotation_description": "front label/branding facing camera directly",
+      "tilt_description": "Camera at product eye-level with subtle 5° upward angle for heroic presence"
+    },
+    
+    "prompt_2_front_34_left": {
+      "angle_description": "Front 3/4 view, rotated 45° to the left",
+      "position_details": "standing upright, slightly left of center",
+      "rotation_description": "showing front face and left side simultaneously, 45° rotation",
+      "tilt_description": "Camera at product eye-level, straight on"
+    },
+    
+    "prompt_3_front_34_right": {
+      "angle_description": "Front 3/4 view, rotated 45° to the right",
+      "position_details": "standing upright, slightly right of center",
+      "rotation_description": "showing front face and right side simultaneously, 45° rotation",
+      "tilt_description": "Camera at product eye-level, straight on"
+    },
+    
+    "prompt_4_side_left": {
+      "angle_description": "Full left side profile view, 90° rotation",
+      "position_details": "standing upright, centered",
+      "rotation_description": "left side facing camera, front of product facing right",
+      "tilt_description": "Camera at product eye-level, straight on"
+    },
+    
+    "prompt_5_side_right": {
+      "angle_description": "Full right side profile view, 90° rotation",
+      "position_details": "standing upright, centered",
+      "rotation_description": "right side facing camera, front of product facing left",
+      "tilt_description": "Camera at product eye-level, straight on"
+    },
+    
+    "prompt_6_back": {
+      "angle_description": "Back view, 180° rotation showing back label",
+      "position_details": "standing upright, centered",
+      "rotation_description": "back of product facing camera, showing any back label or information",
+      "tilt_description": "Camera at product eye-level, straight on"
+    },
+    
+    "prompt_7_top_down": {
+      "angle_description": "Top-down bird's eye view, looking directly down at product",
+      "position_details": "laying flat or standing, viewed from directly above",
+      "rotation_description": "cap/top of product facing camera",
+      "tilt_description": "Camera directly above product, 90° downward angle"
+    },
+    
+    "prompt_8_low_34_left": {
+      "angle_description": "Low angle 3/4 view from lower left, dramatic hero perspective",
+      "position_details": "standing upright, commanding presence",
+      "rotation_description": "45° rotation showing front and left side",
+      "tilt_description": "Camera positioned below product, angled 20° upward, making product appear powerful and larger-than-life"
+    },
+    
+    "prompt_9_low_34_right": {
+      "angle_description": "Low angle 3/4 view from lower right, dramatic hero perspective",
+      "position_details": "standing upright, commanding presence",
+      "rotation_description": "45° rotation showing front and right side",
+      "tilt_description": "Camera positioned below product, angled 20° upward, making product appear powerful and larger-than-life"
+    }
+  },
+
+  "output_format": {
+    "description": "What this skill produces",
+    "outputs": {
+      "product_description_block": {
+        "type": "text",
+        "description": "Detailed product description to be reused in all other skills",
+        "example": "Rhode Peptide Lip Treatment tube - soft matte pink plastic squeeze tube (HEX #E8A0B0), elongated tapered shape with rounded squeeze tip applicator and flat base. Brand name 'rhode' printed vertically in lowercase white sans-serif typography on front. Product name 'peptide lip treatment' in smaller white text below. Soft-touch matte finish, opaque plastic, subtle seam line running vertically."
+      },
+      "grid_prompts": {
+        "type": "array",
+        "description": "9 prompts ready to paste into Nano Banana",
+        "count": 9
+      },
+      "grid_images": {
+        "type": "array",
+        "description": "9 generated images to use as references for other skills",
+        "count": 9,
+        "naming": "[product_name]_angle_[1-9].png"
+      }
+    }
+  },
+
+  "platform_instructions": {
+    "nano_banana": {
+      "setup": [
+        "Upload original product image as reference",
+        "Set aspect ratio to 1:1 for grid consistency",
+        "Generate each of the 9 prompts separately",
+        "Save with consistent naming for easy reference"
+      ],
+      "settings": {
+        "aspect_ratio": "1:1",
+        "quality": "highest",
+        "guidance": "7-8"
+      },
+      "batch_workflow": [
+        "Generate all 9 angles",
+        "Review for accuracy",
+        "Re-generate any with text/logo issues",
+        "Compile into reference folder for use in other skills"
+      ]
+    }
+  },
+
+  "usage_example": {
+    "input": {
+      "product_image": "rhode_lip_treatment.png",
+      "website_url": "https://rhodeskin.com/products/peptide-lip-treatment"
+    },
+    "step_1_output": {
+      "product_description_block": "Rhode Peptide Lip Treatment - premium skincare squeeze tube. Soft matte pink plastic (HEX #E8A0B0), elongated tapered silhouette approximately 4 inches tall, rounded squeeze tip applicator at top, flat oval base for standing. Material is soft-touch matte plastic, opaque, with subtle vertical seam lines.\n\nBRANDING: 'rhode' logo printed vertically in lowercase white (HEX #FFFFFF) sans-serif typography (clean, modern, slightly rounded letterforms) on front center. Below logo: 'peptide lip treatment' in smaller white text, also lowercase. 'sheer' and shade name in smallest text near base.\n\nThe tube has gentle curves, narrowing toward the applicator tip. Surface catches light softly due to matte finish - no harsh reflections, gentle gradients show form. Shadow falls soft and diffused beneath product."
+    },
+    "step_2_output": {
+      "prompt_1": "Use the uploaded product image as exact reference for the product appearance.\n\nProfessional product photography of Rhode Peptide Lip Treatment - premium skincare squeeze tube. Soft matte pink plastic (HEX #E8A0B0), elongated tapered silhouette approximately 4 inches tall, rounded squeeze tip applicator at top, flat oval base for standing. Material is soft-touch matte plastic, opaque, with subtle vertical seam lines.\n\nBRANDING: 'rhode' logo printed vertically in lowercase white (HEX #FFFFFF) sans-serif typography (clean, modern, slightly rounded letterforms) on front center. Below logo: 'peptide lip treatment' in smaller white text, also lowercase. 'sheer' and shade name in smallest text near base.\n\nANGLE: Front facing hero shot, straight on view\n\nPRODUCT POSITION: Product standing upright, centered in frame, front label/branding facing camera directly. Camera at product eye-level with subtle 5° upward angle for heroic presence.\n\nBACKGROUND: Pure white infinity backdrop (#FFFFFF). Seamless, no visible horizon line. Clean commercial studio environment.\n\nLIGHTING: Soft, diffused studio lighting. Key light from upper left at 45°. Fill light from right. Subtle rim light for edge definition. No harsh shadows. Product evenly lit with gentle gradients showing form.\n\nPRODUCT FIDELITY (CRITICAL - NON-NEGOTIABLE):\n• Reproduce the product EXACTLY as shown in reference image\n• Preserve ALL logos, brand names, text, typography with 100% accuracy\n• Text must be LEGIBLE, CORRECTLY SPELLED, and PROPERLY POSITIONED\n• Colors must match reference exactly - no color shifts\n• Materials and finishes must be accurate (matte stays matte, glossy stays glossy)\n• Proportions must be exact - no stretching, squishing, or distortion\n• Surface details (embossing, texture, seams) must be preserved\n\nQUALITY:\n• Ultra-high resolution, commercial photography quality\n• Crisp focus across entire product\n• No artifacts, no noise, no compression\n• The product must look like a flawless photograph of the real physical item\n\nANTI-AI ARTIFACTS:\n• No warped text or gibberish characters\n• No melted or merged elements\n• No impossible geometry\n• No floating shadows or disconnected reflections\n• No plastic/CGI smoothing - maintain real material properties"
+    }
+  }
+}

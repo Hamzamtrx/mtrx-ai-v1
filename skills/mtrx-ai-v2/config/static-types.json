@@ -1,0 +1,149 @@
+{
+  "version": "2.0",
+  "name": "MTRX AI V2 - Static Ad Generator",
+  
+  "categories": {
+    "apparel": {
+      "name": "Apparel",
+      "description": "T-shirts, hoodies, pants, jackets, etc.",
+      "examples": ["UndrDog", "True Classic", "BYLT", "Cuts"],
+      "skills_folder": "apparel",
+      "static_types": ["type1", "type2", "type3", "type4"]
+    },
+    "supplements": {
+      "name": "Supplements",
+      "description": "Vitamins, proteins, health powders, capsules",
+      "examples": ["Primal Queen", "Athletic Greens", "Momentous"],
+      "skills_folder": "supplements",
+      "static_types": ["type1", "type2", "type3", "type4"]
+    },
+    "skincare": {
+      "name": "Skincare & Beauty",
+      "description": "Serums, creams, cleansers, makeup",
+      "examples": ["Drunk Elephant", "The Ordinary", "Glossier"],
+      "skills_folder": "skincare",
+      "static_types": ["type1", "type2", "type3", "type4"]
+    },
+    "fragrance": {
+      "name": "Fragrance",
+      "description": "Perfumes, colognes, body sprays",
+      "examples": ["Dossier", "Commodity", "Le Labo"],
+      "skills_folder": "fragrance",
+      "static_types": ["type1", "type3"]
+    },
+    "food_beverage": {
+      "name": "Food & Beverage",
+      "description": "Drinks, snacks, ingredients, meal replacements",
+      "examples": ["Liquid Death", "RXBAR", "Olipop"],
+      "skills_folder": "food_beverage",
+      "static_types": ["type1", "type2", "type3", "type4"]
+    },
+    "tech": {
+      "name": "Tech & Gadgets",
+      "description": "Devices, accessories, electronics",
+      "examples": ["Anker", "Peak Design", "Oura"],
+      "skills_folder": "tech",
+      "static_types": ["type1", "type3"]
+    }
+  },
+  
+  "static_types": {
+    "type1": {
+      "name": "Product Hero",
+      "description": "Clean product display with bold headline and offer",
+      "skill_file": "type1-product-hero.md",
+      "best_for": ["launches", "hero ads", "retargeting", "brand awareness"],
+      "aspect_ratios": ["4:5", "1:1", "9:16"]
+    },
+    "type2": {
+      "name": "Meme Style",
+      "description": "Internet meme format with product integration",
+      "skill_file": "type2-meme.md",
+      "best_for": ["TOF awareness", "viral potential", "younger audiences", "organic feel"],
+      "aspect_ratios": ["1:1", "4:5"]
+    },
+    "type3": {
+      "name": "Aesthetic + Offer",
+      "description": "Premium product photography with announcement overlay",
+      "skill_file": "type3-aesthetic-offer.md",
+      "best_for": ["drops", "limited editions", "restocks", "premium positioning"],
+      "aspect_ratios": ["4:5", "1:1"]
+    },
+    "type4": {
+      "name": "Animated Benefits",
+      "description": "Cartoon/illustrated style with benefit callouts",
+      "skill_file": "type4-animated-benefits.md",
+      "best_for": ["education", "comparison", "feature highlights", "shareable content"],
+      "aspect_ratios": ["4:5", "1:1"]
+    }
+  },
+  
+  "copy_frameworks": {
+    "type1": {
+      "headline": {
+        "structure": "[SUPERLATIVE] + [PRODUCT] + [YOU'LL EVER] + [VERB]",
+        "max_words": 7,
+        "style": "ALL CAPS, period at end"
+      },
+      "offer_line": {
+        "structure": "✓ + [Benefit/Guarantee]",
+        "style": "Accent color, single line"
+      },
+      "cta": {
+        "options": ["SHOP NOW", "GET YOURS", "BUY NOW", "CLAIM YOURS"]
+      }
+    },
+    "type2": {
+      "top_panel": {
+        "structure": "Emotional overreaction / testimonial",
+        "style": "Sincere, deliberately over-the-top"
+      },
+      "bottom_panel": {
+        "structure": "I'm literally just a [product] made from [material] that you can [use cases] that's [benefit].",
+        "style": "Humble, understated, casual"
+      }
+    },
+    "type3": {
+      "product_code": {
+        "structure": "[CODE]: [NAME]",
+        "style": "Accent color, ALL CAPS"
+      },
+      "announcement": {
+        "structure": "[STATUS/ACTION] - 2-3 words",
+        "options": ["WE ARE LIVE", "NOW AVAILABLE", "BACK IN STOCK", "DROPPING FRIDAY"],
+        "style": "White, HUGE, dominant"
+      },
+      "badge": {
+        "structure": "[URGENCY INDICATOR]",
+        "options": ["LIMITED EDITION", "ONLY 500 MADE", "FIRST DROP", "24 HOURS ONLY"],
+        "style": "Accent color badge"
+      }
+    },
+    "type4": {
+      "headline": {
+        "structure": "[PRODUCT]. [COMPARISON].",
+        "examples": ["HEMP > POLYESTER", "ORGANIC > SYNTHETIC"],
+        "style": "Bold, ALL CAPS, creates contrast"
+      },
+      "benefits": {
+        "count": 3,
+        "max_words": 3,
+        "style": "Pill badges, cream/warm colors"
+      },
+      "cta": {
+        "structure": "[ACTION] + [BRAND IDENTITY]",
+        "examples": ["BECOME AN UNDRDOG TODAY", "JOIN THE REVOLUTION"],
+        "style": "Banner, accent color"
+      }
+    }
+  },
+  
+  "brand_detection_keywords": {
+    "apparel": ["shirt", "tee", "hoodie", "pants", "jacket", "wear", "clothing", "fabric", "cotton", "hemp"],
+    "supplements": ["capsule", "vitamin", "mineral", "supplement", "powder", "protein", "health", "wellness"],
+    "skincare": ["serum", "cream", "moisturizer", "cleanser", "skin", "face", "beauty", "glow"],
+    "fragrance": ["perfume", "cologne", "scent", "fragrance", "spray", "eau de"],
+    "food_beverage": ["drink", "beverage", "snack", "bar", "water", "soda", "coffee", "tea", "food"],
+    "tech": ["device", "gadget", "charger", "cable", "wireless", "smart", "electronic"]
+  }
+}

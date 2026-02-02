@@ -1,0 +1,185 @@
+{
+  "image_types": {
+    "aesthetic": {
+      "name": "Aesthetic Product Images",
+      "description": "Styled product photography with brand-matched environments",
+      "skill_file": "aesthetic-image-skill.md",
+      "directions": {
+        "botanical_ingredient": {
+          "name": "Botanical Ingredient",
+          "description": "Product surrounded by raw botanical ingredients",
+          "default_angles": ["front_hero", "flat_lay"],
+          "best_for": ["supplements", "natural products", "wellness"]
+        },
+        "calm_wellness": {
+          "name": "Calm Wellness",
+          "description": "Bathroom vanity or self-care setting",
+          "default_angles": ["front_hero", "3/4_left"],
+          "best_for": ["skincare", "supplements", "self-care"]
+        },
+        "lifestyle_moment": {
+          "name": "Lifestyle Moment",
+          "description": "Kitchen counter, desk, or real environment",
+          "default_angles": ["3/4_left", "flat_lay"],
+          "best_for": ["daily use products", "food/beverage", "productivity"]
+        },
+        "bold_color_pop": {
+          "name": "Bold Color Pop",
+          "description": "Solid color backdrop matching brand",
+          "default_angles": ["front_hero"],
+          "best_for": ["bold packaging", "edgy brands", "standout visuals"]
+        },
+        "texture_immersion": {
+          "name": "Texture Immersion",
+          "description": "Rich tactile textures surrounding product",
+          "default_angles": ["3/4_left", "front_hero"],
+          "best_for": ["premium brands", "luxury positioning", "tactile products"]
+        }
+      }
+    },
+    "influencer": {
+      "name": "Influencer Product Images",
+      "description": "Person holding or presenting product - professional quality",
+      "skill_file": "influencer-image-skill.md",
+      "directions": {
+        "hand_holding": {
+          "name": "Hand Holding",
+          "description": "Close-up of hand holding product",
+          "default_angles": ["side_profile", "3/4_left"],
+          "best_for": ["product focus", "texture showcase", "minimal"]
+        },
+        "presenting_to_camera": {
+          "name": "Presenting to Camera",
+          "description": "Person showing product to viewer",
+          "default_angles": ["front_hero", "3/4_left"],
+          "best_for": ["direct recommendation", "testimonial style"]
+        },
+        "product_in_scene": {
+          "name": "Product in Scene",
+          "description": "Product sharp, person blurred in background",
+          "default_angles": ["flat_lay", "3/4_left"],
+          "best_for": ["lifestyle context", "aspirational"]
+        },
+        "using_product": {
+          "name": "Using Product",
+          "description": "Person actively taking or using product",
+          "default_angles": ["front_hero", "3/4_left"],
+          "best_for": ["demonstration", "how-to feel"]
+        },
+        "selfie_with_product": {
+          "name": "Selfie with Product",
+          "description": "Person taking selfie while holding product",
+          "default_angles": ["front_hero"],
+          "best_for": ["social proof", "relatable"]
+        }
+      }
+    },
+    "ugc": {
+      "name": "UGC Style Images",
+      "description": "iPhone selfie quality - real environments, influencer pretty",
+      "skill_file": "ugc-influencer-skill.md",
+      "directions": {
+        "bedroom_selfie": {
+          "name": "Bedroom Selfie",
+          "description": "Cozy bedroom, influencer showing product",
+          "default_angles": ["front_hero"],
+          "best_for": ["morning routine", "relatable", "cozy"]
+        },
+        "car_selfie": {
+          "name": "Car Selfie",
+          "description": "Parked car, excited to share discovery",
+          "default_angles": ["front_hero"],
+          "best_for": ["on-the-go", "spontaneous", "excited energy"]
+        },
+        "gym_selfie": {
+          "name": "Gym Selfie",
+          "description": "Post-workout, fitness lifestyle",
+          "default_angles": ["front_hero"],
+          "best_for": ["fitness products", "energy", "active lifestyle"]
+        },
+        "bathroom_mirror": {
+          "name": "Bathroom Mirror",
+          "description": "Morning routine mirror selfie",
+          "default_angles": ["front_hero"],
+          "best_for": ["skincare", "supplements", "daily ritual"]
+        },
+        "kitchen_counter": {
+          "name": "Kitchen Counter",
+          "description": "Lifestyle kitchen moment",
+          "default_angles": ["front_hero", "3/4_left"],
+          "best_for": ["food products", "supplements", "daily use"]
+        }
+      }
+    },
+    "model": {
+      "name": "Model Product Images",
+      "description": "Professional model shots - close-ups and lifestyle",
+      "skill_files": ["model-closeup-skill.md", "model-lifestyle-skill.md", "model-couple-skill.md"],
+      "directions": {
+        "closeup_warm": {
+          "name": "Close-up Warm",
+          "description": "Face + product, warm smile, nurturing brands",
+          "default_angles": ["front_hero"],
+          "skill_file": "model-closeup-skill.md",
+          "best_for": ["wellness", "mom brands", "approachable"]
+        },
+        "closeup_confident": {
+          "name": "Close-up Confident",
+          "description": "Face + product, subtle smile, premium brands",
+          "default_angles": ["front_hero"],
+          "skill_file": "model-closeup-skill.md",
+          "best_for": ["luxury", "premium", "aspirational"]
+        },
+        "lifestyle_yoga": {
+          "name": "Lifestyle Yoga",
+          "description": "Full body, wellness activity setting",
+          "default_angles": ["front_hero", "3/4_left"],
+          "skill_file": "model-lifestyle-skill.md",
+          "best_for": ["wellness", "mindfulness", "calm energy"]
+        },
+        "lifestyle_kitchen": {
+          "name": "Lifestyle Kitchen",
+          "description": "Full body, morning routine in kitchen",
+          "default_angles": ["front_hero", "flat_lay"],
+          "skill_file": "model-lifestyle-skill.md",
+          "best_for": ["supplements", "food", "daily ritual"]
+        },
+        "couple_romantic": {
+          "name": "Couple Romantic",
+          "description": "Two people, relationship context",
+          "default_angles": ["front_hero"],
+          "skill_file": "model-couple-skill.md",
+          "best_for": ["gift-giving", "relationship products", "shared experience"]
+        }
+      }
+    }
+  },
+  "brand_matching": {
+    "tone_to_directions": {
+      "nurturing": ["botanical_ingredient", "calm_wellness", "lifestyle_moment", "closeup_warm"],
+      "aggressive": ["bold_color_pop", "texture_immersion"],
+      "clinical": ["calm_wellness", "lifestyle_moment"],
+      "playful": ["bold_color_pop", "bedroom_selfie", "car_selfie"],
+      "luxurious": ["texture_immersion", "closeup_confident"],
+      "rebellious": ["bold_color_pop", "gym_selfie"]
+    },
+    "category_to_directions": {
+      "supplement": ["botanical_ingredient", "calm_wellness", "lifestyle_moment"],
+      "skincare": ["calm_wellness", "closeup_warm", "bathroom_mirror"],
+      "fitness": ["gym_selfie", "lifestyle_yoga", "using_product"],
+      "food_beverage": ["lifestyle_moment", "kitchen_counter", "lifestyle_kitchen"],
+      "apparel": ["presenting_to_camera", "couple_romantic"]
+    }
+  },
+  "angle_grid_positions": {
+    "front_hero": "top_left",
+    "front_hero_variant": "top_center",
+    "3/4_right": "top_right",
+    "3/4_left": "middle_left",
+    "top_down": "middle_center",
+    "side_profile": "middle_right",
+    "front_hero_alt": "bottom_left",
+    "back_panel": "bottom_center",
+    "flat_lay": "bottom_right"
+  }
+}

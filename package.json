@@ -1,0 +1,33 @@
+{
+  "name": "mtrx-ai-v1",
+  "version": "1.0.0",
+  "description": "MTRX AI V1 - Product Image Generator",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test:api": "node scripts/test-api.js",
+    "generate": "node scripts/generate.js"
+  },
+  "keywords": [
+    "ai",
+    "image-generation",
+    "product-photography",
+    "nano-banana"
+  ],
+  "author": "MTRX Media",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "dotenv": "^16.0.0",
+    "express": "^5.2.1",
+    "form-data": "^4.0.5",
+    "formdata-node": "^6.0.3",
+    "localtunnel": "^2.0.2",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
