@@ -1937,6 +1937,1261 @@ LAYOUT MARGINS:
 
 ${aspectRatio} aspect ratio.`;
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // PERFUME / LUXURY CATEGORY
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Research and generate copy specifically for perfume/luxury products
+   * @param {Object} options
+   * @returns {Promise<Object>} - Research with perfume_copy
+   */
+  async researchPerfumeCopy({ websiteUrl, websiteContent, brandName, productName, productImageUrl }) {
+    console.log('🧠 Starting perfume/luxury AI research...');
+
+    const sessionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+    const prompt = `You are an expert luxury/fragrance copywriter who writes for high-end perfume brands.
+
+SESSION: ${sessionId}
+⚠️ CRITICAL: Generate COMPLETELY FRESH, UNIQUE copy for this session.
+Do NOT reuse any previously generated headlines or phrases.
+
+═══════════════════════════════════════════════════════════════
+PERFUME / LUXURY PRODUCT ANALYSIS
+═══════════════════════════════════════════════════════════════
+
+BRAND: ${brandName}
+PRODUCT: ${productName}
+WEBSITE: ${websiteUrl}
+
+WEBSITE CONTENT:
+${websiteContent?.substring(0, 8000) || 'No content available'}
+
+═══════════════════════════════════════════════════════════════
+YOUR TASK
+═══════════════════════════════════════════════════════════════
+
+1. ANALYZE THE BRAND FROM THE WEBSITE:
+
+   A) EXTRACT ACTUAL COLORS FROM THE WEBSITE - BE PRECISE:
+      - What is the PRIMARY background color? (e.g., "black", "white", "dark navy")
+      - What is their PRIMARY text color? (e.g., "white", "black", "cream")
+      - What is their ACCENT color? (buttons, highlights - e.g., "gold", "amber", "burgundy")
+
+      ⚠️ CRITICAL COLOR RULES:
+      - Use EXACT color names as they appear
+      - Be LITERAL about what you see
+
+   B) ANALYZE TYPOGRAPHY/FONT STYLE — CRITICAL FOR MATCHING:
+      - Is their headline font SERIF (elegant, traditional - like Didot, Bodoni, Playfair Display, Cormorant) or SANS-SERIF (modern, clean - like Helvetica, Futura, Montserrat)?
+      - Is it BOLD/HEAVY or LIGHT/THIN?
+      - Is it ALL CAPS or Mixed Case?
+      - Do they use any SCRIPT/HANDWRITTEN fonts?
+      - What's the LETTER SPACING? Tight or wide/tracked-out?
+      - What's the overall typography vibe? (Luxury-Minimal, Luxury-Bold, Modern-Edgy, Classic-Refined)
+      ⚠️ Describe the font style in DETAIL so we can match it EXACTLY in the ads
+      ⚠️ The ads MUST look like they came from the same brand's design team
+
+   C) TARGET AUDIENCE:
+      - Male / Female / Unisex — DETERMINE THIS CAREFULLY:
+        ⚠️ Look at the WEBSITE for explicit signals: "for him", "for her", "men's", "women's", model photos, pronouns used
+        ⚠️ Look at the PRODUCT NAME — does it say "pour homme", "pour femme", "for men", "for women"?
+        ⚠️ Look at SCENT NOTES — woody/leather/tobacco typically = male, floral/sweet/fruity typically = female
+        ⚠️ Look at BOTTLE DESIGN — dark/angular = often male, soft/curved/pink = often female
+        ⚠️ Look at WEBSITE IMAGERY — male models = male product, female models = female product
+        ⚠️ If unsure, say "unisex" — but do NOT guess wrong. Getting the gender wrong ruins the entire campaign.
+      - Age range
+      - Lifestyle (luxury, streetwear, classic, modern)
+
+   D) BRAND TONE:
+      - Confident/Bold: "You don't follow trends"
+      - Seductive/Mysterious: "They won't be able to focus"
+      - Premium/Refined: "Crafted for the discerning"
+      - Rebellious/Edgy: "Not for everyone"
+      - Aspirational: "Set the tone"
+
+   E) COPY STYLE - Match the website's actual voice:
+      - Look at their headlines - are they questions? Commands? Statements?
+      - Look at their word choice - casual or formal? Edgy or refined?
+      - Look at their energy - calm or intense? Seductive or bold?
+      ⚠️ YOUR COPY MUST MATCH THIS EXACT TONE, FONT STYLE, AND COLORS.
+
+2. EXTRACT FRAGRANCE DETAILS:
+   - Scent notes (top, middle, base) if available
+   - Key descriptors (woody, fresh, spicy, floral, etc.)
+   - Bottle design description
+   - Price point / positioning
+   - Any unique selling points
+
+3. DETECT THE PRIMARY BUYER AVATAR based on the brand's website messaging:
+
+   ═══════════════════════════════════════════════════════════════
+   PERFUME BUYER AVATARS — Choose the ONE that best matches the brand
+   ═══════════════════════════════════════════════════════════════
+
+   A) COMPLIMENT CHASER
+      WHO: Buys fragrance to be noticed. Lives for "what are you wearing?" moments.
+      WEBSITE SIGNALS: Testimonials about reactions, social proof, compliment stories, "people will notice"
+      COPY LANGUAGE: "3 compliments before noon", "they asked", "heads turned", "someone stopped me"
+      ANGLE: Social proof, external validation, being noticed
+
+   B) SEDUCER
+      WHO: Uses fragrance as a weapon. Confidence in dating/attraction/power.
+      WEBSITE SIGNALS: Seductive language, attraction imagery, confidence framing, "irresistible", "they can't resist"
+      COPY LANGUAGE: "can't focus", "walked past", "couldn't stop thinking", "close encounters"
+      ANGLE: Attraction, magnetic pull, seduction, power
+
+   C) SIGNATURE SEEKER
+      WHO: Doesn't want to smell like everyone else. Wants ONE defining scent.
+      WEBSITE SIGNALS: Uniqueness emphasis, "stand out", "not like the rest", "your scent", individuality
+      COPY LANGUAGE: "signature scent", "stand out", "not for everyone", "your scent", "nobody else"
+      ANGLE: Identity, individuality, being memorable, being different
+
+   D) UPGRADER
+      WHO: Moving from cheap/mainstream to premium. Wants to smell expensive.
+      WEBSITE SIGNALS: Premium positioning, quality/craftsmanship messaging, luxury upgrade, "invest in yourself"
+      COPY LANGUAGE: "level up", "smell expensive", "grown-up scent", "investment", "quality"
+      ANGLE: Status elevation, premium quality, maturity, smelling expensive
+
+   E) NICHE EXPLORER
+      WHO: Tired of mainstream. Wants artisan, unusual, sophisticated.
+      WEBSITE SIGNALS: Artisan, indie brand, craftsmanship, unusual ingredients, "you won't find this at Sephora"
+      COPY LANGUAGE: "not Sauvage", "niche", "unique notes", "for those who know", "you won't find this"
+      ANGLE: Discovery, connoisseur status, ahead of the curve, exclusivity
+
+   ⚠️ Pick the avatar that BEST matches the brand's website messaging and tone.
+   ⚠️ If unclear, default to "compliment-chaser" (most universally effective for fragrance ads).
+
+   ═══════════════════════════════════════════════════════════════
+   DEEP PERSONA RESEARCH — GO BEYOND THE AVATAR LABEL
+   ═══════════════════════════════════════════════════════════════
+
+   The avatars above are starting frameworks, NOT cages. You MUST layer in deeper research:
+
+   A) WHO IS THIS PERSON SPECIFICALLY?
+      - What age are they? What life stage?
+      - Are they single, dating, divorced, married?
+      - What's their daily life like? Office job? Entrepreneur? Creative?
+      - What emotional state drives this purchase? Confidence? Reinvention? Revenge? Self-love?
+      - Example: A "compliment chaser" could be a 22-year-old clubber OR a 38-year-old divorcee rebuilding confidence
+
+   B) WHAT'S THE DEEPER STORY?
+      - What happened BEFORE they buy this perfume?
+      - What moment triggers the purchase? (New job? Breakup? Birthday? Seeing someone react?)
+      - What does this scent REPRESENT in their life beyond just smelling good?
+      - What would they post on Reddit/TikTok/Instagram about this?
+
+   C) WHAT LANGUAGE DO REAL PEOPLE USE?
+      - Think about how real fragrance buyers talk on Reddit r/fragrance, TikTok #perfumetok, Instagram
+      - Real people don't say "redefine elegance" — they say "bro three people asked what I was wearing"
+      - Real people don't say "signature presence" — they say "this is the one, I'm done searching"
+      - Match the ACTUAL voice of the target customer, not marketing speak
+
+   D) RETURN YOUR PERSONA INSIGHTS:
+      - Include a "persona_notes" field describing WHO you're writing for and WHY
+      - This helps ensure the copy feels targeted, not generic
+
+   ⚠️ The goal: every piece of copy should feel like it was written for ONE specific person, not "luxury fragrance buyers in general"
+
+4. GENERATE COPY VARIANTS — GUIDED BY AVATAR + YOUR OWN RESEARCH:
+
+   ⚠️ The avatar sets the ANGLE. Your persona research adds the DEPTH and SPECIFICITY.
+   ⚠️ A "compliment-chaser" ad sounds COMPLETELY DIFFERENT from a "seducer" ad.
+   ⚠️ But a compliment-chaser ad for a 22-year-old also sounds different from one for a 40-year-old.
+   ⚠️ Use what you learned about the brand's actual audience to make the copy SPECIFIC and REAL.
+
+   HOW THE AVATAR SHAPES YOUR COPY (angle, NOT exact words):
+
+   - COMPLIMENT CHASER → Copy about other people's REACTIONS. Social moments. Being noticed.
+   - SEDUCER → Copy about ATTRACTION. Tension. Confidence. Power dynamics.
+   - SIGNATURE SEEKER → Copy about IDENTITY. Standing out. Being unique. Not following.
+   - UPGRADER → Copy about LEVELLING UP. Quality. Premium. Growth. Status.
+   - NICHE EXPLORER → Copy about DISCOVERY. Connoisseur taste. Being ahead. Exclusivity.
+
+   ⚠️⚠️⚠️ CRITICAL — FRESH COPY RULES:
+   • DO NOT paraphrase or rephrase any example copy from this prompt
+   • DO NOT use "your scent", "not for everyone", "they asked", "compliments" — these are BURNED phrases
+   • INVENT completely new angles, metaphors, and scenarios that fit the avatar
+   • Think about what the SPECIFIC PERSONA you researched would actually text their friend
+   • Think about what they'd caption on Instagram, say in a Reddit post, or think to themselves
+   • Every headline must feel like it's NEVER been written before
+   • Each of the 4 variants must explore a COMPLETELY DIFFERENT angle within the avatar
+
+   A) PERFUME AESTHETIC (designed luxury ad — cinematic photography + headline + CTA) - Generate 4 variants:
+
+      These are DESIGNED ADS using cinematic product photography as the base.
+      The BOTTLE is 50-60% of the image, with a headline at top, CTA below, and brand logo at bottom.
+      Think: Dior Instagram ad, Tom Ford paid social, Chanel Facebook ad — beautiful photo, structured text overlay.
+      This is the CONVERSION version — same quality photography as product hero, but designed to sell.
+
+      SETTINGS — choose based on what fits the BRAND and PERSONA:
+      - runway: Fashion show/runway, dramatic lighting, audience silhouettes. Best for: bold/edgy brands, confident tone
+      - bokeh: Evening/festive bokeh lights, warm amber. Best for: seasonal campaigns, warm/inviting brands
+      - moody: Dark dramatic, amber glow, mysterious. Best for: seductive/dark brands, masculine energy
+      - marble: Clean marble/stone, luxury interior, minimal. Best for: clean/refined brands, feminine energy
+      - urban: City at night, neon reflections, wet streets. Best for: modern/streetwear-adjacent brands
+      - nature: Golden hour, outdoor scene, natural warmth. Best for: fresh/clean scent profiles
+      - studio: Clean studio lighting, fashion editorial. Best for: high-fashion brands, unisex
+
+      ⚠️ CHOOSE settings that match THIS SPECIFIC brand's vibe — don't default to moody every time
+      ⚠️ Each variant MUST use a DIFFERENT setting
+      ⚠️ Consider the brand's colors, tone, and target audience when choosing
+
+      For each variant:
+      - h1: SHORT one-liner headline (3-10 words MAX) — through the AVATAR'S angle
+      - h1_highlight: Key words to highlight in accent color (or null)
+      - subheadline: null (DO NOT add subheadlines — keep it minimal)
+      - setting: One of the settings above
+      - note_badges: Array of 2-3 scent notes as small badges (e.g., ["SANDALWOOD", "MUSK", "LEATHER"]) — only for 1-2 variants, rest should be null
+
+      ⚠️ HEADLINE RULES:
+      - SHORT. 3-10 words. One punchy line.
+      - Must be ON-ANGLE for the detected avatar
+      - NOT product descriptions, NOT generic luxury phrases
+      - Think: What does the AVATAR care about?
+
+      *** BAD / BURNED HEADLINES — DO NOT USE THESE OR ANYTHING SIMILAR: ***
+      ❌ "Your scent. Not theirs." (BURNED — used too many times)
+      ❌ "Your scent. Nobody else's." (BURNED — same idea)
+      ❌ "Not for everyone." (BURNED)
+      ❌ "They asked. You said nothing." (BURNED)
+      ❌ "Three compliments before noon." (BURNED)
+      ❌ "Signature presence." (abstract — means nothing)
+      ❌ "Timeless sophistication." (no one talks like this)
+      ❌ "Redefine elegance." (fortune cookie energy)
+      ❌ "Beyond department store" (BURNED — too generic)
+      ❌ "Beyond ordinary" or "Beyond ordinary limits" (BURNED)
+      ❌ "Push every boundary" (BURNED — motivational poster energy)
+      ❌ "Grown man fragrance" (BURNED — patronizing)
+      ❌ "Magnetic pull" or "The magnetic pull" (BURNED — abstract, means nothing for a fragrance)
+      ❌ "The pull" or anything with "pull" (vague, not specific)
+      ❌ "Make them wonder" (BURNED — generic)
+      ❌ "Midnight conversations" (BURNED — what does midnight have to do with fragrance?)
+      ❌ Anything with "midnight", "whisper", "shadow" — pretentious, not specific
+      ❌ Anything with "your scent", "not for everyone", "they asked", "beyond", "magnetic" — OVERUSED
+      ❌ Anything ABSTRACT that doesn't create a SPECIFIC image or scenario in your head
+      ❌ Anything that sounds like a motivational poster or corporate tagline
+
+      ✅ GOOD headlines create a SPECIFIC SCENE or FEELING:
+      ✅ "She leaned in twice." — you can SEE this happening
+      ✅ "The one I hide from my brother." — specific, funny, real
+      ✅ "I wore this to the interview. Got the job." — concrete scenario
+
+      ⚠️ HEADLINE QUALITY TEST — every headline must pass ALL of these:
+      1. "Would the AVATAR actually say or think this?" — if not, rewrite
+      2. "Has this been used in a fragrance ad before?" — if yes, rewrite
+      3. "Does this create a SPECIFIC image or feeling?" — if not, rewrite
+      4. "Would this stop someone scrolling?" — if not, rewrite
+      5. "Does this sound like a REAL person talking?" — if not, rewrite
+      6. "Is the grammar correct? Does it read as a complete thought?" — if not, FIX IT
+      7. "Read it out loud — does it sound natural?" — if not, rewrite
+
+      ⚠️ GRAMMAR IS NON-NEGOTIABLE:
+      - Every headline must be a COMPLETE, grammatically correct phrase or sentence
+      - If a word is missing, the headline is broken — FIX IT before submitting
+      - Read each headline out loud. If it sounds awkward or incomplete, rewrite it.
+
+      ✅ GOOD headline energy: provocative, specific, slightly dangerous, makes you FEEL something
+      ❌ BAD headline energy: generic, corporate, motivational, abstract, could apply to any product
+
+      ⚠️ EACH VARIANT MUST:
+      - Use a DIFFERENT setting
+      - Stay ON-ANGLE for the detected avatar
+      - Explore a COMPLETELY DIFFERENT angle/scenario from the other variants
+      - Keep headlines SHORT (3-10 words)
+      - Be genuinely ORIGINAL — not a paraphrase of anything in this prompt
+
+   B) UGC HOLDING (hand holding perfume with testimonial) - Generate 4 variants:
+
+      Real-feeling hand holding the perfume bottle with a powerful testimonial quote.
+      Think: the detected AVATAR sharing their experience casually.
+
+      SETTINGS — choose diverse locations for each variant:
+      - bathroom counter (morning routine, mirror, natural light)
+      - car dashboard/steering wheel (on the go, leather seat, windshield light)
+      - desk at work (professional, keyboard/monitor in background)
+      - nightstand/bedroom (intimate, cozy, warm lamp light)
+      - gym bag/locker room (post-workout, active lifestyle)
+      - restaurant table (date night, candles, glasses in background)
+      - couch/coffee table (lazy weekend, relaxed, casual)
+      - outside/street (urban, sunlight, walking somewhere)
+
+      ⚠️ Each variant MUST use a DIFFERENT setting
+      ⚠️ Choose settings that match the PERSONA's lifestyle
+
+      For each variant:
+      - quote: Short, punchy testimonial from the AVATAR'S perspective (1-2 sentences, casual voice)
+      - setting: Where the hand is (choose from above or similar)
+      - hand_style: Description of the hand/person vibe
+
+      ⚠️ The quote must sound like something the AVATAR would actually say.
+      ⚠️ A compliment-chaser talks about reactions. A seducer talks about attraction. A signature-seeker talks about being unique. etc.
+
+      *** BAD / BURNED QUOTES — DO NOT USE: ***
+      ❌ "Great fragrance, would recommend!" (generic review)
+      ❌ "Smells really nice and lasts long" (boring)
+      ❌ "Finally found my scent. Nobody else is wearing this." (BURNED)
+      ❌ "Three people asked what I was wearing." (BURNED)
+      ❌ Anything with "nobody else" or "they asked" or "compliments" — these are OVERUSED
+      ⚠️ Think about what the SPECIFIC PERSONA would actually text their best friend
+
+   C) PRODUCT HERO (cinematic editorial product photography — minimal text) - Generate 4 variants:
+
+      Cinematic product photography in atmospheric settings. Product dominates. ONE subtle headline only.
+      Think: Tom Ford campaign, Dior Sauvage editorial, Chanel No. 5 — the product IS the art.
+      This is the EDITORIAL version — beautiful photography, minimal text, product-first.
+
+      SETTINGS — choose based on brand vibe (same as aesthetic settings):
+      - runway: Fashion show, dramatic spotlights, dark atmosphere
+      - bokeh: Evening/festive bokeh lights, warm amber
+      - moody: Dark dramatic, amber glow, mysterious
+      - marble: Clean marble/stone, luxury interior, minimal
+      - urban: City at night, neon reflections, wet streets
+      - nature: Golden hour, outdoor, natural warmth
+      - studio: Clean studio lighting, fashion editorial
+
+      ⚠️ Each variant MUST use a DIFFERENT setting
+      ⚠️ Choose settings that match THIS brand's vibe
+
+      For each variant:
+      - h1: Short, subtle headline (3-8 words) — this is a WHISPER, not a shout
+      - setting: One of the settings above
+      - layout_style: How the bottle sits in the scene
+
+      *** BAD HEADLINES (vague, generic, meaningless): ***
+      ❌ "Signature presence." (too abstract — means nothing)
+      ❌ "Redefine elegance." (empty words)
+      ❌ "Essence of distinction." (sounds like a fortune cookie)
+      ❌ "Conversations will stop" (generic — could be about anything)
+
+      ⚠️ Every headline must pass: Would the AVATAR actually say or think this?
+      ⚠️ Headlines should be CONVERSATIONAL and SPECIFIC — not abstract luxury buzzwords
+      ⚠️ The headline is SECONDARY to the product — keep it short and subtle
+
+   D) MODEL CLOSEUP (intimate person + bottle shot) - Generate 4 variants:
+
+      Close-up of a person casually holding the perfume bottle. Natural, confident, attractive.
+      Think: Liquid London or YSL close-up ad — simple, clean, person + bottle.
+
+      For each variant:
+      - quote: Short, confident testimonial/headline (1 sentence, first person)
+      - model_description: Who the model is (e.g., "woman mid-30s, warm skin, subtle makeup", "man late-20s, stubble, sharp jawline")
+      - pose: How they're holding the bottle — MUST be NATURAL:
+        ✅ "casually holding bottle at shoulder height" — normal, relaxed
+        ✅ "bottle resting in hand near collarbone" — simple, elegant
+        ✅ "holding bottle up beside face" — showing it off naturally
+        ❌ "pressing bottle against neck" — nobody does this
+        ❌ "touching cheek with bottle cap" — weird and unnatural
+        ❌ "nuzzling the bottle" — creepy
+        The pose should look like how a REAL person would hold a bottle in a photo.
+      - lighting: Mood of the lighting (e.g., "warm golden sidelight", "soft diffused", "clean studio")
+
+      ⚠️ The model should match the brand's target gender and age range
+      ⚠️ NO nude or topless models — bare shoulders fine, but NO bare chest
+      ⚠️ The quote must be through the AVATAR'S angle
+      ⚠️ PRODUCT ACCURACY: The quote must be about THIS SPECIFIC product (${productName} by ${brandName}).
+        ❌ DO NOT reference any other product, brand, or fragrance name
+        ❌ DO NOT use generic quotes that could apply to any product — anchor it to THIS fragrance's actual scent notes, feeling, or experience
+        ✅ The quote should feel like someone who actually owns and wears THIS specific fragrance
+
+   E) BENEFIT CALLOUT (luxury benefits + product info) - Generate 4 variants:
+
+      Premium brand ad with product benefits/details. Product centered with benefit callouts.
+      Think: luxury brand Instagram ad that educates and converts.
+
+      For each variant:
+      - headline: Bold, confident headline about the PRODUCT or EXPERIENCE (e.g., "THE FRAGRANCE THAT LINGERS", "HANDCRAFTED. NEVER MASS-PRODUCED.", "WHAT YOU WEAR WHEN IT MATTERS")
+      - benefits: Array of 3-4 short benefits — MUST be TRUE and based on actual product info (e.g., ["Long-lasting Sillage", "Sandalwood & Leather Base", "Handcrafted in the UK", "Eau de Parfum Concentration"])
+      - cta: Call to action button text (e.g., "SHOP NOW", "DISCOVER", "TRY IT")
+      - bg_color: Rich background color/gradient from brand palette (e.g., "deep charcoal", "black to gold gradient", "rich burgundy")
+
+      ⚠️ FACTUAL ACCURACY IS CRITICAL:
+      ❌ DO NOT fabricate stock claims ("sold out", "restocked", "waitlist", "limited stock") — you don't know their inventory
+      ❌ DO NOT fabricate review counts ("500+ reviews", "2000 waitlist") — you don't know their numbers
+      ❌ DO NOT fabricate sales claims ("best seller", "trending", "#1 seller") — unless the website explicitly states it
+      ✅ DO use real product attributes: ingredients, scent notes, concentration (EDP/EDT), origin, craftsmanship
+      ✅ DO use experience-based claims: long-lasting, compliment-worthy, versatile, day-to-night
+      ✅ DO use brand values found on their website: cruelty-free, vegan, handcrafted, etc.
+      ⚠️ Every benefit must be VERIFIABLE from the product page or reasonably true of the product category
+
+   F) FLAT LAY (lifestyle product layout) - Generate 4 variants:
+
+      Top-down or angled view of products on a textured surface. Instagram lifestyle style.
+      Think: Fussy ad — casual, authentic, beautiful surface with products arranged naturally.
+
+      For each variant:
+      - caption: SHORT, casual Instagram caption (1 sentence MAX — 5-10 words). Think: what someone actually types on their story.
+      - surface: What the products are laid on (e.g., "cream knit blanket", "marble counter", "linen fabric", "wooden tray")
+      - items: What's in the scene (e.g., "bottle + box + sample vials", "bottle with scattered dried flowers", "bottle with watch and sunglasses")
+      - mood: Visual mood (e.g., "cozy morning", "minimal editorial", "luxe lifestyle")
+
+      ⚠️ The caption must sound like a REAL PERSON typed it on their phone:
+      ✅ "my daily non-negotiable." — casual, short, real
+      ✅ "obsessed with this one tbh" — how people actually talk
+      ✅ "the one that stays in the rotation." — specific, natural
+      ✅ "morning essentials ☁️" — simple story caption energy
+      ❌ "An exquisite blend of aromatic sophistication" — NO ONE talks like this
+      ❌ "Elevating my daily ritual with refined luxury" — AI-generated garbage
+      ❌ "A curated collection of sensory excellence" — corporate nonsense
+      ⚠️ If you wouldn't type it casually on your Instagram story, DON'T write it
+      ⚠️ Match the AVATAR's voice — how would they caption this on social media?
+      ⚠️ SPELLING & GRAMMAR: Double-check every word in the caption for correct spelling.
+        - Read the caption back to yourself. Any misspelled words = rewrite.
+        - Product name "${productName}" and brand name "${brandName}" must be spelled EXACTLY right.
+        - Common mistake: don't misspell fragrance-related words (cologne, parfum, sillage, etc.)
+
+COPYWRITING PRINCIPLES FOR LUXURY/PERFUME:
+- AVATAR-FIRST: Every piece of copy must serve the detected avatar's angle
+- DESIRE over DESCRIPTION - sell the feeling, not the product
+- CONFIDENCE over CLEVERNESS - bold statements that make them feel powerful
+- SPECIFICITY over VAGUENESS - "3 compliments before noon" NOT "signature presence"
+- CONVERSATIONAL over ABSTRACT - "They'll ask what you're wearing" NOT "redefine elegance"
+- MATCH THE BRAND'S TONE from the website
+- Use their EXACT color palette
+- Every headline must pass the "would the AVATAR say this?" test
+- DO NOT mix avatar angles — stay consistent across all copy
+
+⚠️ SPELLING & PRODUCT ACCURACY (applies to ALL ad types):
+- Every word must be spelled correctly — NO exceptions
+- The product is "${productName}" by "${brandName}" — spell these EXACTLY
+- DO NOT reference or name any other brand or product in any copy
+- All quotes, captions, headlines must be about THIS specific product
+- Read every piece of copy back — if anything looks misspelled, FIX IT before outputting
+
+═══════════════════════════════════════════════════════════════
+OUTPUT FORMAT (JSON)
+═══════════════════════════════════════════════════════════════
+
+{
+  "detected_avatar": "compliment-chaser|seducer|signature-seeker|upgrader|niche-explorer",
+  "persona_notes": "2-3 sentences describing the SPECIFIC person you're writing for. Age, life stage, emotional state, what triggered the purchase. e.g. '35-year-old recently divorced woman rebuilding her identity. She's not buying perfume — she's buying a fresh start. She wants strangers to notice her again.'",
+  "brand_analysis": {
+    "target_gender": "male|female|unisex",
+    "brand_tone": "confident|seductive|premium|rebellious|aspirational",
+    "copy_style_notes": "Brief description of brand voice",
+    "website_colors": {
+      "primary_bg": "EXACT background color",
+      "primary_text": "EXACT text color",
+      "accent": "EXACT accent color",
+      "headline_highlight": "Color for highlighting key words"
+    },
+    "typography": {
+      "headline_style": "serif-elegant|serif-bold|sans-serif-modern|sans-serif-bold|script",
+      "headline_weight": "light|regular|bold|heavy",
+      "overall_vibe": "luxury-minimal|luxury-bold|modern-edgy|classic-refined"
+    }
+  },
+  "fragrance_details": {
+    "scent_notes": {
+      "top": ["note1", "note2"],
+      "middle": ["note1", "note2"],
+      "base": ["note1", "note2"]
+    },
+    "key_descriptors": ["woody", "fresh", "warm"],
+    "bottle_description": "description of the bottle design"
+  },
+  "perfume_copy": {
+    "accent_color": "EXACT accent color from brand",
+    "headline_highlight_color": "color for highlighting key headline words",
+    "text_color_1": "primary text color",
+    "text_color_2": "secondary/accent text color",
+    "background_dark": "dark background for moody shots (e.g., 'black', 'deep charcoal')",
+    "background_light": "light background for clean shots (e.g., 'light gray', 'warm cream')",
+    "aesthetic": [
+      {
+        "h1": "Bold desire headline",
+        "h1_highlight": "Key words to highlight",
+        "subheadline": "Supporting line or null",
+        "setting": "runway|bokeh|moody|marble",
+        "note_badges": ["NOTE1", "NOTE2", "NOTE3"]
+      },
+      {
+        "h1": "Different angle headline",
+        "h1_highlight": "highlight words",
+        "subheadline": "or null",
+        "setting": "different setting",
+        "note_badges": null
+      },
+      {
+        "h1": "Third variant",
+        "h1_highlight": "highlight",
+        "subheadline": "or null",
+        "setting": "different setting",
+        "note_badges": ["NOTE1", "NOTE2"]
+      },
+      {
+        "h1": "Fourth variant",
+        "h1_highlight": "highlight",
+        "subheadline": "or null",
+        "setting": "different setting",
+        "note_badges": null
+      }
+    ],
+    "ugc_holding": [
+      {
+        "quote": "Short punchy testimonial",
+        "setting": "where the hand is",
+        "hand_style": "description of hand/person"
+      },
+      {
+        "quote": "Different testimonial",
+        "setting": "different location",
+        "hand_style": "different vibe"
+      },
+      {
+        "quote": "Third testimonial",
+        "setting": "third location",
+        "hand_style": "third vibe"
+      },
+      {
+        "quote": "Fourth testimonial",
+        "setting": "fourth location",
+        "hand_style": "fourth vibe"
+      }
+    ],
+    "product_hero": [
+      {
+        "h1": "Short subtle headline",
+        "setting": "runway|bokeh|moody|marble|urban|nature|studio",
+        "layout_style": "bottle arrangement"
+      },
+      {
+        "h1": "Different headline",
+        "setting": "different setting",
+        "layout_style": "different arrangement"
+      },
+      {
+        "h1": "Third headline",
+        "setting": "third setting",
+        "layout_style": "third arrangement"
+      },
+      {
+        "h1": "Fourth headline",
+        "setting": "fourth setting",
+        "layout_style": "fourth arrangement"
+      }
+    ],
+    "model_closeup": [
+      {
+        "quote": "Intimate first-person testimonial",
+        "model_description": "who the model is (gender, age, features)",
+        "pose": "how they hold the bottle",
+        "lighting": "lighting mood"
+      },
+      {
+        "quote": "Different testimonial",
+        "model_description": "different model",
+        "pose": "different pose",
+        "lighting": "different lighting"
+      },
+      {
+        "quote": "Third testimonial",
+        "model_description": "third model",
+        "pose": "third pose",
+        "lighting": "third lighting"
+      },
+      {
+        "quote": "Fourth testimonial",
+        "model_description": "fourth model",
+        "pose": "fourth pose",
+        "lighting": "fourth lighting"
+      }
+    ],
+    "benefit_callout": [
+      {
+        "headline": "Bold urgency headline",
+        "benefits": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
+        "cta": "Call to action text",
+        "bg_color": "bold background color/gradient"
+      },
+      {
+        "headline": "Different headline",
+        "benefits": ["Benefit 1", "Benefit 2", "Benefit 3"],
+        "cta": "Different CTA",
+        "bg_color": "different background"
+      },
+      {
+        "headline": "Third headline",
+        "benefits": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
+        "cta": "Third CTA",
+        "bg_color": "third background"
+      },
+      {
+        "headline": "Fourth headline",
+        "benefits": ["Benefit 1", "Benefit 2", "Benefit 3"],
+        "cta": "Fourth CTA",
+        "bg_color": "fourth background"
+      }
+    ],
+    "flat_lay": [
+      {
+        "caption": "Casual Instagram-style caption",
+        "surface": "what products are laid on",
+        "items": "what's in the scene",
+        "mood": "visual mood"
+      },
+      {
+        "caption": "Different caption",
+        "surface": "different surface",
+        "items": "different items",
+        "mood": "different mood"
+      },
+      {
+        "caption": "Third caption",
+        "surface": "third surface",
+        "items": "third items",
+        "mood": "third mood"
+      },
+      {
+        "caption": "Fourth caption",
+        "surface": "fourth surface",
+        "items": "fourth items",
+        "mood": "fourth mood"
+      }
+    ]
+  }
+}
+
+Return ONLY the JSON, no other text.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 6000,
+        temperature: 1.0,
+        messages: [
+          { role: 'user', content: prompt }
+        ]
+      });
+
+      const content = response.content[0].text;
+
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const research = JSON.parse(jsonMatch[0]);
+        console.log('   ✓ Perfume research complete');
+        if (research.detected_avatar) {
+          console.log('   ✓ Detected avatar:', research.detected_avatar);
+        }
+        if (research.persona_notes) {
+          console.log('   ✓ Persona:', research.persona_notes.substring(0, 120));
+        }
+        if (research.brand_analysis) {
+          console.log('   ✓ Target gender:', research.brand_analysis.target_gender);
+          console.log('   ✓ Brand tone:', research.brand_analysis.brand_tone);
+          if (research.brand_analysis.typography) {
+            console.log('   ✓ Headline font:', research.brand_analysis.typography.headline_style);
+            console.log('   ✓ Font vibe:', research.brand_analysis.typography.overall_vibe);
+          }
+        }
+        if (research.fragrance_details) {
+          const notes = research.fragrance_details.scent_notes;
+          if (notes?.base?.length > 0) {
+            console.log('   ✓ Base notes:', notes.base.join(', '));
+          }
+        }
+        if (research.perfume_copy) {
+          console.log('   ✓ Background dark:', research.perfume_copy.background_dark);
+          console.log('   ✓ Accent color:', research.perfume_copy.accent_color);
+        }
+        return research;
+      } else {
+        console.log('   ⚠ Could not parse perfume research JSON');
+        return null;
+      }
+    } catch (error) {
+      console.error('   ✗ Perfume research failed:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Build prompt for Perfume Aesthetic type (dramatic luxury product photography)
+   */
+  buildPerfumeAestheticPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      highlightColor = null,
+      textColor1 = 'white',
+      textColor2 = 'gold',
+      background = 'black',
+      h1,
+      h1Highlight = null,
+      subheadline = null,
+      setting = 'moody',
+      noteBadges = null,
+      aspectRatio = '4:5',
+      headlineFont = 'serif-elegant',
+      fontVibe = 'luxury-minimal',
+      targetGender = 'male'
+    } = options;
+
+    const headlineHighlight = highlightColor || accentColor;
+
+    // Smart text color based on setting brightness
+    const darkSettings = ['moody', 'runway', 'bokeh', 'urban'];
+    const isDarkScene = darkSettings.includes(setting) || background.includes('black') || background.includes('dark');
+    const smartTextColor = isDarkScene ? 'white' : (textColor1 || 'black');
+
+    // Setting descriptions + typography per setting
+    let settingDescription = '';
+    let settingFont = '';
+    switch (setting) {
+      case 'runway':
+        settingDescription = `Fashion show/runway environment. Dramatic directional lighting from above. Blurred silhouettes of models or audience in far background. Dark atmospheric setting with spotlights creating pools of light. Smoke/haze for atmosphere. High fashion editorial energy.`;
+        settingFont = `BOLD CONDENSED ALL-CAPS typeface (like Bebas Neue, Oswald, or Druk). Large, impactful, tracked-out. The headline should feel like a fashion billboard — BOLD, HEAVY, COMMANDING. Think GQ magazine cover typography.`;
+        break;
+      case 'bokeh':
+        settingDescription = `Elegant evening setting with warm bokeh lights in background. Festive, sophisticated atmosphere. Warm amber/gold tones throughout. Think: luxury bar, upscale event, holiday evening. Soft focus background with beautiful light circles.`;
+        settingFont = `BOLD CONDENSED ALL-CAPS typeface (like Bebas Neue, Oswald, or Druk). Large, warm gold/cream color, impactful. The headline should feel PREMIUM and SEASONAL — like a luxury holiday campaign.`;
+        break;
+      case 'marble':
+        settingDescription = `Clean luxury interior. Marble or stone surface. Minimal, elegant styling. Soft directional light creating gentle shadows. Premium feel - like a high-end boutique display. Neutral tones with subtle warmth.`;
+        settingFont = `Elegant ITALIC SERIF typeface (like Playfair Display Italic, Cormorant Garamond Italic, or Didot Italic). Light weight, refined, flowing. Mixed case (NOT all caps). The headline should feel like a high-end magazine editorial — delicate, sophisticated, effortless.`;
+        break;
+      case 'urban':
+        settingDescription = `City at night. Neon reflections on wet streets or rain-slicked surfaces. Modern, edgy atmosphere. Urban luxury — think: downtown rooftop, city lights, sleek concrete. Cool tones with pops of warm neon.`;
+        settingFont = `Clean MODERN SANS-SERIF typeface (like Futura, Montserrat, or Gotham). All caps, tracked-out, confident. The headline should feel urban and contemporary — like a streetwear-meets-luxury campaign.`;
+        break;
+      case 'nature':
+        settingDescription = `Golden hour outdoor setting. Warm natural light, sun flares, earthy tones. Think: Mediterranean terrace, garden at sunset, beach at golden hour. Fresh, warm, inviting. Natural beauty meets luxury.`;
+        settingFont = `Elegant LIGHT SERIF typeface (like Cormorant Light, Playfair Display Light). Mixed case, gentle, flowing. The headline should feel warm and organic — like a luxury lifestyle magazine.`;
+        break;
+      case 'studio':
+        settingDescription = `Clean fashion studio. Professional directional lighting, soft shadows, clean backdrop. Think: high-fashion editorial shoot, Vogue-style product photography. Neutral tones, perfect lighting, pure focus on the product.`;
+        settingFont = `Clean CONDENSED SANS-SERIF typeface (like Oswald, Barlow Condensed, or Druk Text). All caps, sharp, editorial. The headline should feel like a fashion magazine cover — clean, authoritative, premium.`;
+        break;
+      default:
+        // moody
+        settingDescription = `Dark, dramatic environment. Deep black/charcoal background. Warm amber/gold accent lighting creating rim light on the bottle. Mysterious, seductive atmosphere. Think: candlelit room, warm glow against darkness. Cinematic lighting.`;
+        settingFont = `Elegant THIN SERIF typeface (like Cormorant Light, Playfair Display Light, or Didot Light). Thin, delicate strokes. Mixed case with proper punctuation. The headline should feel intimate and refined — like whispered luxury, NOT shouted.`;
+    }
+
+    // No note badges or subheadlines — aesthetic is ONE headline only
+
+    return `Luxury perfume advertisement — cinematic product photography with designed text overlay. FULL BLEED. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED IMAGE — NO BORDERS, NO MARGINS:
+• The photograph fills the ENTIRE ${aspectRatio} frame from edge to edge
+• NO solid colored borders or margins
+• This is a FULL-FRAME cinematic photograph with text designed INTO it — like a Dior Instagram ad
+
+SETTING & ATMOSPHERE:
+${settingDescription}
+The scene fills the entire frame — atmosphere extends to all edges naturally.
+
+PRODUCT — THE CENTERPIECE:
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY as shown
+⚠️ Do NOT create a generic perfume bottle — copy the SPECIFIC product
+⚠️ Bottle is the hero — large, beautifully lit, cinematic
+⚠️ The bottle takes up 50-60% of the frame — leaving room for text above and below
+
+TYPOGRAPHY — THIS IS CRITICAL FOR LUXURY FEEL:
+⚠️ Font: ${settingFont}
+⚠️ The typography MUST look EXPENSIVE — like a luxury brand's agency designed it
+⚠️ DO NOT use cheap/default fonts: NO Arial, NO Times New Roman, NO Helvetica
+⚠️ The font should feel like it belongs in Vogue, GQ, or a Dior campaign
+
+TEXT LAYOUT — THREE ELEMENTS (designed into the image):
+
+1) HEADLINE (top area):
+"${h1}"
+• Text color: ${smartTextColor}
+• Font: ${settingFont}
+• Positioned at TOP of image — NOT over the product
+• ⚠️ DO NOT render this text more than ONCE
+• Soft DROP SHADOW or GLOW so text pops against the scene
+• Bold enough to read at a glance but not overpowering the product
+
+2) CTA (bottom area, below product):
+"SHOP NOW"
+• Elegant thin-bordered rectangle or refined underlined text
+• ${smartTextColor} color — subtle, confident
+• Small, clean — like a luxury e-commerce button
+• Centered horizontally
+
+3) BRAND LOGO (very bottom):
+⚠️ A second reference image (the brand's LOGO) has been provided
+⚠️ Use the EXACT logo from the second reference image — do NOT recreate it
+⚠️ Place small and elegant at very bottom center
+• If no second reference image available, render "${brandName}" in elegant TRACKED-OUT SERIF CAPS, small
+
+STYLE:
+• This is a DESIGNED AD — not just a photo. Think: Dior Instagram ad, Tom Ford paid social
+• Cinematic product photography AS THE BASE, with clean text overlay designed into it
+• The layout should feel intentional — headline draws you in, product sells you, CTA converts
+• Premium lighting, moody atmosphere, luxury typography
+• Every element has a PURPOSE: headline (hook) → product (desire) → CTA (action) → brand (trust)
+• NO clutter — clean hierarchy, generous spacing between elements
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build prompt for Perfume UGC Holding type (hand holding bottle with testimonial)
+   */
+  buildPerfumeUGCHoldingPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      textColor1 = 'white',
+      quote,
+      setting = 'bathroom counter',
+      handStyle = 'well-groomed masculine hand',
+      aspectRatio = '4:5',
+      targetGender = 'male'
+    } = options;
+
+    const handDescription = targetGender === 'female'
+      ? 'elegant feminine hand, well-manicured nails, natural look'
+      : targetGender === 'male'
+      ? 'masculine hand, well-groomed, clean, strong'
+      : 'well-groomed hand, natural, clean';
+
+    return `UGC-style perfume photograph. FULL BLEED — photo fills the ENTIRE frame edge to edge. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED PHOTO — NO BORDERS, NO MARGINS:
+• The photograph fills the ENTIRE ${aspectRatio} frame from edge to edge
+• NO solid colored borders or empty space around the photo
+• This looks like an iPhone photo that fills the whole screen
+• The scene (counter, background, setting) extends naturally to all edges
+
+SCENE:
+${handStyle || handDescription} naturally holding the perfume bottle.
+Setting: ${setting}
+The hand should look REAL - natural skin texture, visible knuckles, proper proportions.
+EXACTLY 5 fingers. Natural grip on the bottle.
+Casual but intentional - like someone showing a friend what they're wearing.
+Background: natural setting with shallow depth of field (slightly blurred behind the hand).
+
+PRODUCT REFERENCE — CRITICAL:
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY
+⚠️ The bottle COLOR must match the reference — do NOT make it white, clear, or change its color
+⚠️ If the bottle is dark/black/amber/colored in the reference, it MUST be that SAME color
+⚠️ Bottle must be clearly visible and recognizable
+
+PHOTOGRAPHY STYLE:
+• iPhone camera quality - slightly warm, natural
+• Shallow depth of field — background softly blurred
+• Natural/ambient lighting
+• Feels REAL, not studio shot
+• Slight grain for authenticity
+• Like an Instagram story — fills the whole screen
+
+TEXT — QUOTE AT TOP OF IMAGE:
+⚠️ Font: Clean, modern, ROUNDED sans-serif (like Poppins, Nunito, or Circular) — NOT handwritten, NOT script
+⚠️ Must look like polished Instagram story text — clean, modern, easy to read
+
+"${quote}"
+• WHITE color — ALWAYS white text
+• CENTERED horizontally
+• Proper curly quotation marks \u201C \u201D
+• Medium-large size — easy to read at a glance
+• ⚠️ POSITION: The quote should sit in the UPPER THIRD of the image (around 15-30% from the top)
+• ⚠️ NOT jammed at the very top edge — leave breathing room above the text
+• ⚠️ The hand holding the bottle should be in the MIDDLE/LOWER portion
+• ⚠️ There should be CLEAR SPACE between the quote text and the hand — they should NOT overlap
+• STRONG text shadow or dark semi-transparent glow behind text for guaranteed readability
+• Think of the layout: TOP = quote text, MIDDLE = hand + bottle, BOTTOM = brand logo
+
+BRAND LOGO — BOTTOM CENTER:
+⚠️ A second reference image (the brand's LOGO) has been provided
+⚠️ Use the EXACT logo from the second reference image — do NOT recreate or redesign it
+⚠️ Place the logo at the BOTTOM CENTER of the image, small and elegant
+• The logo should be subtle — a refined brand watermark, not dominant
+• If no second reference image is available, render "${brandName}" in elegant SERIF CAPS (tracked-out, refined, small)
+
+SKIN REALISM:
+• Real skin texture, visible pores
+• NOT airbrushed or plastic
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build prompt for Perfume Product Hero type (clean floating product shot)
+   */
+  buildPerfumeProductHeroPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      highlightColor = null,
+      textColor1 = 'white',
+      textColor2 = 'gold',
+      background = 'black',
+      h1,
+      setting = 'moody',
+      layoutStyle = 'single bottle centered',
+      aspectRatio = '4:5',
+      headlineFont = 'serif-elegant',
+      fontVibe = 'luxury-minimal',
+      targetGender = 'male'
+    } = options;
+
+    // Setting descriptions + typography — same cinematic approach as aesthetic
+    let settingDescription = '';
+    let settingFont = '';
+    switch (setting) {
+      case 'runway':
+        settingDescription = `Fashion show/runway environment. Dramatic directional lighting from above. Blurred silhouettes of models or audience in far background. Dark atmospheric setting with spotlights creating pools of light. Smoke/haze for atmosphere. High fashion editorial energy.`;
+        settingFont = `BOLD CONDENSED ALL-CAPS typeface (like Bebas Neue, Oswald, or Druk). Large, impactful, tracked-out.`;
+        break;
+      case 'bokeh':
+        settingDescription = `Elegant evening setting with warm bokeh lights in background. Festive, sophisticated atmosphere. Warm amber/gold tones throughout. Think: luxury bar, upscale event, holiday evening. Soft focus background with beautiful light circles.`;
+        settingFont = `BOLD CONDENSED ALL-CAPS typeface (like Bebas Neue, Oswald, or Druk). Large, warm gold/cream color, impactful.`;
+        break;
+      case 'marble':
+        settingDescription = `Clean luxury interior. Marble or stone surface. Minimal, elegant styling. Soft directional light creating gentle shadows. Premium feel - like a high-end boutique display. Neutral tones with subtle warmth.`;
+        settingFont = `Elegant ITALIC SERIF typeface (like Playfair Display Italic, Cormorant Garamond Italic, or Didot Italic). Light weight, refined, flowing. Mixed case.`;
+        break;
+      case 'urban':
+        settingDescription = `City at night. Neon reflections on wet streets or rain-slicked surfaces. Modern, edgy atmosphere. Urban luxury — think: downtown rooftop, city lights, sleek concrete. Cool tones with pops of warm neon.`;
+        settingFont = `Clean MODERN SANS-SERIF typeface (like Futura, Montserrat, or Gotham). All caps, tracked-out, confident.`;
+        break;
+      case 'nature':
+        settingDescription = `Golden hour outdoor setting. Warm natural light, sun flares, earthy tones. Think: Mediterranean terrace, garden at sunset, beach at golden hour. Fresh, warm, inviting. Natural beauty meets luxury.`;
+        settingFont = `Elegant LIGHT SERIF typeface (like Cormorant Light, Playfair Display Light). Mixed case, gentle, flowing.`;
+        break;
+      case 'studio':
+        settingDescription = `Clean fashion studio. Professional directional lighting, soft shadows, clean backdrop. Think: high-fashion editorial shoot, Vogue-style product photography. Neutral tones, perfect lighting, pure focus on the product.`;
+        settingFont = `Clean CONDENSED SANS-SERIF typeface (like Oswald, Barlow Condensed, or Druk Text). All caps, sharp, editorial.`;
+        break;
+      default:
+        // moody
+        settingDescription = `Dark, dramatic environment. Deep black/charcoal background. Warm amber/gold accent lighting creating rim light on the bottle. Mysterious, seductive atmosphere. Think: candlelit room, warm glow against darkness. Cinematic lighting.`;
+        settingFont = `Elegant THIN SERIF typeface (like Cormorant Light, Playfair Display Light, or Didot Light). Thin, delicate strokes. Mixed case with proper punctuation. Intimate and refined.`;
+    }
+
+    const darkSettings = ['moody', 'runway', 'bokeh', 'urban'];
+    const isDarkScene = darkSettings.includes(setting);
+    const smartTextColor = isDarkScene ? 'white' : (textColor1 || 'black');
+
+    return `Cinematic luxury perfume product photography. FULL BLEED — image fills the ENTIRE frame edge to edge. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED IMAGE — NO BORDERS, NO MARGINS, NO EMPTY SPACE:
+• The photograph must fill the ENTIRE ${aspectRatio} frame from edge to edge
+• NO solid colored borders or margins around the image
+• This is a FULL-FRAME cinematic photograph, like a magazine spread
+• The atmosphere, lighting, and scene must reach every edge of the image
+
+SETTING & ATMOSPHERE:
+${settingDescription}
+The scene fills the entire frame — atmosphere extends to all edges naturally.
+
+PRODUCT — THE HERO:
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY as shown
+⚠️ Do NOT create a generic perfume bottle — copy the SPECIFIC product
+⚠️ Bottle must DOMINATE the image — large, beautifully lit, cinematic
+⚠️ The bottle is 70% of the visual focus. It IS the ad.
+
+TEXT — EXACTLY ONE SUBTLE HEADLINE:
+⚠️ The ONLY text in the ENTIRE image is this single headline. NOTHING ELSE.
+⚠️ NO brand names, NO CTAs, NO subheadlines, NO badges, NO extra text of any kind.
+
+"${h1}"
+• Text color: ${smartTextColor}
+• Font: ${settingFont}
+• ⚠️ SUBTLE — the headline is secondary to the product. Small-medium size.
+• Soft DROP SHADOW or GLOW so text pops against the scene
+• Placed at TOP or BOTTOM of image — NOT over the product
+• ⚠️ DO NOT render this text more than ONCE — it appears in exactly ONE place
+• ⚠️ The text must look like it was typeset by a luxury brand's design team
+• ⚠️ DO NOT use cheap/default fonts: NO Arial, NO Times New Roman, NO Helvetica
+
+STYLE:
+• Tom Ford / Dior / Chanel campaign photography
+• Cinematic, atmospheric, desire-inducing, FULL FRAME
+• The PRODUCT is the star — text is secondary but must be READABLE
+• Premium lighting, moody atmosphere
+• NO borders, NO margins, NO empty solid-color space around the image
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build prompt for Perfume Model Close-up type (person holding bottle near face/neck)
+   */
+  buildPerfumeModelCloseupPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      textColor1 = 'white',
+      quote,
+      modelDescription = 'person in their 30s',
+      pose = 'holding bottle near neck',
+      lighting = 'warm golden sidelight',
+      aspectRatio = '4:5',
+      targetGender = 'male'
+    } = options;
+
+    const defaultModel = targetGender === 'female'
+      ? 'woman mid-30s, warm skin, subtle natural makeup, soft features'
+      : targetGender === 'male'
+      ? 'man late-20s to early-30s, stubble, defined jawline, confident expression'
+      : 'person mid-30s, striking features, warm skin tone';
+
+    const model = modelDescription || defaultModel;
+
+    return `Luxury perfume ad photograph — person holding bottle. FULL BLEED — image fills the ENTIRE frame edge to edge. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED IMAGE — NO BORDERS, NO MARGINS:
+• The photograph fills the ENTIRE ${aspectRatio} frame from edge to edge
+• NO solid colored borders or empty space
+• Clean portrait photograph — person + bottle + simple out-of-focus background
+
+COMPOSITION:
+• The model and bottle should occupy about 80% of the frame — fill it well
+• Crop TIGHT on the person — minimal space above the head (just a sliver)
+• Simple, clean background — a blurred room, wall, or neutral space behind the person
+• NOT smoke, NOT fog, NOT haze, NOT mist — just a normal blurred background
+• Think: tight portrait photography — the person fills the frame confidently
+
+THE MODEL:
+${model}
+• REAL skin — visible pores, natural texture, slight imperfections. NOT airbrushed.
+• Expression: confident, natural, attractive
+• Framed from roughly mid-chest up — face, neck, shoulders visible with background showing
+• ⚠️ NO nude or topless models — if chest is visible, they must be wearing a top/shirt/blazer
+• Bare shoulders are fine (off-shoulder top, strappy dress, etc.) but NO bare chest
+
+THE POSE:
+${pose}
+• The person is simply HOLDING the bottle — like showing it to a friend or to a camera
+• One hand holding the bottle naturally — EXACTLY 5 fingers, natural grip
+• The bottle should be near the face or shoulder area but NOT pressed against skin
+• This should look like a REAL photo someone would take — natural and relaxed
+• ⚠️ NO weird poses: no pressing bottle to neck, no sniffing the bottle, no rubbing it on skin
+
+PRODUCT REFERENCE — CRITICAL:
+⚠️ This is an ad for "${productName}" by "${brandName}" — ONLY this product
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY
+⚠️ Bottle must be clearly recognizable even in tight crop
+⚠️ Bottle should be 30-40% of the frame — person is the other star
+⚠️ DO NOT reference or depict any other brand or product
+
+LIGHTING:
+${lighting}
+• Clean, flattering to skin
+• Creates beautiful highlights on skin and glass
+• Directional — creates depth
+• Think: Tom Ford, YSL ad campaigns — clean and premium
+
+TEXT — SINGLE QUOTE AT BOTTOM:
+⚠️ Font: Elegant LIGHT SERIF (Cormorant Light, Playfair Display Light, or Didot Light)
+⚠️ Thin, delicate strokes. Mixed case with proper punctuation.
+
+"${quote}"
+• WHITE color with subtle drop shadow for readability
+• BOTTOM 15-20% of the image
+• CENTERED horizontally
+• Proper curly quotation marks \u201C \u201D
+• Small-medium size — elegant, not overpowering
+• ⚠️ EXACTLY TWO text elements in the image — the quote and the brand logo below it
+
+BRAND LOGO — BOTTOM CENTER:
+⚠️ A second reference image (the brand's LOGO) has been provided
+⚠️ Use the EXACT logo from the second reference image — do NOT recreate or redesign it
+⚠️ Place the logo at the BOTTOM CENTER of the image, small and elegant
+• Below the quote, near the very bottom edge
+• The logo should be subtle — a refined brand watermark, not dominant
+• If no second reference image is available, render "${brandName}" in elegant SERIF CAPS (tracked-out, refined, small)
+
+STYLE:
+• YSL / Tom Ford / Dior campaign photography
+• Clean, premium, attractive person holding a beautiful bottle
+• Shallow depth of field — background softly blurred
+• NO smoke, NO fog, NO mist, NO haze — clean and clear image
+
+SKIN REALISM — CRITICAL:
+• Real skin texture, visible pores, natural skin tone variation
+• NOT airbrushed or plastic — this person looks REAL
+• Age-appropriate details
+
+HAND REALISM — CRITICAL:
+• EXACTLY 5 fingers
+• Natural proportions, visible knuckle creases
+• Proper grip on bottle
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build prompt for Perfume Benefit Callout type (bold benefits + urgency, direct response)
+   */
+  buildPerfumeBenefitCalloutPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      textColor1 = 'white',
+      headline,
+      benefits = [],
+      cta = 'SHOP NOW',
+      bgColor = 'deep charcoal',
+      aspectRatio = '4:5'
+    } = options;
+
+    const benefitList = benefits.map((b, i) => `→ ${b}`).join('\n');
+
+    return `Premium luxury perfume advertisement with benefit callouts. FULL BLEED — fills ENTIRE frame. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED — NO BORDERS, NO MARGINS:
+• The design fills the ENTIRE ${aspectRatio} frame from edge to edge
+• Background extends to all edges
+
+BACKGROUND — LUXURY FEEL:
+• ${bgColor}
+• This should feel like a high-end brand's Instagram ad — NOT a cheap Facebook ad
+• Rich, deep, sophisticated. Think: Tom Ford dark ad, Chanel editorial, REFY brand aesthetic
+• Subtle texture or gradient for depth — NOT flat/cheap looking
+• Can include a subtle bokeh, grain, or light effect for richness
+
+PRODUCT — THE HERO:
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY
+⚠️ Bottle positioned CENTER of the image, beautifully lit
+⚠️ Bottle should be prominent — 40-50% of the frame
+• LUXURY LIGHTING — dramatic sidelight, beautiful reflections on glass
+• Subtle glow/rim light making the bottle look premium and desirable
+• The product should look like it costs £200+ — cinematic product photography
+
+TEXT LAYOUT — CLEAN, STRUCTURED, LUXURY:
+
+1) HEADLINE (top 15-20%):
+"${headline}"
+• WHITE or CREAM — confident, elegant
+• Font: ELEGANT CONDENSED typeface (like Didot, Bodoni, or refined Oswald) — NOT Impact or cheap bold fonts
+• Large but refined — luxury poster energy, NOT sale banner energy
+• ⚠️ Think Chanel campaign, NOT Black Friday ad
+
+2) BENEFIT CALLOUTS (flanking the bottle):
+${benefitList}
+• Elegant thin lines or subtle arrows connecting to the bottle
+• Benefits arranged on LEFT and RIGHT sides of the bottle
+• Font: Clean LIGHT sans-serif (Montserrat Light, Futura Light, Gotham Thin) — delicate, premium
+• WHITE text, small-medium size — informative but not shouting
+• ⚠️ The benefits should feel like refined product details, NOT salesy bullet points
+• ⚠️ Think: luxury product page info cards, NOT Amazon listing features
+• 2 benefits on LEFT, 2 on RIGHT (or 2 and 1 if 3 total)
+
+3) CTA (bottom 15%):
+"${cta}"
+• Elegant thin-bordered rectangle or refined underlined text — NOT a chunky button
+• WHITE outline/text — subtle, confident
+• Small, clean — like a luxury e-commerce CTA
+• Centered horizontally
+
+4) BRAND LOGO (very bottom):
+⚠️ A second reference image (the brand's LOGO) has been provided
+⚠️ Use the EXACT logo from the second reference image — do NOT recreate it
+⚠️ Place small and elegant at very bottom center
+• If no second reference image available, render "${brandName}" in elegant TRACKED-OUT SERIF CAPS
+
+STYLE — THIS IS CRITICAL:
+• This is a LUXURY brand ad that happens to show benefits — NOT a direct-response ad
+• Think: REFY, Glossier, Byredo, Le Labo Instagram ads — premium, clean, editorial
+• The typography must look EXPENSIVE — as if a luxury agency designed it
+• Clean hierarchy: headline (elegant) → product (hero) → benefits (informative) → CTA (subtle)
+• ⚠️ Every element should feel REFINED — no cheap fonts, no loud colors, no cluttered layout
+• ⚠️ If it looks like it could be a Facebook clearance ad, you've done it wrong
+• The overall energy: "This product speaks for itself. Here's why."
+
+${aspectRatio} aspect ratio.`;
+  }
+
+  /**
+   * Build prompt for Perfume Flat Lay type (top-down lifestyle product arrangement)
+   */
+  buildPerfumeFlatLayPrompt(options) {
+    const {
+      productName = 'Perfume',
+      brandName = 'Brand',
+      accentColor = 'gold',
+      textColor1 = 'white',
+      caption,
+      surface = 'cream knit blanket',
+      items = 'bottle with scattered dried flowers',
+      mood = 'cozy morning',
+      aspectRatio = '4:5',
+      targetGender = 'male'
+    } = options;
+
+    return `Instagram lifestyle flat lay perfume photograph. FULL BLEED — fills ENTIRE frame. ${aspectRatio} aspect ratio.
+
+⚠️ FULL BLEED PHOTOGRAPH — NO BORDERS, NO MARGINS:
+• The photograph fills the ENTIRE ${aspectRatio} frame from edge to edge
+• The surface/fabric/material extends to all edges naturally
+• This is a full-frame lifestyle photo — like scrolling Instagram
+
+CAMERA ANGLE:
+• Top-down flat lay OR slight overhead angle (like looking down at a table)
+• The surface fills the entire frame — we see the texture edge to edge
+• Think: Instagram aesthetic flat lay, beauty blogger style
+
+SURFACE — THE BASE:
+${surface}
+• The surface/material should have beautiful TEXTURE — visible weave, grain, pattern
+• Fills the entire background — natural, not staged-looking
+• Warm, inviting, tactile — you want to reach out and touch it
+
+PRODUCT + ITEMS IN SCENE:
+⚠️ Use the EXACT perfume bottle from the reference image
+⚠️ Match ALL bottle design: shape, cap, label, colors EXACTLY
+⚠️ The bottle is the HERO — positioned as the main item, slightly off-center
+
+Other items arranged naturally around the bottle:
+${items}
+• Items should feel CURATED but NATURAL — like someone's real aesthetic
+• Everything relates to the fragrance lifestyle — not random objects
+• Casual arrangement — not perfectly symmetrical, slightly organic
+• 3-5 items total including the bottle
+
+PHOTOGRAPHY STYLE:
+• Natural overhead lighting — soft, diffused, like morning window light
+• Slight shadows for depth — objects feel grounded on the surface
+• Warm, natural color palette
+• Instagram aesthetic — beautiful, aspirational, shareable
+• Mood: ${mood}
+• Like a real Instagram post that would get saved and shared
+
+TEXT — INSTAGRAM STORY STYLE CAPTION:
+⚠️ Font: Casual but clean ROUNDED SANS-SERIF (Poppins, Nunito, Circular)
+⚠️ The text should look like Instagram story text — clean, modern, relatable
+
+"${caption}"
+• WHITE text with subtle drop shadow or semi-transparent dark backing
+• Positioned at the BOTTOM of the image — NEVER at the top
+• Roughly bottom 15-20% of the frame
+• Medium size — readable but not dominating
+• Feels like someone typed it on their Instagram story
+• ⚠️ EXACTLY ONE block of text — the caption only
+
+BRAND NAME — SUBTLE:
+"${brandName}"
+• Very small, elegant, bottom corner or bottom center
+• Tracked-out caps, subtle
+• Like a brand tag on an Instagram post
+
+STYLE:
+• Fussy / Glossier / lifestyle brand Instagram aesthetic
+• Beautiful textures, natural light, curated casual
+• The photo should make someone SAVE it on Instagram
+• Premium but APPROACHABLE — not cold or corporate
+• Every item in frame serves the vibe
+
+${aspectRatio} aspect ratio.`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

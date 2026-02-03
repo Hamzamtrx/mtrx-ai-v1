@@ -597,6 +597,7 @@ app.get('/', (req, res) => {
         <div class="category-toggle" style="display: flex; gap: 8px; margin-bottom: 16px;">
           <button class="category-btn active" data-category="apparel" style="flex: 1; padding: 10px 16px; background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid #06b6d4; border-radius: 8px; color: #06b6d4; font-size: 13px; font-weight: 600; cursor: pointer;">Apparel</button>
           <button class="category-btn" data-category="supplements" style="flex: 1; padding: 10px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #888; font-size: 13px; font-weight: 600; cursor: pointer;">Supplements</button>
+          <button class="category-btn" data-category="perfume" style="flex: 1; padding: 10px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #888; font-size: 13px; font-weight: 600; cursor: pointer;">Perfume</button>
         </div>
 
         <!-- Apparel Static Types -->
@@ -640,6 +641,28 @@ app.get('/', (req, res) => {
               <button class="supp-variant-btn" data-variants="2" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
               <button class="supp-variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
               <button class="supp-variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Perfume Static Types -->
+        <div id="perfumeTypes" style="display: none;">
+          <div class="card-title">Static Ad Types (select multiple)</div>
+          <div class="type-grid static-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <button class="type-btn perf-type selected" data-static="perf-aesthetic"><span class="name">Aesthetic Ad</span><span class="desc">Cinematic photo + headline + CTA</span></button>
+            <button class="type-btn perf-type" data-static="perf-ugc-holding"><span class="name">UGC Holding</span><span class="desc">Hand holding bottle + quote</span></button>
+            <button class="type-btn perf-type" data-static="perf-product-hero"><span class="name">Product Hero</span><span class="desc">Editorial photography, minimal text</span></button>
+            <button class="type-btn perf-type" data-static="perf-model-closeup"><span class="name">Model Close-up</span><span class="desc">Person + bottle, intimate</span></button>
+            <button class="type-btn perf-type" data-static="perf-benefit-callout"><span class="name">Benefit Callout</span><span class="desc">Benefits + urgency + CTA</span></button>
+            <button class="type-btn perf-type" data-static="perf-flat-lay"><span class="name">Flat Lay</span><span class="desc">Products on surface, lifestyle</span></button>
+          </div>
+          <div style="margin-top: 16px;">
+            <label style="color: #888; font-size: 12px; display: block; margin-bottom: 8px;">Variants per type (different copy angles)</label>
+            <div class="perf-variant-selector" style="display: flex; gap: 8px;">
+              <button class="perf-variant-btn selected" data-variants="1" style="padding: 8px 16px; background: #3b82f6; border: 1px solid #3b82f6; color: #fff; border-radius: 6px; cursor: pointer;">1</button>
+              <button class="perf-variant-btn" data-variants="2" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">2</button>
+              <button class="perf-variant-btn" data-variants="3" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">3</button>
+              <button class="perf-variant-btn" data-variants="4" style="padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; cursor: pointer;">4</button>
             </div>
           </div>
         </div>
@@ -743,9 +766,11 @@ app.get('/', (req, res) => {
     let staticSelectedFile = null;
     let selectedStaticTypes = ['type1'];
     let variantsPerType = 2; // Default to 2 variants per type
-    let selectedCategory = 'apparel'; // apparel or supplements
+    let selectedCategory = 'apparel'; // apparel, supplements, or perfume
     let selectedSuppTypes = ['supp-benefit-checklist']; // supplements types
     let suppVariantsPerType = 1; // Default to 1 variant for supplements
+    let selectedPerfTypes = ['perf-aesthetic']; // perfume types
+    let perfVariantsPerType = 1; // Default to 1 variant for perfume
     const staticDesignerPanel = document.getElementById('staticDesignerPanel');
     const staticDropZone = document.getElementById('staticDropZone');
     const staticImageInput = document.getElementById('staticImageInput');
@@ -762,6 +787,7 @@ app.get('/', (req, res) => {
     const staticCount = document.getElementById('staticCount');
     const apparelTypes = document.getElementById('apparelTypes');
     const supplementsTypes = document.getElementById('supplementsTypes');
+    const perfumeTypes = document.getElementById('perfumeTypes');
 
     // Mode toggle
     document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -795,12 +821,15 @@ app.get('/', (req, res) => {
         btn.style.color = '#06b6d4';
         selectedCategory = btn.dataset.category;
 
+        apparelTypes.style.display = 'none';
+        supplementsTypes.style.display = 'none';
+        perfumeTypes.style.display = 'none';
         if (selectedCategory === 'apparel') {
           apparelTypes.style.display = 'block';
-          supplementsTypes.style.display = 'none';
-        } else {
-          apparelTypes.style.display = 'none';
+        } else if (selectedCategory === 'supplements') {
           supplementsTypes.style.display = 'block';
+        } else if (selectedCategory === 'perfume') {
+          perfumeTypes.style.display = 'block';
         }
         updateStaticCount();
       });
@@ -866,12 +895,44 @@ app.get('/', (req, res) => {
       });
     });
 
+    // Perfume type selection
+    document.querySelectorAll('.perf-type').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('selected');
+        const type = btn.dataset.static;
+        if (btn.classList.contains('selected')) {
+          if (!selectedPerfTypes.includes(type)) selectedPerfTypes.push(type);
+        } else {
+          selectedPerfTypes = selectedPerfTypes.filter(t => t !== type);
+        }
+        updateStaticCount();
+      });
+    });
+
+    // Variant selector (perfume)
+    document.querySelectorAll('.perf-variant-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.perf-variant-btn').forEach(b => {
+          b.classList.remove('selected');
+          b.style.background = '#1a1a1a';
+          b.style.borderColor = '#333';
+        });
+        btn.classList.add('selected');
+        btn.style.background = '#3b82f6';
+        btn.style.borderColor = '#3b82f6';
+        perfVariantsPerType = parseInt(btn.dataset.variants);
+        updateStaticCount();
+      });
+    });
+
     function updateStaticCount() {
       let totalCount;
       if (selectedCategory === 'apparel') {
         totalCount = selectedStaticTypes.length * variantsPerType;
-      } else {
+      } else if (selectedCategory === 'supplements') {
         totalCount = selectedSuppTypes.length * suppVariantsPerType;
+      } else if (selectedCategory === 'perfume') {
+        totalCount = selectedPerfTypes.length * perfVariantsPerType;
       }
       staticCount.textContent = totalCount + (totalCount === 1 ? ' static' : ' statics');
       updateStaticLaunchBtn();
@@ -919,17 +980,23 @@ app.get('/', (req, res) => {
 
     staticUrlInput.addEventListener('input', updateStaticLaunchBtn);
     function updateStaticLaunchBtn() {
-      const hasTypes = selectedCategory === 'apparel'
-        ? selectedStaticTypes.length > 0
-        : selectedSuppTypes.length > 0;
+      let hasTypes;
+      if (selectedCategory === 'apparel') {
+        hasTypes = selectedStaticTypes.length > 0;
+      } else if (selectedCategory === 'supplements') {
+        hasTypes = selectedSuppTypes.length > 0;
+      } else if (selectedCategory === 'perfume') {
+        hasTypes = selectedPerfTypes.length > 0;
+      }
       staticLaunchBtn.disabled = !(staticSelectedFile && staticUrlInput.value.trim() && hasTypes);
     }
 
     // Static Designer Launch
     staticLaunchBtn.addEventListener('click', async () => {
-      const hasTypes = selectedCategory === 'apparel'
-        ? selectedStaticTypes.length > 0
-        : selectedSuppTypes.length > 0;
+      let hasTypes;
+      if (selectedCategory === 'apparel') hasTypes = selectedStaticTypes.length > 0;
+      else if (selectedCategory === 'supplements') hasTypes = selectedSuppTypes.length > 0;
+      else if (selectedCategory === 'perfume') hasTypes = selectedPerfTypes.length > 0;
       if (!staticSelectedFile || !staticUrlInput.value.trim() || !hasTypes) return;
 
       staticDesignerPanel.classList.add('hidden');
@@ -943,8 +1010,10 @@ app.get('/', (req, res) => {
       // Calculate total images based on category
       if (selectedCategory === 'apparel') {
         totalImages = selectedStaticTypes.length * variantsPerType;
-      } else {
+      } else if (selectedCategory === 'supplements') {
         totalImages = selectedSuppTypes.length * suppVariantsPerType;
+      } else if (selectedCategory === 'perfume') {
+        totalImages = selectedPerfTypes.length * perfVariantsPerType;
       }
       progressText.textContent = '0 / ' + totalImages;
       completedCount.textContent = '0';
@@ -969,6 +1038,14 @@ app.get('/', (req, res) => {
         'supp-raw-ingredient': 'raw_ingredient',
         'supp-meme': 'meme_cartoon'
       };
+      const perfTypeNames = {
+        'perf-aesthetic': 'aesthetic',
+        'perf-ugc-holding': 'ugc_holding',
+        'perf-product-hero': 'product_hero',
+        'perf-model-closeup': 'model_closeup',
+        'perf-benefit-callout': 'benefit_callout',
+        'perf-flat-lay': 'flat_lay'
+      };
 
       let cardId = 0;
       if (selectedCategory === 'apparel') {
@@ -979,12 +1056,19 @@ app.get('/', (req, res) => {
             cardId++;
           }
         });
-      } else {
-        // Supplements: loop over variants
+      } else if (selectedCategory === 'supplements') {
         selectedSuppTypes.forEach(type => {
           for (let v = 0; v < suppVariantsPerType; v++) {
             const direction = (suppTypeNames[type] || type) + '_v' + (v + 1);
             createCard({ id: cardId, direction: direction, imageType: 'supplement' });
+            cardId++;
+          }
+        });
+      } else if (selectedCategory === 'perfume') {
+        selectedPerfTypes.forEach(type => {
+          for (let v = 0; v < perfVariantsPerType; v++) {
+            const direction = (perfTypeNames[type] || type) + '_v' + (v + 1);
+            createCard({ id: cardId, direction: direction, imageType: 'perfume' });
             cardId++;
           }
         });
@@ -1000,9 +1084,12 @@ app.get('/', (req, res) => {
       if (selectedCategory === 'apparel') {
         formData.append('staticTypes', JSON.stringify(selectedStaticTypes));
         formData.append('variantsPerType', variantsPerType.toString());
-      } else {
+      } else if (selectedCategory === 'supplements') {
         formData.append('staticTypes', JSON.stringify(selectedSuppTypes));
         formData.append('variantsPerType', suppVariantsPerType.toString());
+      } else if (selectedCategory === 'perfume') {
+        formData.append('staticTypes', JSON.stringify(selectedPerfTypes));
+        formData.append('variantsPerType', perfVariantsPerType.toString());
       }
       formData.append('campaignId', currentCampaignId);
       if (logoFile) {
@@ -1601,20 +1688,40 @@ app.get('/', (req, res) => {
         const data = await res.json();
 
         if (data.success) {
-          // Update card with new image
+          // Update card with new image (preserve id and data attributes for aspect switching)
           const placeholder = card.querySelector('.image-placeholder');
+          const existingImg = card.querySelector('img');
           if (placeholder) {
-            placeholder.outerHTML = '<img src="' + data.url + '" alt="Generated">';
+            placeholder.outerHTML = '<img src="' + data.url + '" alt="Generated" id="img-' + id + '" data-url45="' + data.url + '" data-url916="">';
+          } else if (existingImg) {
+            existingImg.src = data.url;
+            existingImg.dataset.url45 = data.url;
+            existingImg.dataset.url916 = '';
+            existingImg.style.aspectRatio = '4/5';
           }
-          // Update the actions
+
+          // Clear stale 9:16 data since regen only produces 4:5
+          card.dataset.url916 = '';
+
+          // Remove 9:16 tab since old one no longer matches
+          const tab916 = card.querySelector('[data-aspect="9:16"]');
+          if (tab916) tab916.remove();
+
+          // Make sure 4:5 tab is active
+          const tab45 = card.querySelector('[data-aspect="4:5"]');
+          if (tab45) tab45.classList.add('active');
+
+          // Update the actions (no 9:16 buttons since we only have 4:5 now)
           const actions = card.querySelector('.actions');
           if (actions) {
-            actions.innerHTML = '<a href="' + data.url + '" target="_blank" class="view-btn">View</a><a href="' + data.url + '" download class="download-btn">DL</a><button class="flip-btn" onclick="flipImage(' + id + ')">Flip</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+            actions.innerHTML = '<a href="' + data.url + '" target="_blank" class="view-btn">4:5</a><button class="download-btn" onclick="downloadImage(\\'' + data.url + '\\', \\'' + card.dataset.direction + '_4x5.png\\')">DL</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
           }
+
           // Update campaign images array
           const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
           if (imgIndex !== -1) {
             currentCampaignImages[imgIndex].url = data.url;
+            currentCampaignImages[imgIndex].url916 = null;
           }
         } else {
           console.error('Regenerate failed:', data.error);
@@ -1833,6 +1940,25 @@ app.post('/regenerate', async (req, res) => {
 
     console.log('   Found campaign params, regenerating...');
 
+    // Check if we have a stored custom prompt for this image
+    let customPrompt = null;
+    let logoUrl = null;
+    const storedImage = params.perImagePrompts?.[direction];
+    console.log('   Looking for prompt:', direction, '| Found:', !!storedImage, '| Available keys:', Object.keys(params.perImagePrompts || {}));
+    if (storedImage && storedImage.prompt) {
+      customPrompt = storedImage.prompt;
+      console.log('   Using stored custom prompt for:', direction);
+
+      // Handle logo logic for perfume types
+      const staticType = storedImage.staticType;
+      if (staticType) {
+        const noLogoTypes = ['perf-product-hero'];
+        if (!noLogoTypes.includes(staticType) && params.logoUrl) {
+          logoUrl = params.logoUrl;
+        }
+      }
+    }
+
     const generator = new MTRXImageGenerator();
     const results = await generator.generateSingle({
       productImagePath: params.productImagePath,
@@ -1841,7 +1967,10 @@ app.post('/regenerate', async (req, res) => {
       imageType,
       direction,
       outputDir: './output',
-      cachedAnalysis: params.cachedAnalysis
+      aspectRatio: '4:5',
+      cachedAnalysis: params.cachedAnalysis,
+      customPrompt: customPrompt || undefined,
+      logoUrl: logoUrl
     });
 
     if (results.success) {
@@ -1922,7 +2051,7 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
 
     const staticTypes = JSON.parse(req.body.staticTypes || '["type1"]');
     const variantsPerType = parseInt(req.body.variantsPerType) || 1; // Default to 1, can be 1-4
-    const category = req.body.category || 'apparel'; // apparel or supplements
+    const category = req.body.category || 'apparel'; // apparel, supplements, or perfume
 
     // Static type names for display
     const staticTypeNames = {
@@ -1940,6 +2069,16 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
       'supp-ingredient-halo': 'ingredient_halo',
       'supp-illustrated': 'illustrated',
       'supp-vintage': 'vintage_magazine'
+    };
+
+    // Perfume type names
+    const perfTypeNames = {
+      'perf-aesthetic': 'aesthetic',
+      'perf-ugc-holding': 'ugc_holding',
+      'perf-product-hero': 'product_hero',
+      'perf-model-closeup': 'model_closeup',
+      'perf-benefit-callout': 'benefit_callout',
+      'perf-flat-lay': 'flat_lay'
     };
 
     // Build image queue
@@ -1960,6 +2099,20 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
         }
       });
       console.log(`   Generating ${images.length} supplement statics (${variantsPerType} variants per type)`);
+    } else if (category === 'perfume') {
+      // Perfume: multiple variants per type
+      staticTypes.forEach(type => {
+        for (let v = 0; v < variantsPerType; v++) {
+          images.push({
+            id: imgId++,
+            imageType: 'perfume',
+            direction: `${perfTypeNames[type] || type}_v${v + 1}`,
+            staticType: type,
+            variantIndex: v
+          });
+        }
+      });
+      console.log(`   Generating ${images.length} perfume statics (${variantsPerType} variants per type)`);
     } else {
       // Apparel: multiple variants per type
       staticTypes.forEach(type => {
@@ -2043,6 +2196,14 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
           keyIngredients: cachedAnalysis?.product_info?.key_ingredients || [],
           productImageUrl: imagePublicUrl // Pass product image for capsule analysis
         });
+      } else if (category === 'perfume') {
+        copyResearch = await copyService.researchPerfumeCopy({
+          websiteUrl: req.body.url,
+          websiteContent: pageContent,
+          brandName: brandName,
+          productName: cachedAnalysis?.product_info?.product_name || 'Perfume',
+          productImageUrl: imagePublicUrl
+        });
       } else {
         copyResearch = await copyService.researchAndGenerateCopy({
           websiteUrl: req.body.url,
@@ -2064,7 +2225,10 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
       logoUrl: logoPublicUrl,
       websiteUrl: req.body.url,
       cachedAnalysis: cachedAnalysis,
-      isStatic: true
+      isStatic: true,
+      category: category,
+      copyResearch: null,
+      perImagePrompts: {}
     });
     await saveRegenCache();
 
@@ -2349,6 +2513,207 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
         }
 
         // ═══════════════════════════════════════════════════════════════
+        // PERFUME / LUXURY CATEGORY
+        // ═══════════════════════════════════════════════════════════════
+        if (category === 'perfume' && !prompt) {
+          const productName = cachedAnalysis?.product_info?.product_name || 'Perfume';
+          const targetGender = copyResearch?.brand_analysis?.target_gender || 'male';
+          const typography = copyResearch?.brand_analysis?.typography || {};
+
+          if (copyResearch?.perfume_copy) {
+            const perfCopy = copyResearch.perfume_copy;
+            const variantIdx = img.variantIndex || 0;
+            console.log(`   ${img.staticType} using AI-generated copy (variant ${variantIdx + 1})`);
+
+            if (img.staticType === 'perf-aesthetic' && perfCopy.aesthetic) {
+              const aeVariants = Array.isArray(perfCopy.aesthetic) ? perfCopy.aesthetic : [perfCopy.aesthetic];
+              const ae = aeVariants[variantIdx % aeVariants.length] || aeVariants[0];
+              console.log(`      H1: ${ae.h1 || 'N/A'}`);
+              prompt = copyService.buildPerfumeAestheticPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                highlightColor: perfCopy.headline_highlight_color || perfCopy.accent_color,
+                textColor1: perfCopy.text_color_1 || 'white',
+                textColor2: perfCopy.text_color_2 || perfCopy.accent_color,
+                background: perfCopy.background_dark || 'black',
+                h1: ae.h1,
+                h1Highlight: ae.h1_highlight,
+                subheadline: ae.subheadline,
+                setting: ae.setting || 'moody',
+                noteBadges: ae.note_badges,
+                aspectRatio: '4:5',
+                headlineFont: typography.headline_style || 'serif-elegant',
+                fontVibe: typography.overall_vibe || 'luxury-minimal',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-ugc-holding' && perfCopy.ugc_holding) {
+              const uhVariants = Array.isArray(perfCopy.ugc_holding) ? perfCopy.ugc_holding : [perfCopy.ugc_holding];
+              const uh = uhVariants[variantIdx % uhVariants.length] || uhVariants[0];
+              console.log(`      Quote: ${uh.quote || 'N/A'}`);
+              prompt = copyService.buildPerfumeUGCHoldingPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                textColor1: perfCopy.text_color_1 || 'white',
+                quote: uh.quote,
+                setting: uh.setting || 'bathroom counter',
+                handStyle: uh.hand_style,
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-product-hero' && perfCopy.product_hero) {
+              const phVariants = Array.isArray(perfCopy.product_hero) ? perfCopy.product_hero : [perfCopy.product_hero];
+              const ph = phVariants[variantIdx % phVariants.length] || phVariants[0];
+              console.log(`      H1: ${ph.h1 || 'N/A'}`);
+              prompt = copyService.buildPerfumeProductHeroPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                highlightColor: perfCopy.headline_highlight_color || perfCopy.accent_color,
+                textColor1: perfCopy.text_color_1 || 'white',
+                textColor2: perfCopy.text_color_2 || perfCopy.accent_color,
+                background: perfCopy.background_dark || 'black',
+                h1: ph.h1,
+                setting: ph.setting || 'moody',
+                layoutStyle: ph.layout_style || 'single bottle centered',
+                aspectRatio: '4:5',
+                headlineFont: typography.headline_style || 'serif-elegant',
+                fontVibe: typography.overall_vibe || 'luxury-minimal',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-model-closeup' && perfCopy.model_closeup) {
+              const mcVariants = Array.isArray(perfCopy.model_closeup) ? perfCopy.model_closeup : [perfCopy.model_closeup];
+              const mc = mcVariants[variantIdx % mcVariants.length] || mcVariants[0];
+              console.log(`      Quote: ${mc.quote || 'N/A'}`);
+              prompt = copyService.buildPerfumeModelCloseupPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                textColor1: perfCopy.text_color_1 || 'white',
+                quote: mc.quote,
+                modelDescription: mc.model_description,
+                pose: mc.pose,
+                lighting: mc.lighting || 'warm golden sidelight',
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-benefit-callout' && perfCopy.benefit_callout) {
+              const bcVariants = Array.isArray(perfCopy.benefit_callout) ? perfCopy.benefit_callout : [perfCopy.benefit_callout];
+              const bc = bcVariants[variantIdx % bcVariants.length] || bcVariants[0];
+              console.log(`      Headline: ${bc.headline || 'N/A'}`);
+              prompt = copyService.buildPerfumeBenefitCalloutPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                textColor1: perfCopy.text_color_1 || 'white',
+                headline: bc.headline,
+                benefits: bc.benefits || [],
+                cta: bc.cta || 'SHOP NOW',
+                bgColor: bc.bg_color || perfCopy.background_dark || 'deep charcoal',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'perf-flat-lay' && perfCopy.flat_lay) {
+              const flVariants = Array.isArray(perfCopy.flat_lay) ? perfCopy.flat_lay : [perfCopy.flat_lay];
+              const fl = flVariants[variantIdx % flVariants.length] || flVariants[0];
+              console.log(`      Caption: ${(fl.caption || 'N/A').substring(0, 60)}`);
+              prompt = copyService.buildPerfumeFlatLayPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: perfCopy.accent_color || 'gold',
+                textColor1: perfCopy.text_color_1 || 'white',
+                caption: fl.caption,
+                surface: fl.surface || 'cream knit blanket',
+                items: fl.items || 'bottle with scattered dried flowers',
+                mood: fl.mood || 'cozy morning',
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            }
+          }
+
+          // Fallback if no AI copy was generated
+          if (!prompt) {
+            console.log(`   ${img.staticType} using fallback copy`);
+            if (img.staticType === 'perf-aesthetic') {
+              prompt = copyService.buildPerfumeAestheticPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                textColor2: 'gold',
+                background: 'black',
+                h1: 'You don\'t wear cologne. You wear a reputation.',
+                setting: 'moody',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'perf-ugc-holding') {
+              prompt = copyService.buildPerfumeUGCHoldingPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                quote: 'Three people asked what I was wearing today.',
+                setting: 'bathroom counter',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'perf-product-hero') {
+              prompt = copyService.buildPerfumeProductHeroPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                textColor2: 'gold',
+                background: 'black',
+                h1: 'The one they remember.',
+                setting: 'moody',
+                layoutStyle: 'single bottle centered',
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-model-closeup') {
+              prompt = copyService.buildPerfumeModelCloseupPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                quote: 'The moment I put this on, I felt untouchable.',
+                modelDescription: null,
+                pose: 'holding bottle near neck',
+                lighting: 'warm golden sidelight',
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            } else if (img.staticType === 'perf-benefit-callout') {
+              prompt = copyService.buildPerfumeBenefitCalloutPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                headline: 'SELLING FAST. DON\'T MISS OUT.',
+                benefits: ['Long-lasting Formula', 'Compliment Magnet', 'Premium Ingredients', '500+ 5-Star Reviews'],
+                cta: 'SHOP NOW',
+                bgColor: 'deep charcoal to black gradient',
+                aspectRatio: '4:5'
+              });
+            } else if (img.staticType === 'perf-flat-lay') {
+              prompt = copyService.buildPerfumeFlatLayPrompt({
+                productName: productName,
+                brandName: brandName,
+                accentColor: 'gold',
+                textColor1: 'white',
+                caption: 'My daily essentials. This one stays in the rotation.',
+                surface: 'cream knit blanket',
+                items: 'bottle with box and scattered dried flowers',
+                mood: 'cozy morning',
+                aspectRatio: '4:5',
+                targetGender: targetGender
+              });
+            }
+          }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
         // APPAREL CATEGORY - Use AI research or skill files
         // ═══════════════════════════════════════════════════════════════
         if (!prompt) {
@@ -2461,7 +2826,23 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
           console.log('   Brand applied:', brandNameLocal);
         }
 
+        // Store prompt for regeneration
+        const cachedParams = imageParamsCache.get(campaignId);
+        if (cachedParams && prompt) {
+          cachedParams.perImagePrompts[img.direction] = {
+            prompt: prompt,
+            staticType: img.staticType || null
+          };
+          // Store copy research for regeneration with different variant
+          if (copyResearch && !cachedParams.copyResearch) {
+            cachedParams.copyResearch = copyResearch;
+          }
+        }
+
         // STEP 1: Generate 4:5 first (the primary creative)
+        // Only product hero gets no logo (pure editorial photography)
+        const noLogoTypes = ['perf-product-hero'];
+        const shouldIncludeLogo = !noLogoTypes.includes(img.staticType);
         const results = await generator.generateSingle({
           productImagePath: productImageFile.path,
           productImageUrl: imagePublicUrl,
@@ -2472,7 +2853,7 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
           aspectRatio: '4:5', // Primary format
           cachedAnalysis: cachedAnalysis,
           customPrompt: prompt || undefined,
-          logoUrl: logoPublicUrl
+          logoUrl: shouldIncludeLogo ? logoPublicUrl : null
         });
 
         if (results.success) {
@@ -2487,8 +2868,12 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
             console.log('   Extending to 9:16 using AI...');
             send({ type: 'extending', id: img.id });
 
-            // Extension prompt - AI recreates with extended background
-            const extensionPrompt = `Convert this 4:5 image to 9:16 by ONLY adding background space.
+            // Extension prompt — simple two-path approach (same as apparel/supplements)
+            const solidBgTypes = ['perf-benefit-callout'];
+            const isSolidBg = solidBgTypes.includes(img.staticType);
+
+            const extensionPrompt = isSolidBg
+              ? `Convert this 4:5 image to 9:16 by ONLY adding background space.
 
 ⚠️ CRITICAL - DO NOT CHANGE THE CONTENT:
 - DO NOT resize any elements (product, text, buttons must stay SAME SIZE)
@@ -2505,6 +2890,23 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
 Think of it like adding a colored matte/border to a photo - the photo itself doesn't change at all, you're just extending the canvas with matching background color.
 
 The original 4:5 content should appear at the EXACT SAME SIZE in the center of the 9:16 frame.
+
+Output: 9:16 aspect ratio`
+              : `Recreate this EXACT image at 9:16 aspect ratio by extending the photographic scene.
+
+⚠️ CRITICAL - KEEP EVERYTHING IDENTICAL:
+- The product, text, hands, and all elements must be EXACTLY the same
+- Same fonts, same colors, same text content, same positioning relative to each other
+- Same lighting, same mood, same photography style
+
+✅ WHAT TO DO:
+- Extend the SCENE (background, environment, surfaces) to fill a taller 9:16 frame
+- Add more of the natural environment ABOVE and BELOW the existing composition
+- The background should seamlessly continue — more blurred background, more counter surface, more atmosphere
+- This should look like the same photo was just shot with a taller crop
+
+⚠️ DO NOT add solid colored borders or empty space
+⚠️ The extended areas must be natural photographic scene extension — NOT blank space
 
 Output: 9:16 aspect ratio`;
 
@@ -2556,6 +2958,10 @@ Output: 9:16 aspect ratio`;
     };
     await saveCampaign(campaign);
     console.log('📁 Static campaign saved:', campaignId);
+
+    // Re-save regen cache now that perImagePrompts are populated
+    await saveRegenCache();
+    console.log('   ✓ Regen cache updated with per-image prompts');
 
     clearInterval(keepAlive);
     res.end();
