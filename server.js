@@ -1688,40 +1688,61 @@ app.get('/', (req, res) => {
         const data = await res.json();
 
         if (data.success) {
+          const url916 = data.url916 || '';
+
           // Update card with new image (preserve id and data attributes for aspect switching)
           const placeholder = card.querySelector('.image-placeholder');
           const existingImg = card.querySelector('img');
           if (placeholder) {
-            placeholder.outerHTML = '<img src="' + data.url + '" alt="Generated" id="img-' + id + '" data-url45="' + data.url + '" data-url916="">';
+            placeholder.outerHTML = '<img src="' + data.url + '" alt="Generated" id="img-' + id + '" data-url45="' + data.url + '" data-url916="' + url916 + '">';
           } else if (existingImg) {
             existingImg.src = data.url;
             existingImg.dataset.url45 = data.url;
-            existingImg.dataset.url916 = '';
+            existingImg.dataset.url916 = url916;
             existingImg.style.aspectRatio = '4/5';
           }
 
-          // Clear stale 9:16 data since regen only produces 4:5
-          card.dataset.url916 = '';
+          // Update 9:16 data
+          card.dataset.url916 = url916;
 
-          // Remove 9:16 tab since old one no longer matches
-          const tab916 = card.querySelector('[data-aspect="9:16"]');
-          if (tab916) tab916.remove();
+          // Handle 9:16 tab
+          const tabsContainer = card.querySelector('.aspect-tabs');
+          const existingTab916 = card.querySelector('[data-aspect="9:16"]');
+          if (url916 && !existingTab916 && tabsContainer) {
+            const tab916El = document.createElement('button');
+            tab916El.className = 'aspect-tab';
+            tab916El.dataset.aspect = '9:16';
+            tab916El.textContent = '9:16';
+            tab916El.onclick = function() { switchAspect(id, '9:16'); };
+            tabsContainer.appendChild(tab916El);
+          } else if (!url916 && existingTab916) {
+            existingTab916.remove();
+          }
 
           // Make sure 4:5 tab is active
           const tab45 = card.querySelector('[data-aspect="4:5"]');
           if (tab45) tab45.classList.add('active');
 
-          // Update the actions (no 9:16 buttons since we only have 4:5 now)
+          // Update the actions
           const actions = card.querySelector('.actions');
           if (actions) {
-            actions.innerHTML = '<a href="' + data.url + '" target="_blank" class="view-btn">4:5</a><button class="download-btn" onclick="downloadImage(\\'' + data.url + '\\', \\'' + card.dataset.direction + '_4x5.png\\')">DL</button><button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+            let actionsHtml = '<a href="' + data.url + '" target="_blank" class="view-btn">4:5</a>';
+            if (url916) {
+              actionsHtml += '<a href="' + url916 + '" target="_blank" class="view-btn btn-916-view" style="background:#eebf12;color:#000;font-weight:600;">9:16</a>';
+            }
+            actionsHtml += '<button class="download-btn" onclick="downloadImage(\\'' + data.url + '\\', \\'' + card.dataset.direction + '_4x5.png\\')">DL</button>';
+            if (url916) {
+              actionsHtml += '<button class="download-btn btn-916-dl" style="background:#d4a910;color:#000;" onclick="downloadImage(\\'' + url916 + '\\', \\'' + card.dataset.direction + '_9x16.png\\')">DL 9:16</button>';
+            }
+            actionsHtml += '<button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+            actions.innerHTML = actionsHtml;
           }
 
           // Update campaign images array
           const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
           if (imgIndex !== -1) {
             currentCampaignImages[imgIndex].url = data.url;
-            currentCampaignImages[imgIndex].url916 = null;
+            currentCampaignImages[imgIndex].url916 = url916 || null;
           }
         } else {
           console.error('Regenerate failed:', data.error);
@@ -1974,8 +1995,77 @@ app.post('/regenerate', async (req, res) => {
     });
 
     if (results.success) {
-      console.log('✅ Regeneration complete:', results.url);
-      res.json({ success: true, url: results.url });
+      const url45 = results.url;
+      console.log('✅ Regeneration 4:5 complete:', url45);
+
+      // Now generate 9:16 extension
+      let url916 = null;
+      try {
+        console.log('   Extending regen to 9:16...');
+        const staticType = storedImage?.staticType || '';
+        const solidBgTypes = ['perf-benefit-callout'];
+        const isSolidBg = solidBgTypes.includes(staticType);
+
+        const extensionPrompt = isSolidBg
+          ? `Convert this 4:5 image to 9:16 by ONLY adding background space.
+
+⚠️ CRITICAL - DO NOT CHANGE THE CONTENT:
+- DO NOT resize any elements (product, text, buttons must stay SAME SIZE)
+- DO NOT reposition any elements (everything stays in SAME LOCATION)
+- DO NOT change any text, fonts, or colors
+- DO NOT shrink or enlarge the composition
+
+✅ WHAT TO DO:
+- Add EMPTY background space ABOVE the existing content
+- Add EMPTY background space BELOW the existing content
+- The background color must EXACTLY MATCH the original background
+- Content stays IDENTICAL - same size, same position, same everything
+
+Think of it like adding a colored matte/border to a photo - the photo itself doesn't change at all, you're just extending the canvas with matching background color.
+
+The original 4:5 content should appear at the EXACT SAME SIZE in the center of the 9:16 frame.
+
+Output: 9:16 aspect ratio`
+          : `Recreate this EXACT image at 9:16 aspect ratio by extending the photographic scene.
+
+⚠️ CRITICAL - KEEP EVERYTHING IDENTICAL:
+- The product, text, hands, and all elements must be EXACTLY the same
+- Same fonts, same colors, same text content, same positioning relative to each other
+- Same lighting, same mood, same photography style
+
+✅ WHAT TO DO:
+- Extend the SCENE (background, environment, surfaces) to fill a taller 9:16 frame
+- Add more of the natural environment ABOVE and BELOW the existing composition
+- The background should seamlessly continue — more blurred background, more counter surface, more atmosphere
+- This should look like the same photo was just shot with a taller crop
+
+⚠️ DO NOT add solid colored borders or empty space
+⚠️ The extended areas must be natural photographic scene extension — NOT blank space
+
+Output: 9:16 aspect ratio`;
+
+        const results916 = await generator.generateSingle({
+          productImagePath: params.productImagePath,
+          productImageUrl: url45,
+          websiteUrl: params.websiteUrl,
+          imageType: 'aesthetic',
+          direction: 'extension',
+          outputDir: './output',
+          aspectRatio: '9:16',
+          cachedAnalysis: params.cachedAnalysis,
+          customPrompt: extensionPrompt,
+          logoUrl: null
+        });
+
+        if (results916.success) {
+          url916 = results916.url;
+          console.log('   ✓ Regen 9:16 complete:', url916);
+        }
+      } catch (err916) {
+        console.error('   Regen 9:16 extension failed:', err916.message);
+      }
+
+      res.json({ success: true, url: url45, url916: url916 });
     } else {
       console.log('❌ Regeneration failed:', results.error);
       res.json({ success: false, error: results.error });
