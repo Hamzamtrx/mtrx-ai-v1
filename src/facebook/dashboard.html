@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTRX AI — Facebook Ads</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════ CSS Variables for Theming ═══════════ */
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #0f0f0f;
+      --bg-card: #111;
+      --bg-card-alt: #0d0d0d;
+      --bg-input: #1a1a1a;
+      --border-primary: #1a1a1a;
+      --border-secondary: #222;
+      --border-hover: #333;
+      --text-primary: #fff;
+      --text-secondary: #ccc;
+      --text-muted: #666;
+      --text-dim: #555;
+      --text-faint: #444;
+      --accent: #06b6d4;
+      --accent-hover: #0891b2;
+      --accent-bg: rgba(6,182,212,0.08);
+      --accent-bg-strong: rgba(6,182,212,0.12);
+      --overlay: rgba(0,0,0,0.8);
+    }
+    [data-theme="light"] {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: #fff;
+      --bg-card: #fff;
+      --bg-card-alt: #f9fafb;
+      --bg-input: #f3f4f6;
+      --border-primary: #e5e7eb;
+      --border-secondary: #d1d5db;
+      --border-hover: #9ca3af;
+      --text-primary: #111827;
+      --text-secondary: #374151;
+      --text-muted: #6b7280;
+      --text-dim: #9ca3af;
+      --text-faint: #d1d5db;
+      --accent: #0891b2;
+      --accent-hover: #0e7490;
+      --accent-bg: rgba(8,145,178,0.08);
+      --accent-bg-strong: rgba(8,145,178,0.12);
+      --overlay: rgba(0,0,0,0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); min-height: 100vh; color: var(--text-primary); display: flex; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; min-height: 100vh; background: var(--bg-secondary); border-right: 1px solid var(--border-primary); padding: 20px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 0 20px 24px; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
+    .sidebar-logo span { background: linear-gradient(135deg, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-nav { flex: 1; }
+    .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-item:hover { color: var(--text-secondary); background: var(--accent-bg); }
+    .sidebar-item.active { color: var(--text-primary); background: var(--accent-bg); border-left-color: var(--accent); }
+    .sidebar-item svg { width: 18px; height: 18px; opacity: 0.5; }
+    .sidebar-item.active svg { opacity: 1; }
+    .sidebar-section { padding: 16px 20px 8px; font-size: 10px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; }
+    .sidebar-bottom { padding: 16px 20px; border-top: 1px solid var(--border-primary); }
+    .sidebar-brand { font-size: 12px; color: var(--text-muted); }
+    .sidebar-brand select { width: 100%; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-secondary); border-radius: 6px; padding: 6px 8px; font-size: 12px; font-family: inherit; margin-top: 6px; }
+
+    /* Theme toggle */
+    .theme-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 20px; cursor: pointer; font-size: 12px; color: var(--text-muted); }
+    .theme-toggle:hover { color: var(--text-primary); }
+    .theme-switch { width: 36px; height: 20px; background: var(--border-secondary); border-radius: 10px; position: relative; transition: background 0.2s; }
+    .theme-switch::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--text-primary); top: 2px; left: 2px; transition: transform 0.2s; }
+    [data-theme="light"] .theme-switch { background: var(--accent); }
+    [data-theme="light"] .theme-switch::after { transform: translateX(16px); }
+
+    /* Main content */
+    .main { flex: 1; margin-left: 220px; padding: 32px; min-height: 100vh; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: var(--text-dim); font-size: 13px; }
+
+    /* Cards */
+    .card { background: var(--bg-card); border: 1px solid var(--border-secondary); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-title { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Buttons */
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-hover); }
+    .btn-secondary:hover { border-color: var(--text-dim); }
+    .btn-danger { background: var(--bg-input); color: #ef4444; border: 1px solid var(--border-hover); }
+    .btn-danger:hover { background: rgba(239,68,68,0.1); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Status */
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-active { background: #22c55e; }
+    .status-expired { background: #ef4444; }
+    .status-disconnected { background: #666; }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 10px; padding: 16px; }
+    .stat-value { font-size: 22px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    /* Classification badges */
+    .cl-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .cl-winner { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .cl-potential { background: rgba(59,130,246,0.15); color: #3b82f6; }
+    .cl-loser { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .cl-new { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 12px; color: var(--text-dim); font-size: 11px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border-primary); cursor: pointer; white-space: nowrap; }
+    th:hover { color: var(--text-primary); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border-primary); white-space: nowrap; }
+    tr:hover td { background: var(--accent-bg); }
+    .ad-name { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+    .ad-copy { max-width: 200px; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); font-size: 12px; }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-secondary); background: transparent; color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .filter-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .filter-btn.active { background: var(--accent-bg-strong); border-color: var(--accent); color: var(--accent); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-primary); margin-bottom: 24px; }
+    .tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-dim); border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Patterns */
+    .pattern-bar { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+    .pattern-name { width: 120px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+    .pattern-fill { height: 22px; border-radius: 4px; background: linear-gradient(90deg, #06b6d4, #3b82f6); min-width: 4px; transition: width 0.3s; }
+    .pattern-val { font-size: 12px; color: var(--text-muted); min-width: 80px; }
+
+    /* Strategic Insights */
+    .insights-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .insights-header h3 { font-size: 16px; font-weight: 700; }
+    .insights-header .insights-meta { font-size: 11px; color: var(--text-dim); }
+    .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .insights-grid { grid-template-columns: 1fr; } }
+    .insight-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 12px; padding: 20px; transition: border-color 0.15s; }
+    .insight-card:hover { border-color: var(--border-hover); }
+    .insight-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .insight-card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); }
+    .insight-confidence { font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; }
+    .insight-confidence.high { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .insight-confidence.medium { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .insight-confidence.low { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .insight-summary { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; line-height: 1.4; }
+    .insight-details { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+    .insight-details p { margin-bottom: 8px; }
+    .insight-card.expanded .insight-details { display: block; }
+    .insight-card .insight-details { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .insight-card.expanded .insight-details { display: block; -webkit-line-clamp: unset; }
+    .insight-expand { background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; margin-top: 6px; font-family: inherit; }
+    .insight-expand:hover { text-decoration: underline; }
+    .insights-loading { text-align: center; padding: 60px 20px; }
+    .insights-loading .spinner { width: 32px; height: 32px; }
+    .insights-loading p { color: var(--text-dim); font-size: 13px; margin-top: 12px; }
+    .insights-loading .subtext { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+    /* Sync Status Banner */
+    .sync-banner { display: none; align-items: center; gap: 12px; background: var(--accent-bg-strong); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; margin-bottom: 16px; }
+    .sync-banner.active { display: flex; }
+    .sync-banner .sync-spinner { width: 18px; height: 18px; border: 2px solid rgba(6,182,212,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    .sync-banner .sync-text { font-size: 13px; color: var(--text-primary); flex: 1; }
+    .sync-banner .sync-step { font-size: 11px; color: var(--text-muted); }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: var(--text-dim); }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 2px solid var(--border-secondary); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state h2 { margin-bottom: 8px; font-size: 20px; }
+    .empty-state p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg-card); border: 1px solid var(--border-secondary); border-radius: 10px; padding: 14px 20px; font-size: 13px; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-color: #ef4444; }
+    .toast.success { border-color: #22c55e; }
+
+    /* Two col */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 1000px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* Connection card */
+    .connection-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .connection-bar span { font-size: 13px; }
+
+    /* ═══════════════════════════════════════════ */
+    /* Ad Card Grid                               */
+    /* ═══════════════════════════════════════════ */
+    .ads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .ad-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+    .ad-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+    .ad-card-image { width: 100%; height: 180px; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .ad-card-image img { width: 100%; height: 100%; object-fit: cover; }
+    .ad-card-image .placeholder-img { color: var(--text-faint); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+    .ad-card-badge { position: absolute; top: 8px; left: 8px; }
+    .ad-card-body { padding: 14px; }
+    .ad-card-name { font-size: 13px; font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ad-card-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .ad-card-metric { text-align: center; }
+    .ad-card-metric .val { font-size: 14px; font-weight: 700; }
+    .ad-card-metric .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+    .ad-card-copy { font-size: 12px; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* View toggle */
+    .view-toggle { display: flex; gap: 4px; background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 8px; padding: 3px; }
+    .view-toggle button { background: none; border: none; color: var(--text-dim); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; transition: all 0.15s; }
+    .view-toggle button.active { background: var(--bg-input); color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════ */
+    /* Ad Detail Overlay                          */
+    /* ═══════════════════════════════════════════ */
+    .ad-detail-overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 500; display: none; align-items: center; justify-content: center; padding: 32px; }
+    .ad-detail-overlay.show { display: flex; }
+    .ad-detail-panel { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+    .ad-detail-close { position: absolute; top: 16px; right: 16px; background: var(--bg-input); border: 1px solid var(--border-hover); color: var(--text-primary); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .ad-detail-close:hover { background: var(--border-secondary); }
+    .ad-detail-image { width: 100%; max-height: 360px; object-fit: contain; background: var(--bg-primary); border-radius: 16px 16px 0 0; }
+    .ad-detail-content { padding: 24px; }
+    .ad-detail-content h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .ad-detail-content .detail-headline { font-size: 14px; color: var(--accent); margin-bottom: 16px; }
+    .ad-detail-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .ad-detail-metrics .dm { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 8px; padding: 12px; text-align: center; }
+    .ad-detail-metrics .dm .v { font-size: 18px; font-weight: 700; }
+    .ad-detail-metrics .dm .l { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
+    .ad-detail-copy { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 10px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; }
+
+    /* Comments */
+    .comments-section { margin-top: 20px; }
+    .comments-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-muted); }
+    .comments-list { display: flex; flex-direction: column; gap: 10px; }
+    .comment-item { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 10px; padding: 12px 16px; }
+    .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .comment-author { font-size: 12px; font-weight: 600; color: var(--accent); }
+    .comment-date { font-size: 11px; color: var(--text-faint); }
+    .comment-body { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .comment-likes { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+    .comments-loading { text-align: center; padding: 20px; color: var(--text-dim); font-size: 12px; }
+    .comments-error { text-align: center; padding: 16px; color: var(--text-dim); font-size: 12px; background: var(--bg-card-alt); border-radius: 8px; }
+
+    /* Transcript */
+    .transcript-section { margin-bottom: 20px; }
+    .transcript-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-muted); }
+    .transcript-content { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 10px; padding: 16px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; }
+    .transcript-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .transcript-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .transcript-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .transcript-btn svg { width: 14px; height: 14px; }
+    .video-description-content { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 10px; padding: 16px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; }
+    .video-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+    .video-badge svg { width: 12px; height: 12px; }
+
+    /* ═══════════════════════════════════════════ */
+    /* Generate Statics Tab                       */
+    /* ═══════════════════════════════════════════ */
+    .gen-step { background: var(--bg-card-alt); border: 1px solid var(--border-primary); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .gen-step h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .gen-step h3 .step-num { display: inline-block; width: 24px; height: 24px; background: var(--accent); color: #fff; border-radius: 6px; text-align: center; line-height: 24px; font-size: 12px; margin-right: 8px; }
+    .test-suggestions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+    .test-card-clean.selected { border-color: #17a2b8 !important; box-shadow: 0 2px 8px rgba(23,162,184,0.2) !important; background: #f8fdfe !important; }
+    .test-card-clean.selected::before { content: '✓'; position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; background: #17a2b8; color: #fff; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+    .test-card-clean { position: relative; }
+    /* Legacy styles for backwards compat */
+    .test-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; }
+    .test-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .test-card.selected { border-color: var(--accent); background: var(--accent-bg); }
+    .test-card .test-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .test-card .test-priority { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; font-weight: 600; }
+    .test-card .test-priority.high { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .test-card .test-priority.medium { background: rgba(234,179,8,0.15); color: #eab308; }
+    .test-card .test-priority.low { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .test-card .test-angle { font-size: 12px; color: var(--accent); margin-bottom: 6px; font-weight: 500; }
+    .test-card .test-hook { font-size: 12px; color: var(--text-secondary); font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+    .test-card .test-copy-dir { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px; }
+    .test-card .test-meta { font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border-primary); padding-top: 8px; margin-top: 8px; }
+    .test-card .test-meta span { margin-right: 12px; }
+
+    /* Setup panel (matching Image Generator) */
+    .setup-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .setup-panel { grid-template-columns: 1fr; } }
+    .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .type-grid.static-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 700px) { .type-grid.static-grid { grid-template-columns: repeat(2, 1fr); } }
+    .type-btn { background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; padding: 12px; color: var(--text-muted); font-size: 12px; cursor: pointer; text-align: left; transition: all 0.15s; font-family: inherit; }
+    .type-btn:hover { border-color: var(--text-dim); color: var(--text-primary); }
+    .type-btn.selected { background: rgba(6,182,212,0.1); border-color: var(--accent); color: var(--accent); }
+    .type-btn .name { font-weight: 600; display: block; }
+    .type-btn .desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+    .type-btn.selected .desc { color: rgba(6,182,212,0.6); }
+
+    /* Category toggle buttons */
+    .gen-cat-btn { flex: 1; padding: 10px 16px; background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .gen-cat-btn.active { background: linear-gradient(90deg, rgba(6,182,212,0.15), rgba(59,130,246,0.15)); border-color: var(--accent); color: var(--accent); }
+
+    /* Variant selector buttons */
+    .gen-var-btn { padding: 8px 16px; background: var(--bg-input); border: 1px solid var(--border-hover); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.15s; }
+    .gen-var-btn.selected { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+    /* Upload box */
+    .upload-box { border: 2px dashed var(--border-hover); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .upload-box:hover { border-color: var(--accent); }
+    .upload-box.has-file { border-style: solid; border-color: var(--accent); padding: 16px; }
+    .upload-box h3 { font-size: 13px; margin-bottom: 4px; }
+    .upload-box p { color: var(--text-dim); font-size: 11px; }
+
+    /* URL input */
+    .url-input { margin-top: 12px; }
+    .url-input input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); font-size: 13px; outline: none; font-family: inherit; }
+    .url-input input:focus { border-color: var(--accent); }
+
+    /* Launch button */
+    .launch-btn { width: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); border: none; border-radius: 10px; padding: 14px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+    .launch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .launch-btn .count { background: rgba(0,0,0,0.2); padding: 3px 10px; border-radius: 10px; font-size: 12px; }
+    .static-launch { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+
+    /* Campaign status bar */
+    .campaign-status { display: none; margin-bottom: 24px; }
+    .campaign-status.active { display: flex; align-items: center; justify-content: space-between; }
+    .status-left { display: flex; align-items: center; gap: 16px; }
+    .status-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+    .status-count { font-size: 14px; font-weight: 600; }
+    .progress-bar { width: 200px; height: 4px; background: var(--border-secondary); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+    .download-all { background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 16px; color: var(--text-muted); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; }
+    .download-all:hover { border-color: var(--accent); color: var(--text-primary); }
+
+    /* Image grid (results) */
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; min-height: 50px; }
+    .image-card { background: var(--bg-card); border: 1px solid var(--border-secondary); border-radius: 10px; overflow: hidden; transition: all 0.2s; min-height: 280px; }
+    .image-card.forging { border-color: var(--accent); }
+    .image-card.error { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+    .image-placeholder { aspect-ratio: 1; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .status-text { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+    .status-text.queue { color: var(--text-dim); }
+    .status-text.forging { color: var(--accent); }
+    .image-card img { width: 100%; aspect-ratio: 4/5; object-fit: contain; display: block; background: var(--bg-primary); }
+    .image-card .info { padding: 12px; }
+    .image-card .direction { font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+    .image-card .type-badge { color: #7f78c5; font-size: 11px; font-weight: 500; }
+    .image-card .error-msg { color: #ef4444; font-size: 11px; margin-top: 8px; }
+    .image-card .actions { display: flex; gap: 6px; margin-top: 10px; }
+    .image-card .actions a, .image-card .actions button { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; font-weight: 600; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.15s; font-family: inherit; border: none; }
+    .view-btn { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-hover) !important; }
+    .view-btn:hover { border-color: #7f78c5 !important; }
+    .download-btn { background: #7f78c5; color: #fff; }
+    .download-btn:hover { background: #6b64b0; }
+
+    /* Onboarding Modal */
+    .modal-overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 600; display: none; align-items: center; justify-content: center; padding: 32px; }
+    .modal-overlay.show { display: flex; }
+    .modal-panel { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; max-width: 480px; width: 100%; padding: 32px; position: relative; }
+    .modal-panel h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .modal-panel .modal-subtitle { color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
+    .modal-panel label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; margin-top: 16px; }
+    .modal-panel input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); font-size: 13px; outline: none; font-family: inherit; }
+    .modal-panel input:focus { border-color: var(--accent); }
+    .modal-category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+    .modal-cat-btn { background: var(--bg-input); border: 1px solid var(--border-hover); border-radius: 8px; padding: 14px 12px; color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: center; }
+    .modal-cat-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .modal-cat-btn.selected { background: var(--accent-bg-strong); border-color: var(--accent); color: var(--accent); }
+    .modal-cat-btn .cat-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 24px; }
+    .modal-actions .btn { flex: 1; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-item span, .sidebar-section, .sidebar-logo span, .sidebar-bottom { display: none; }
+      .sidebar-item { justify-content: center; padding: 12px; }
+      .main { margin-left: 60px; padding: 20px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .ads-grid { grid-template-columns: 1fr; }
+      .gen-form { grid-template-columns: 1fr; }
+      .ad-detail-overlay { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#06b6d4"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path d="M7 8h10M7 12h7M7 16h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>MTRX AI</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <a href="/" class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Image Generator</span>
+      </a>
+
+      <div class="sidebar-section">Facebook Ads</div>
+
+      <a href="/facebook" class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/facebook" class="sidebar-item" onclick="switchTab('ads'); return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span>Ad Performance</span>
+      </a>
+      <a href="/facebook" class="sidebar-item" onclick="switchTab('patterns'); return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span>Strategic Insights</span>
+      </a>
+      <a href="/facebook" class="sidebar-item" onclick="switchTab('generate'); return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span>Generate Statics</span>
+      </a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-switch"></div>
+        <span id="themeLabel">Light mode</span>
+      </div>
+      <div class="sidebar-brand" style="margin-top:12px;">
+        <div style="font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Brand</div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <select id="brandSelect" onchange="switchBrand()" style="flex:1;">
+            <option value="">Select brand...</option>
+          </select>
+          <button id="brandSettingsBtn" class="btn btn-secondary btn-sm" style="padding:4px 6px;font-size:13px;line-height:1;display:none;" onclick="openBrandSettings()" title="Brand Settings">&#9881;</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;padding:5px;font-size:11px;" onclick="showNewBrandModal()">+ New Brand</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Connection Status -->
+    <div id="connectionCard" class="card" style="display:none;">
+      <div class="card-header">
+        <span class="card-title">Facebook Connection</span>
+        <div id="connectionActions"></div>
+      </div>
+      <div id="connectionStatus"></div>
+    </div>
+
+    <!-- Not Connected State -->
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" style="margin-bottom:16px;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <h2>Connect Your Facebook Ad Account</h2>
+      <p>Link your Facebook ad account to analyze performance, find winning patterns, and generate AI creative briefs.</p>
+      <button class="btn btn-primary" onclick="connectFacebook()">Connect Facebook</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none;">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <h1>Ad Performance Intelligence</h1>
+          <p>Analyze your Facebook ads, find winning patterns, and generate AI-powered insights.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label style="font-size:11px;color:var(--text-dim);white-space:nowrap;">Time Frame:</label>
+          <select id="datePresetSelect" onchange="changeDatePreset()" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-hover);border-radius:6px;padding:6px 10px;font-size:12px;font-family:inherit;">
+            <option value="last_30d">Last 30 Days</option>
+            <option value="last_90d" selected>Last 90 Days</option>
+            <option value="lifetime">Lifetime</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="statsGrid" class="stats-grid"></div>
+
+      <!-- Sync Status Banner -->
+      <div id="syncBanner" class="sync-banner">
+        <div class="sync-spinner"></div>
+        <div>
+          <div class="sync-text" id="syncText">Syncing data from Facebook...</div>
+          <div class="sync-step" id="syncStep"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-tab="ads" onclick="switchTab('ads')">Ads</div>
+        <div class="tab" data-tab="patterns" onclick="switchTab('patterns')">Strategic Insights</div>
+        <div class="tab" data-tab="generate" onclick="switchTab('generate')">Generate Statics</div>
+      </div>
+
+      <!-- Ads Tab -->
+      <div id="tab-ads" class="tab-content active">
+        <div class="card-header">
+          <div class="filters" id="classificationFilters">
+            <button class="filter-btn active" data-filter="all" onclick="filterAds('all')">All</button>
+            <button class="filter-btn" data-filter="winner" onclick="filterAds('winner')">Winners</button>
+            <button class="filter-btn" data-filter="potential" onclick="filterAds('potential')">Potential</button>
+            <button class="filter-btn" data-filter="new" onclick="filterAds('new')">New</button>
+            <button class="filter-btn" data-filter="loser" onclick="filterAds('loser')">Losers</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="view-toggle">
+              <button class="active" data-view="grid" onclick="setView('grid')">Grid</button>
+              <button data-view="table" onclick="setView('table')">Table</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="syncData()">Sync Data</button>
+            <button class="btn btn-secondary btn-sm" onclick="reclassify()">Re-classify</button>
+          </div>
+        </div>
+
+        <!-- Grid View -->
+        <div id="adsGridView" class="ads-grid"></div>
+
+        <!-- Table View -->
+        <div id="adsTableView" class="table-wrap" style="display:none;">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortAds('ad_name')">Ad Name</th>
+                <th onclick="sortAds('classification')">Status</th>
+                <th onclick="sortAds('spend')">Spend</th>
+                <th onclick="sortAds('purchases')">Purchases</th>
+                <th onclick="sortAds('cpa')">CPA</th>
+                <th onclick="sortAds('roas')">ROAS</th>
+                <th onclick="sortAds('ctr')">CTR</th>
+                <th onclick="sortAds('impressions')">Impressions</th>
+                <th>Copy</th>
+              </tr>
+            </thead>
+            <tbody id="adsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="adsLoading" class="loading" style="display:none;"><div class="spinner"></div><br>Loading ads...</div>
+        <div id="adsPagination" style="text-align:center;padding:16px;"></div>
+      </div>
+
+      <!-- Strategic Insights Tab -->
+      <div id="tab-patterns" class="tab-content">
+        <div class="insights-header">
+          <div>
+            <h3>Strategic Analysis</h3>
+            <p style="color:var(--text-dim);font-size:12px;margin-top:2px;">AI-powered analysis of your ad performance data</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span id="insightsTimestamp" class="insights-meta"></span>
+            <button class="btn btn-primary btn-sm" onclick="runStrategicAnalysis()" id="runInsightsBtn">Analyze with AI</button>
+          </div>
+        </div>
+        <div id="insightsContent"></div>
+        <div id="insightsLoading" class="insights-loading" style="display:none;">
+          <div class="spinner"></div>
+          <p>Claude is analyzing your top ads...</p>
+          <div class="subtext">Examining transcripts, visuals, and performance patterns</div>
+        </div>
+      </div>
+
+      <!-- Generate Statics Tab -->
+      <div id="tab-generate" class="tab-content">
+        <!-- Step 1: AI Test Suggestions -->
+        <div class="gen-step">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin-bottom:0;"><span class="step-num">1</span> Test Suggestions</h3>
+            <button class="btn btn-primary btn-sm" onclick="loadTestSuggestions()" id="loadTestsBtn">Generate Test Ideas</button>
+          </div>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Combines AI Analysis (winning videos) + Reddit research + industry trends to suggest test ideas. Select a test to generate 3 statics.</p>
+          <div id="testSuggestionsLoading" class="loading" style="display:none;"><div class="spinner"></div><br>Analyzing winning videos + researching Reddit + industry trends...</div>
+          <div id="testSuggestionsGrid" class="test-suggestions-grid"></div>
+        </div>
+
+        <!-- Step 2: Static Designer (matching Image Generator UI) -->
+        <div class="setup-panel" id="genSetupPanel">
+          <div class="card">
+            <!-- Category Toggle -->
+            <div class="card-title">Category</div>
+            <div class="category-toggle" style="display:flex;gap:8px;margin-bottom:16px;">
+              <button class="gen-cat-btn active" data-category="apparel" onclick="setGenCategory('apparel',this)">Apparel</button>
+              <button class="gen-cat-btn" data-category="supplements" onclick="setGenCategory('supplements',this)">Supplements</button>
+              <button class="gen-cat-btn" data-category="perfume" onclick="setGenCategory('perfume',this)">Perfume</button>
+            </div>
+
+            <!-- Apparel Types -->
+            <div id="genApparelTypes">
+              <div class="card-title">Static Ad Types (select multiple)</div>
+              <div class="type-grid static-grid">
+                <button class="type-btn selected" data-static="type1" onclick="toggleGenType(this,'apparel')"><span class="name">Product Hero</span><span class="desc">Clean product focus</span></button>
+                <button class="type-btn" data-static="type2" onclick="toggleGenType(this,'apparel')"><span class="name">Meme Static</span><span class="desc">Viral meme format</span></button>
+                <button class="type-btn" data-static="type3" onclick="toggleGenType(this,'apparel')"><span class="name">Aesthetic Offer</span><span class="desc">Lifestyle + promo</span></button>
+                <button class="type-btn" data-static="type4" onclick="toggleGenType(this,'apparel')"><span class="name">Illustrated</span><span class="desc">Hand-drawn style</span></button>
+                <button class="type-btn" data-static="type5" onclick="toggleGenType(this,'apparel')"><span class="name">Vintage Magazine</span><span class="desc">Retro editorial</span></button>
+                <button class="type-btn" data-static="type6" onclick="toggleGenType(this,'apparel')"><span class="name">UGC Caption</span><span class="desc">Model + handwritten text</span></button>
+              </div>
+              <div style="margin-top:16px;">
+                <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px;">Variants per type (different angles)</label>
+                <div class="variant-selector" style="display:flex;gap:8px;">
+                  <button class="gen-var-btn" data-variants="1" onclick="setGenVariants(1,this)">1</button>
+                  <button class="gen-var-btn selected" data-variants="2" onclick="setGenVariants(2,this)">2</button>
+                  <button class="gen-var-btn" data-variants="3" onclick="setGenVariants(3,this)">3</button>
+                  <button class="gen-var-btn" data-variants="4" onclick="setGenVariants(4,this)">4</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Supplements Types -->
+            <div id="genSupplementsTypes" style="display:none;">
+              <div class="card-title">Static Ad Types (select multiple)</div>
+              <div class="type-grid" style="grid-template-columns:repeat(2,1fr);">
+                <button class="type-btn selected" data-static="supp-benefit-checklist" onclick="toggleGenType(this,'supplements')"><span class="name">Benefit Checklist</span><span class="desc">Product + checkmark benefits</span></button>
+                <button class="type-btn" data-static="supp-ingredient-halo" onclick="toggleGenType(this,'supplements')"><span class="name">Ingredient Halo</span><span class="desc">Ingredients orbiting product</span></button>
+                <button class="type-btn" data-static="supp-illustrated" onclick="toggleGenType(this,'supplements')"><span class="name">Illustrated</span><span class="desc">Bold cartoon/infographic style</span></button>
+                <button class="type-btn" data-static="supp-vintage" onclick="toggleGenType(this,'supplements')"><span class="name">Vintage Americana</span><span class="desc">Cinematic nostalgic photography</span></button>
+                <button class="type-btn" data-static="supp-minimalist" onclick="toggleGenType(this,'supplements')"><span class="name">Minimalist Hand</span><span class="desc">Hand-drawn, stacked text, clean</span></button>
+                <button class="type-btn" data-static="supp-raw-ingredient" onclick="toggleGenType(this,'supplements')"><span class="name">Raw Ingredient</span><span class="desc">Dramatic ingredient hero shot</span></button>
+                <button class="type-btn" data-static="supp-meme" onclick="toggleGenType(this,'supplements')"><span class="name">Meme/Cartoon</span><span class="desc">Funny metaphor, shareable</span></button>
+              </div>
+              <div style="margin-top:16px;">
+                <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px;">Variants per type (different copy angles)</label>
+                <div class="variant-selector" style="display:flex;gap:8px;">
+                  <button class="gen-var-btn selected" data-variants="1" onclick="setGenVariants(1,this)">1</button>
+                  <button class="gen-var-btn" data-variants="2" onclick="setGenVariants(2,this)">2</button>
+                  <button class="gen-var-btn" data-variants="3" onclick="setGenVariants(3,this)">3</button>
+                  <button class="gen-var-btn" data-variants="4" onclick="setGenVariants(4,this)">4</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Perfume Types -->
+            <div id="genPerfumeTypes" style="display:none;">
+              <div class="card-title">Static Ad Types (select multiple)</div>
+              <div class="type-grid" style="grid-template-columns:repeat(2,1fr);">
+                <button class="type-btn selected" data-static="perf-aesthetic" onclick="toggleGenType(this,'perfume')"><span class="name">Aesthetic Ad</span><span class="desc">Cinematic photo + headline + CTA</span></button>
+                <button class="type-btn" data-static="perf-ugc-holding" onclick="toggleGenType(this,'perfume')"><span class="name">UGC Holding</span><span class="desc">Hand holding bottle + quote</span></button>
+                <button class="type-btn" data-static="perf-product-hero" onclick="toggleGenType(this,'perfume')"><span class="name">Product Hero</span><span class="desc">Editorial photography, minimal text</span></button>
+                <button class="type-btn" data-static="perf-model-closeup" onclick="toggleGenType(this,'perfume')"><span class="name">Model Close-up</span><span class="desc">Person + bottle, intimate</span></button>
+                <button class="type-btn" data-static="perf-benefit-callout" onclick="toggleGenType(this,'perfume')"><span class="name">Benefit Callout</span><span class="desc">Benefits + urgency + CTA</span></button>
+                <button class="type-btn" data-static="perf-flat-lay" onclick="toggleGenType(this,'perfume')"><span class="name">Flat Lay</span><span class="desc">Products on surface, lifestyle</span></button>
+              </div>
+              <div style="margin-top:16px;">
+                <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px;">Variants per type (different copy angles)</label>
+                <div class="variant-selector" style="display:flex;gap:8px;">
+                  <button class="gen-var-btn selected" data-variants="1" onclick="setGenVariants(1,this)">1</button>
+                  <button class="gen-var-btn" data-variants="2" onclick="setGenVariants(2,this)">2</button>
+                  <button class="gen-var-btn" data-variants="3" onclick="setGenVariants(3,this)">3</button>
+                  <button class="gen-var-btn" data-variants="4" onclick="setGenVariants(4,this)">4</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: Upload + Launch -->
+          <div class="card">
+            <div style="display:flex;gap:12px;">
+              <div class="upload-box" id="genDropZone" style="flex:1;">
+                <img id="genPreview" alt="Preview" style="max-width:100%;max-height:120px;border-radius:8px;display:none;">
+                <h3 id="genUploadText" style="font-size:13px;">Product Image</h3>
+                <p style="font-size:11px;color:var(--text-muted);">PNG, JPG up to 50MB</p>
+                <input type="file" id="genProductImage" accept="image/*" hidden>
+              </div>
+              <div class="upload-box" id="genLogoDropZone" style="flex:0 0 120px;min-height:100px;">
+                <img id="genLogoPreview" alt="Logo" style="max-height:60px;display:none;">
+                <h3 id="genLogoText" style="font-size:12px;">Logo (optional)</h3>
+                <p style="font-size:10px;color:var(--text-muted);">PNG with transparency</p>
+                <input type="file" id="genLogo" accept="image/*" hidden>
+              </div>
+            </div>
+            <div class="url-input">
+              <input type="url" id="genUrl" placeholder="Landing page URL">
+            </div>
+            <div class="url-input" style="margin-top:8px;">
+              <input type="text" id="genAngle" placeholder="Angle (auto-fills from selected test, or type your own)">
+            </div>
+            <button class="launch-btn static-launch" id="genStaticsBtn" onclick="generateStatics()" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              Generate Statics
+              <span class="count" id="genStaticCount">2 statics</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Campaign status bar -->
+        <div class="campaign-status" id="genCampaignStatus">
+          <div class="status-left">
+            <div><span class="status-label">Generation Status</span><br><span class="status-count" id="genProgressText">0 / 0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="genProgressBar" style="width:0%"></div></div>
+          </div>
+          <button class="download-all" id="genDownloadAll" onclick="downloadAllGen()">Download All (<span id="genCompletedCount">0</span>)</button>
+        </div>
+
+        <!-- Image results grid -->
+        <div class="image-grid" id="genImageGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad Detail Overlay -->
+  <div class="ad-detail-overlay" id="adDetailOverlay" onclick="if(event.target===this)closeAdDetail()">
+    <div class="ad-detail-panel">
+      <button class="ad-detail-close" onclick="closeAdDetail()">&times;</button>
+      <div id="adDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- New Brand Modal -->
+  <div id="brandModal" class="modal-overlay">
+    <div class="modal-panel">
+      <h2>Add Your Brand</h2>
+      <div class="modal-subtitle">Set up your brand to start analyzing ad performance</div>
+
+      <label>Brand Name *</label>
+      <input type="text" id="modalBrandName" placeholder="e.g. UndrDog">
+
+      <label>Website URL</label>
+      <input type="url" id="modalBrandUrl" placeholder="https://yoursite.com">
+
+      <label>Product Category</label>
+      <div class="modal-category-grid">
+        <button class="modal-cat-btn selected" data-cat="apparel" onclick="selectModalCategory(this)">
+          <span class="cat-icon">&#128085;</span>Apparel
+        </button>
+        <button class="modal-cat-btn" data-cat="supplements" onclick="selectModalCategory(this)">
+          <span class="cat-icon">&#128138;</span>Supplements
+        </button>
+        <button class="modal-cat-btn" data-cat="perfume" onclick="selectModalCategory(this)">
+          <span class="cat-icon">&#129526;</span>Perfume
+        </button>
+        <button class="modal-cat-btn" data-cat="other" onclick="selectModalCategory(this)">
+          <span class="cat-icon">&#128230;</span>Other
+        </button>
+      </div>
+
+      <label style="margin-top:20px;">Performance Goals</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+        <div>
+          <label style="margin-top:0;">Target ROAS</label>
+          <input type="number" id="modalTargetRoas" placeholder="e.g. 2.5" step="0.1" min="0">
+        </div>
+        <div>
+          <label style="margin-top:0;">Target CPA ($)</label>
+          <input type="number" id="modalTargetCpa" placeholder="e.g. 30" step="1" min="0">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Used to classify ads as winners/potential/losers. Can be updated later.</div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeBrandModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNewBrand()">Create Brand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Settings Modal -->
+  <div id="brandSettingsModal" class="modal-overlay" onclick="if(event.target===this)closeBrandSettings()">
+    <div class="modal-panel">
+      <h2>Brand Settings</h2>
+      <div class="modal-subtitle">Update your brand details and performance goals</div>
+
+      <label>Brand Name *</label>
+      <input type="text" id="settingsBrandName" placeholder="e.g. UndrDog">
+
+      <label>Website URL</label>
+      <input type="url" id="settingsBrandUrl" placeholder="https://yoursite.com">
+
+      <label>Product Category</label>
+      <div class="modal-category-grid">
+        <button class="modal-cat-btn" data-cat="apparel" onclick="selectSettingsCategory(this)">
+          <span class="cat-icon">&#128085;</span>Apparel
+        </button>
+        <button class="modal-cat-btn" data-cat="supplements" onclick="selectSettingsCategory(this)">
+          <span class="cat-icon">&#128138;</span>Supplements
+        </button>
+        <button class="modal-cat-btn" data-cat="perfume" onclick="selectSettingsCategory(this)">
+          <span class="cat-icon">&#129526;</span>Perfume
+        </button>
+        <button class="modal-cat-btn" data-cat="other" onclick="selectSettingsCategory(this)">
+          <span class="cat-icon">&#128230;</span>Other
+        </button>
+      </div>
+
+      <label style="margin-top:20px;">Performance Goals</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+        <div>
+          <label style="margin-top:0;">Target ROAS</label>
+          <input type="number" id="settingsTargetRoas" placeholder="e.g. 2.5" step="0.1" min="0">
+        </div>
+        <div>
+          <label style="margin-top:0;">Target CPA ($)</label>
+          <input type="number" id="settingsTargetCpa" placeholder="e.g. 30" step="1" min="0">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Used to classify ads as winners/potential/losers.</div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeBrandSettings()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBrandSettings()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let currentBrandId = null;
+    let currentBrandCategory = 'apparel';
+    let brandsData = [];
+    let currentFilter = 'all';
+    let currentSort = 'spend';
+    let currentOrder = 'desc';
+    let currentOffset = 0;
+    let currentView = 'grid';
+    let currentAdsData = [];
+    // (cachedFbInsights removed — replaced by test suggestions)
+
+    // Generate Statics state
+    let genCategory = 'apparel';
+    let genApparelTypes = ['type1'];
+    let genSuppTypes = ['supp-benefit-checklist'];
+    let genPerfTypes = ['perf-aesthetic'];
+    let genVariants = 2;
+    let genProductFile = null;
+    let genLogoFile = null;
+    let genTotalImages = 0;
+    let genCompleted = 0;
+    let genImageCards = {};
+
+    // ═══════════════════════════════════════════
+    // Theme Toggle
+    // ═══════════════════════════════════════════
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', next);
+      document.getElementById('themeLabel').textContent = next === 'light' ? 'Dark mode' : 'Light mode';
+      localStorage.setItem('mtrx-theme', next);
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem('mtrx-theme');
+      if (saved === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        const lbl = document.getElementById('themeLabel');
+        if (lbl) lbl.textContent = 'Dark mode';
+      }
+    })();
+
+    async function init() {
+      await loadBrands();
+      initGenUploads();
+      updateGenCount();
+      window.addEventListener('message', (e) => {
+        if (e.data?.type === 'fb-auth-success') {
+          toast('Facebook connected successfully!', 'success');
+          loadConnectionStatus();
+        }
+      });
+    }
+
+    async function loadBrands() {
+      try {
+        const res = await fetch('/api/auth/facebook/brands');
+        brandsData = await res.json();
+        const select = document.getElementById('brandSelect');
+        select.innerHTML = '<option value="">Select brand...</option>';
+        brandsData.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = b.name + (b.fb_status === 'active' ? ' \u2713' : '');
+          select.appendChild(opt);
+        });
+        if (brandsData.length > 0) {
+          select.value = brandsData[0].id;
+          switchBrand();
+        } else {
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('connectionCard').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Load brands error:', err);
+        document.getElementById('emptyState').style.display = 'block';
+      }
+    }
+
+    function switchBrand() {
+      currentBrandId = document.getElementById('brandSelect').value;
+      document.getElementById('brandSettingsBtn').style.display = currentBrandId ? 'inline-block' : 'none';
+      if (!currentBrandId) {
+        document.getElementById('connectionCard').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'none';
+        return;
+      }
+      // Set brand category for Generate Statics tab
+      const brand = brandsData.find(b => String(b.id) === String(currentBrandId));
+      if (brand?.category) {
+        currentBrandCategory = brand.category;
+        // Auto-select category in Generate Statics
+        const catBtn = document.querySelector(`.gen-cat-btn[data-category="${brand.category}"]`);
+        if (catBtn) setGenCategory(brand.category, catBtn);
+      }
+      cachedTestSuggestions = null; selectedTestIndex = null;
+      loadConnectionStatus();
+    }
+
+    let modalSelectedCategory = 'apparel';
+
+    function showNewBrandModal() {
+      document.getElementById('brandModal').classList.add('show');
+      document.getElementById('modalBrandName').value = '';
+      document.getElementById('modalBrandUrl').value = '';
+      modalSelectedCategory = 'apparel';
+      document.querySelectorAll('#brandModal .modal-cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.cat === 'apparel'));
+      setTimeout(() => document.getElementById('modalBrandName').focus(), 100);
+    }
+
+    function closeBrandModal() {
+      document.getElementById('brandModal').classList.remove('show');
+    }
+
+    function selectModalCategory(btn) {
+      document.querySelectorAll('#brandModal .modal-cat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      modalSelectedCategory = btn.dataset.cat;
+    }
+
+    async function submitNewBrand() {
+      const name = document.getElementById('modalBrandName').value.trim();
+      const website = document.getElementById('modalBrandUrl').value.trim();
+      const targetRoas = parseFloat(document.getElementById('modalTargetRoas').value) || 0;
+      const targetCpa = parseFloat(document.getElementById('modalTargetCpa').value) || 0;
+      if (!name) { toast('Brand name is required', 'error'); return; }
+      try {
+        const res = await fetch('/api/auth/facebook/brands', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, websiteUrl: website, category: modalSelectedCategory, targetRoas, targetCpa }),
+        });
+        const brand = await res.json();
+        closeBrandModal();
+        toast('Brand created', 'success');
+        await loadBrands();
+        document.getElementById('brandSelect').value = brand.id;
+        switchBrand();
+      } catch (err) { toast('Error: ' + err.message, 'error'); }
+    }
+
+    // ═══════════════════════════════════════════
+    // Brand Settings Modal
+    // ═══════════════════════════════════════════
+    let settingsSelectedCategory = 'apparel';
+
+    function openBrandSettings() {
+      const brand = brandsData.find(b => String(b.id) === String(currentBrandId));
+      if (!brand) { toast('Select a brand first', 'error'); return; }
+
+      document.getElementById('settingsBrandName').value = brand.name || '';
+      document.getElementById('settingsBrandUrl').value = brand.website_url || '';
+      document.getElementById('settingsTargetRoas').value = brand.target_roas || '';
+      document.getElementById('settingsTargetCpa').value = brand.target_cpa || '';
+
+      settingsSelectedCategory = brand.category || 'apparel';
+      document.querySelectorAll('#brandSettingsModal .modal-cat-btn').forEach(b =>
+        b.classList.toggle('selected', b.dataset.cat === settingsSelectedCategory)
+      );
+
+      document.getElementById('brandSettingsModal').classList.add('show');
+      setTimeout(() => document.getElementById('settingsBrandName').focus(), 100);
+    }
+
+    function closeBrandSettings() {
+      document.getElementById('brandSettingsModal').classList.remove('show');
+    }
+
+    function selectSettingsCategory(btn) {
+      document.querySelectorAll('#brandSettingsModal .modal-cat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      settingsSelectedCategory = btn.dataset.cat;
+    }
+
+    async function saveBrandSettings() {
+      const name = document.getElementById('settingsBrandName').value.trim();
+      if (!name) { toast('Brand name is required', 'error'); return; }
+
+      const payload = {
+        name,
+        websiteUrl: document.getElementById('settingsBrandUrl').value.trim(),
+        category: settingsSelectedCategory,
+        targetRoas: parseFloat(document.getElementById('settingsTargetRoas').value) || 0,
+        targetCpa: parseFloat(document.getElementById('settingsTargetCpa').value) || 0,
+      };
+
+      try {
+        const res = await fetch(`/api/auth/facebook/brands/${currentBrandId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Failed to update brand');
+        closeBrandSettings();
+        toast('Brand settings saved', 'success');
+        await loadBrands();
+        document.getElementById('brandSelect').value = currentBrandId;
+        switchBrand();
+      } catch (err) { toast('Error: ' + err.message, 'error'); }
+    }
+
+    async function loadConnectionStatus() {
+      if (!currentBrandId) return;
+      try {
+        const res = await fetch(`/api/auth/facebook/status/${currentBrandId}`);
+        const status = await res.json();
+        const card = document.getElementById('connectionCard');
+        const statusDiv = document.getElementById('connectionStatus');
+        const actionsDiv = document.getElementById('connectionActions');
+        card.style.display = 'block';
+
+        if (status.connected) {
+          const dotClass = status.status === 'active' ? 'status-active' : 'status-expired';
+          statusDiv.innerHTML = `<div class="connection-bar">
+            <span><span class="status-dot ${dotClass}"></span>${status.fbUserName}</span>
+            <span style="color:#666;">|</span>
+            <span style="color:#888;">${status.adAccountName || 'No account selected'}</span>
+            <span style="color:#666;">|</span>
+            <span style="color:#555;font-size:12px;">Last sync: ${status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleString() : 'Never'}</span>
+          </div>`;
+          actionsDiv.innerHTML = `<button class="btn btn-danger btn-sm" onclick="disconnectFacebook()">Disconnect</button>`;
+          document.getElementById('emptyState').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          loadDashboard();
+        } else {
+          statusDiv.innerHTML = `<span><span class="status-dot status-disconnected"></span>Not connected</span>`;
+          actionsDiv.innerHTML = `<button class="btn btn-primary btn-sm" onclick="connectFacebook()">Connect</button>`;
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('dashboard').style.display = 'none';
+        }
+      } catch (err) { console.error('Connection status error:', err); }
+    }
+
+    async function connectFacebook() {
+      try {
+        if (!currentBrandId) {
+          const name = prompt('Enter your brand name:');
+          if (!name) return;
+          const brandRes = await fetch('/api/auth/facebook/brands', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+          });
+          const brand = await brandRes.json();
+          currentBrandId = brand.id;
+          await loadBrands();
+          document.getElementById('brandSelect').value = brand.id;
+        }
+        const res = await fetch('/api/auth/facebook/connect', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandId: currentBrandId }),
+        });
+        const { loginUrl, brandId } = await res.json();
+        window.open(loginUrl, 'fbauth', 'width=600,height=700');
+      } catch (err) { toast('Error: ' + err.message, 'error'); }
+    }
+
+    async function disconnectFacebook() {
+      if (!confirm('Disconnect Facebook for this brand?')) return;
+      try {
+        await fetch(`/api/auth/facebook/disconnect/${currentBrandId}`, { method: 'POST' });
+        toast('Disconnected', 'success');
+        loadConnectionStatus();
+      } catch (err) { toast('Error: ' + err.message, 'error'); }
+    }
+
+    async function loadDashboard() { loadSummary(); loadAds(); }
+
+    async function loadSummary() {
+      try {
+        const res = await fetch(`/api/facebook/data/summary/${currentBrandId}`);
+        const data = await res.json();
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card"><div class="stat-value">${data.totalAds || 0}</div><div class="stat-label">Total Ads</div></div>
+          <div class="stat-card"><div class="stat-value">$${(data.totalSpend || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</div><div class="stat-label">Total Spend</div></div>
+          <div class="stat-card"><div class="stat-value">${data.totalPurchases || 0}</div><div class="stat-label">Purchases</div></div>
+          <div class="stat-card"><div class="stat-value">$${(data.totalRevenue || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</div><div class="stat-label">Revenue</div></div>
+          <div class="stat-card"><div class="stat-value">$${(data.avgCpa || 0).toFixed(2)}</div><div class="stat-label">Avg CPA</div></div>
+          <div class="stat-card"><div class="stat-value">${(data.avgRoas || 0).toFixed(2)}x</div><div class="stat-label">Avg ROAS</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:#22c55e">${data.classifications?.winner || 0}</div><div class="stat-label">Winners</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:#3b82f6">${data.classifications?.potential || 0}</div><div class="stat-label">Potential</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:#a855f7">${data.classifications?.new || 0}</div><div class="stat-label">New</div></div>
+        `;
+      } catch (err) { console.error('Summary error:', err); }
+    }
+
+    // ═══════════════════════════════════════════
+    // View Toggle
+    // ═══════════════════════════════════════════
+    function setView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-toggle button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.getElementById('adsGridView').style.display = view === 'grid' ? 'grid' : 'none';
+      document.getElementById('adsTableView').style.display = view === 'table' ? 'block' : 'none';
+    }
+
+    // ═══════════════════════════════════════════
+    // Image URL fallback
+    // ═══════════════════════════════════════════
+    function getAdImageUrl(ad) {
+      return ad.image_url || ad.thumbnail_url || '';
+    }
+
+    function renderAdImage(ad) {
+      const url = getAdImageUrl(ad);
+      if (url) {
+        return `<img src="${esc(url)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'placeholder-img\\'>No Preview</span>'">`;
+      }
+      return '<span class="placeholder-img">No Preview</span>';
+    }
+
+    // ═══════════════════════════════════════════
+    // Load & Render Ads
+    // ═══════════════════════════════════════════
+    async function loadAds() {
+      const grid = document.getElementById('adsGridView');
+      const tbody = document.getElementById('adsTableBody');
+      const loading = document.getElementById('adsLoading');
+      loading.style.display = 'block';
+      grid.innerHTML = '';
+      tbody.innerHTML = '';
+
+      try {
+        const params = new URLSearchParams({ sort: currentSort, order: currentOrder, limit: '50', offset: String(currentOffset) });
+        if (currentFilter !== 'all') params.set('classification', currentFilter);
+        const res = await fetch(`/api/facebook/data/ads/${currentBrandId}?${params}`);
+        const { ads, total } = await res.json();
+        loading.style.display = 'none';
+        currentAdsData = ads;
+
+        if (ads.length === 0) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>No ads found. Sync your data first.</p></div>';
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#555;padding:40px;">No ads found. Sync your data first.</td></tr>';
+          return;
+        }
+
+        // Render grid cards
+        ads.forEach((ad, idx) => {
+          const card = document.createElement('div');
+          card.className = 'ad-card';
+          card.onclick = () => openAdDetail(ad);
+          card.innerHTML = `
+            <div class="ad-card-image">
+              ${renderAdImage(ad)}
+              <div class="ad-card-badge"><span class="cl-badge cl-${ad.classification}">${ad.classification}</span></div>
+              ${ad.video_id ? '<div class="video-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Video</div>' : ''}
+            </div>
+            <div class="ad-card-body">
+              <div class="ad-card-name" title="${esc(ad.ad_name)}">${esc(ad.ad_name || '')}</div>
+              <div class="ad-card-metrics">
+                <div class="ad-card-metric"><div class="val">$${ad.spend?.toFixed(0) || '0'}</div><div class="lbl">Spend</div></div>
+                <div class="ad-card-metric"><div class="val">$${ad.cpa?.toFixed(2) || '0'}</div><div class="lbl">CPA</div></div>
+                <div class="ad-card-metric"><div class="val">${ad.roas?.toFixed(1) || '0'}x</div><div class="lbl">ROAS</div></div>
+              </div>
+              <div class="ad-card-copy">${esc((ad.body || '').substring(0, 100))}</div>
+            </div>`;
+          grid.appendChild(card);
+        });
+
+        // Render table rows
+        ads.forEach(ad => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.onclick = () => openAdDetail(ad);
+          tr.innerHTML = `
+            <td class="ad-name" title="${esc(ad.ad_name)}">${esc(ad.ad_name || '')}</td>
+            <td><span class="cl-badge cl-${ad.classification}">${ad.classification}</span></td>
+            <td>$${ad.spend?.toFixed(2) || '0.00'}</td>
+            <td>${ad.purchases || 0}</td>
+            <td>$${ad.cpa?.toFixed(2) || '0.00'}</td>
+            <td>${ad.roas?.toFixed(2) || '0.00'}x</td>
+            <td>${ad.ctr?.toFixed(2) || '0.00'}%</td>
+            <td>${(ad.impressions || 0).toLocaleString()}</td>
+            <td class="ad-copy" title="${esc(ad.body || '')}">${esc((ad.body || '').substring(0, 80))}</td>`;
+          tbody.appendChild(tr);
+        });
+
+        // Pagination
+        const pag = document.getElementById('adsPagination');
+        const pages = Math.ceil(total / 50), currentPage = Math.floor(currentOffset / 50) + 1;
+        pag.innerHTML = pages > 1 ? `Page ${currentPage} of ${pages} (${total} ads) ${currentPage > 1 ? `<button class="btn btn-secondary btn-sm" onclick="prevPage()">Prev</button>` : ''} ${currentPage < pages ? `<button class="btn btn-secondary btn-sm" onclick="nextPage()">Next</button>` : ''}` : `${total} ads`;
+      } catch (err) { loading.style.display = 'none'; toast('Error loading ads: ' + err.message, 'error'); }
+    }
+
+    function filterAds(f) { currentFilter = f; currentOffset = 0; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f)); loadAds(); }
+    function sortAds(col) { if (currentSort === col) currentOrder = currentOrder === 'desc' ? 'asc' : 'desc'; else { currentSort = col; currentOrder = 'desc'; } loadAds(); }
+    function prevPage() { currentOffset = Math.max(0, currentOffset - 50); loadAds(); }
+    function nextPage() { currentOffset += 50; loadAds(); }
+
+    // ═══════════════════════════════════════════
+    // Ad Detail Overlay
+    // ═══════════════════════════════════════════
+    function isVideoAd(ad) {
+      return ad.video_id || /\|\s*VID\s*\|/.test(ad.ad_name || '');
+    }
+
+    function openAdDetail(ad) {
+      const overlay = document.getElementById('adDetailOverlay');
+      const content = document.getElementById('adDetailContent');
+      const imgUrl = getAdImageUrl(ad);
+      const isVideo = isVideoAd(ad);
+
+      content.innerHTML = `
+        ${imgUrl ? `<img class="ad-detail-image" src="${esc(imgUrl)}" onerror="this.style.display='none'">` : ''}
+        <div class="ad-detail-content">
+          <span class="cl-badge cl-${ad.classification}" style="margin-bottom:12px;">${ad.classification}</span>
+          <h2>${esc(ad.ad_name || 'Untitled Ad')}</h2>
+          ${ad.headline ? `<div class="detail-headline">${esc(ad.headline)}</div>` : ''}
+
+          <div class="ad-detail-metrics">
+            <div class="dm"><div class="v">$${ad.spend?.toFixed(2) || '0'}</div><div class="l">Spend</div></div>
+            <div class="dm"><div class="v">${ad.purchases || 0}</div><div class="l">Purchases</div></div>
+            <div class="dm"><div class="v">$${ad.cpa?.toFixed(2) || '0'}</div><div class="l">CPA</div></div>
+            <div class="dm"><div class="v">${ad.roas?.toFixed(2) || '0'}x</div><div class="l">ROAS</div></div>
+            <div class="dm"><div class="v">${ad.ctr?.toFixed(2) || '0'}%</div><div class="l">CTR</div></div>
+            <div class="dm"><div class="v">${(ad.impressions || 0).toLocaleString()}</div><div class="l">Impressions</div></div>
+            <div class="dm"><div class="v">$${ad.cpm?.toFixed(2) || '0'}</div><div class="l">CPM</div></div>
+            <div class="dm"><div class="v">$${ad.revenue?.toFixed(0) || '0'}</div><div class="l">Revenue</div></div>
+          </div>
+
+          ${isVideo ? `
+          <div class="transcript-section">
+            <h3>Video Transcript</h3>
+            <div id="adDetailTranscript">
+              ${ad.video_transcript
+                ? `<div class="transcript-content">${esc(ad.video_transcript)}</div>
+                   <button class="btn btn-secondary btn-sm" style="margin-top:8px;font-size:11px;" onclick="document.getElementById('transcriptEditArea').style.display='block'">Edit</button>
+                   <div id="transcriptEditArea" style="display:none;margin-top:8px;">
+                     <textarea id="transcriptInput" style="width:100%;min-height:120px;padding:8px;border:1px solid var(--border-hover);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:12px;resize:vertical;">${esc(ad.video_transcript)}</textarea>
+                     <div style="display:flex;gap:6px;margin-top:6px;">
+                       <button class="btn btn-primary btn-sm" onclick="saveTranscript('${esc(ad.fb_ad_id)}')">Save</button>
+                       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('transcriptEditArea').style.display='none'">Cancel</button>
+                     </div>
+                   </div>`
+                : `<textarea id="transcriptInput" placeholder="Paste video transcript here..." style="width:100%;min-height:120px;padding:8px;border:1px solid var(--border-hover);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:12px;resize:vertical;margin-bottom:8px;"></textarea>
+                   <div style="display:flex;gap:6px;">
+                     <button class="btn btn-primary btn-sm" onclick="saveTranscript('${esc(ad.fb_ad_id)}')">Save Transcript</button>
+                     <button class="transcript-btn" onclick="transcribeVideo('${esc(ad.fb_ad_id)}')" style="font-size:11px;">
+                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                       Auto-Transcribe
+                     </button>
+                   </div>`
+              }
+            </div>
+          </div>
+          <div class="transcript-section">
+            <h3>Video Visual Analysis</h3>
+            <div id="adDetailVideoDesc">
+              ${ad.video_description
+                ? `<div class="video-description-content">${esc(ad.video_description)}</div>`
+                : `<button class="transcript-btn" onclick="analyzeVisuals('${esc(ad.fb_ad_id)}')" style="font-size:11px;">
+                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                     Analyze Visuals
+                   </button>
+                   <span style="font-size:11px;color:var(--text-dim);margin-left:8px;">Uses Gemini AI to describe what's shown in the video</span>`
+              }
+            </div>
+          </div>` : `${ad.body ? `<div class="ad-detail-copy">${esc(ad.body)}</div>` : ''}`}
+
+          <div class="comments-section">
+            <h3>Top Comments</h3>
+            <div id="adDetailComments"><div class="comments-loading"><div class="spinner"></div><br>Loading comments...</div></div>
+          </div>
+        </div>`;
+
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+
+      // Fetch comments
+      loadAdComments(ad.fb_ad_id);
+    }
+
+    function closeAdDetail() {
+      document.getElementById('adDetailOverlay').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    async function loadAdComments(adId) {
+      const container = document.getElementById('adDetailComments');
+      try {
+        const res = await fetch(`/api/facebook/data/comments/${currentBrandId}/${adId}?limit=10`);
+        const data = await res.json();
+
+        if (data.error && !data.comments?.length) {
+          container.innerHTML = `<div class="comments-error">Could not load comments. The pages_read_engagement permission may not be granted. Disconnect and reconnect Facebook to grant it.</div>`;
+          return;
+        }
+
+        if (!data.comments || data.comments.length === 0) {
+          container.innerHTML = `<div class="comments-error">No comments found on this ad.</div>`;
+          return;
+        }
+
+        container.innerHTML = `<div class="comments-list">${data.comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">${esc(c.from)}</span>
+              <span class="comment-date">${new Date(c.createdTime).toLocaleDateString()}</span>
+            </div>
+            <div class="comment-body">${esc(c.message)}</div>
+            ${c.likeCount > 0 ? `<div class="comment-likes">${c.likeCount} like${c.likeCount !== 1 ? 's' : ''}</div>` : ''}
+          </div>`).join('')}</div>`;
+      } catch (err) {
+        container.innerHTML = `<div class="comments-error">Could not load comments.</div>`;
+      }
+    }
+
+    async function transcribeVideo(adId) {
+      const container = document.getElementById('adDetailTranscript');
+      container.innerHTML = '<div class="comments-loading"><div class="spinner"></div><br>Transcribing video... This may take a moment.</div>';
+      try {
+        const res = await fetch(`/api/facebook/data/transcribe/${currentBrandId}/${adId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          container.innerHTML = `<div class="transcript-content">${data.transcript ? esc(data.transcript) : '<em style="color:var(--text-dim)">No speech detected in this video.</em>'}</div>`;
+          // Auto-trigger visual analysis after transcription
+          const descContainer = document.getElementById('adDetailVideoDesc');
+          if (descContainer && !descContainer.querySelector('.video-description-content')) {
+            analyzeVisuals(adId);
+          }
+        } else {
+          container.innerHTML = `<div class="comments-error">Transcription failed: ${esc(data.error || 'Unknown error')}</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="comments-error">Could not transcribe video: ${esc(err.message)}</div>`;
+      }
+    }
+
+    async function analyzeVisuals(adId) {
+      const container = document.getElementById('adDetailVideoDesc');
+      container.innerHTML = '<div class="comments-loading"><div class="spinner"></div><br>Analyzing video visuals with Gemini... This may take a moment.</div>';
+      try {
+        const res = await fetch(`/api/facebook/data/analyze-video/${currentBrandId}/${adId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          container.innerHTML = `<div class="video-description-content">${esc(data.description)}</div>`;
+          // Update local data
+          const ad = currentAdsData.find(a => a.fb_ad_id === adId);
+          if (ad) ad.video_description = data.description;
+        } else {
+          container.innerHTML = `<div class="comments-error">Visual analysis failed: ${esc(data.error || 'Unknown error')}</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="comments-error">Could not analyze video: ${esc(err.message)}</div>`;
+      }
+    }
+
+    async function saveTranscript(adId) {
+      const text = document.getElementById('transcriptInput').value.trim();
+      if (!text) { toast('Paste a transcript first', 'error'); return; }
+      try {
+        const res = await fetch(`/api/facebook/data/transcript/${currentBrandId}/${adId}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: text }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast('Transcript saved', 'success');
+          const container = document.getElementById('adDetailTranscript');
+          container.innerHTML = `<div class="transcript-content">${esc(text)}</div>`;
+          // Update local data
+          const ad = currentAdsData.find(a => a.fb_ad_id === adId);
+          if (ad) ad.video_transcript = text;
+        } else {
+          toast('Error: ' + (data.error || 'Unknown'), 'error');
+        }
+      } catch (err) { toast('Error: ' + err.message, 'error'); }
+    }
+
+    // Close overlay on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAdDetail();
+    });
+
+    // ═══════════════════════════════════════════
+    // Sync & Classify (with status banner)
+    // ═══════════════════════════════════════════
+    function showSyncStatus(text, step) {
+      const banner = document.getElementById('syncBanner');
+      const textEl = document.getElementById('syncText');
+      const stepEl = document.getElementById('syncStep');
+      textEl.textContent = text;
+      stepEl.textContent = step || '';
+      banner.classList.add('active');
+    }
+
+    function hideSyncStatus() {
+      document.getElementById('syncBanner').classList.remove('active');
+    }
+
+    async function syncData() {
+      const syncBtn = document.querySelector('[onclick="syncData()"]');
+      const classifyBtn = document.querySelector('[onclick="reclassify()"]');
+      if (syncBtn) syncBtn.disabled = true;
+      if (classifyBtn) classifyBtn.disabled = true;
+
+      const datePreset = document.getElementById('datePresetSelect')?.value || 'last_90d';
+      showSyncStatus('Syncing ads from Facebook...', `Step 1 of 2 — Fetching ad data (${datePreset.replace('_', ' ')})`);
+      try {
+        const res = await fetch(`/api/facebook/data/sync/${currentBrandId}?datePreset=${datePreset}`, { method: 'POST' });
+        const summary = await res.json();
+        if (summary.error) throw new Error(summary.error);
+
+        showSyncStatus(`Synced ${summary.synced} ads. Now classifying...`, 'Step 2 of 2 — Analyzing performance and classifying ads');
+        const classRes = await fetch(`/api/facebook/analysis/classify/${currentBrandId}`, { method: 'POST' });
+        const classResult = await classRes.json();
+
+        hideSyncStatus();
+        const winners = classResult.classifications?.winner || 0;
+        const scalable = classResult.classifications?.scalable || 0;
+        toast(`Synced ${summary.synced} ads — ${winners} winners, ${scalable} scalable found`, 'success');
+        loadDashboard();
+      } catch (err) {
+        hideSyncStatus();
+        toast('Sync error: ' + err.message, 'error');
+      } finally {
+        if (syncBtn) syncBtn.disabled = false;
+        if (classifyBtn) classifyBtn.disabled = false;
+      }
+    }
+
+    async function reclassify() {
+      const btn = document.querySelector('[onclick="reclassify()"]');
+      if (btn) btn.disabled = true;
+      showSyncStatus('Re-classifying ads...', 'Analyzing performance metrics against account benchmarks');
+      try {
+        const res = await fetch(`/api/facebook/analysis/classify/${currentBrandId}`, { method: 'POST' });
+        const result = await res.json();
+        hideSyncStatus();
+        const winners = result.classifications?.winner || 0;
+        toast(`Classified ${result.totalClassified} ads — ${winners} winners found`, 'success');
+        loadDashboard();
+      } catch (err) {
+        hideSyncStatus();
+        toast('Classification error: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function changeDatePreset() {
+      // Re-sync is needed when changing date preset — just notify user
+      toast('Time frame changed. Click "Sync Data" to re-fetch with new range.', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // Tab Switching
+    // ═══════════════════════════════════════════
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.toggle('active', tc.id === `tab-${tab}`));
+      if (tab === 'patterns') loadStrategicInsights();
+      if (tab === 'generate') loadCachedTestSuggestions();
+    }
+
+    async function loadCachedTestSuggestions() {
+      if (cachedTestSuggestions || !currentBrandId) return;
+      try {
+        const res = await fetch(`/api/facebook/analysis/test-suggestions/${currentBrandId}`);
+        const data = await res.json();
+        if (data.success && data.suggestions) {
+          cachedTestSuggestions = data.suggestions;
+          renderTestSuggestions(data.suggestions);
+        }
+      } catch (err) { /* ignore — user can generate manually */ }
+    }
+
+    // ═══════════════════════════════════════════
+    // Strategic Insights Tab (Claude-powered)
+    // ═══════════════════════════════════════════
+    async function loadStrategicInsights() {
+      const content = document.getElementById('insightsContent');
+      const loading = document.getElementById('insightsLoading');
+      const timestamp = document.getElementById('insightsTimestamp');
+
+      // Try to load cached insights first
+      try {
+        const res = await fetch(`/api/facebook/analysis/strategic-insights/${currentBrandId}`);
+        const data = await res.json();
+        if (data.success && data.insights) {
+          renderInsights(data.insights);
+          if (data.insights.generatedAt) {
+            timestamp.textContent = `Last analyzed: ${new Date(data.insights.generatedAt).toLocaleString()}`;
+          }
+          return;
+        }
+      } catch (err) { /* no cache, show empty state */ }
+
+      content.innerHTML = `<div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="1.5" style="margin-bottom:16px;"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <h2>No Strategic Analysis Yet</h2>
+        <p>Click "Analyze with AI" to have Claude examine your top spending ads, transcripts, visuals, and creative patterns.</p>
+      </div>`;
+    }
+
+    async function runStrategicAnalysis() {
+      const btn = document.getElementById('runInsightsBtn');
+      const loading = document.getElementById('insightsLoading');
+      const content = document.getElementById('insightsContent');
+      const timestamp = document.getElementById('insightsTimestamp');
+
+      btn.disabled = true;
+      loading.style.display = 'block';
+      content.innerHTML = '';
+
+      try {
+        const res = await fetch(`/api/facebook/analysis/strategic-insights/${currentBrandId}`, { method: 'POST' });
+        const data = await res.json();
+        loading.style.display = 'none';
+        btn.disabled = false;
+
+        if (!data.success) {
+          content.innerHTML = `<div class="empty-state"><p>${data.message || 'Could not generate insights.'}</p></div>`;
+          return;
+        }
+
+        renderInsights(data.insights);
+        timestamp.textContent = `Last analyzed: ${new Date(data.insights.generatedAt).toLocaleString()}`;
+        toast('Strategic analysis complete', 'success');
+      } catch (err) {
+        loading.style.display = 'none';
+        btn.disabled = false;
+        toast('Analysis error: ' + err.message, 'error');
+        content.innerHTML = `<div class="empty-state"><p>Error: ${err.message}</p></div>`;
+      }
+    }
+
+    function renderInsights(insights) {
+      const content = document.getElementById('insightsContent');
+
+      if (insights.parseError) {
+        content.innerHTML = `<div class="card"><div class="card-title">Raw Analysis</div><div style="font-size:13px;line-height:1.7;color:var(--text-secondary);white-space:pre-wrap;">${esc(insights.raw)}</div></div>`;
+        return;
+      }
+
+      const sections = [
+        { key: 'winningAngles', icon: '1' },
+        { key: 'creatorAnalysis', icon: '2' },
+        { key: 'visualAndFormat', icon: '3' },
+        { key: 'iterationIdeas', icon: '4' },
+        { key: 'newAngles', icon: '5' },
+        { key: 'doubleDown', icon: '6' },
+        { key: 'audienceSignals', icon: '7' },
+        { key: 'killAndAvoid', icon: '8' },
+      ];
+
+      let html = '';
+
+      // Meta banner — shows how many ads analyzed
+      const meta = insights._meta;
+      if (meta && meta.totalAdsAnalyzed) {
+        html += `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          Analyzed top ${meta.totalAdsAnalyzed} ads by spend
+        </div>`;
+      }
+
+      html += '<div class="insights-grid">';
+
+      for (const section of sections) {
+        const data = insights[section.key];
+        if (!data) continue;
+
+        const confidence = data.confidence || 'medium';
+        const details = formatMarkdown(data.details || '');
+        const cardId = `insight-${section.key}`;
+
+        html += `<div class="insight-card" id="${cardId}">
+          <div class="insight-card-header">
+            <div class="insight-card-title">${esc(data.title || section.key)}</div>
+            <span class="insight-confidence ${confidence}">${confidence}</span>
+          </div>
+          <div class="insight-summary">${esc(data.summary || '')}</div>
+          <div class="insight-details">${details}</div>
+          <button class="insight-expand" onclick="toggleInsight('${cardId}')">Read more</button>
+        </div>`;
+      }
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleInsight(cardId) {
+      const card = document.getElementById(cardId);
+      const btn = card.querySelector('.insight-expand');
+      card.classList.toggle('expanded');
+      btn.textContent = card.classList.contains('expanded') ? 'Show less' : 'Read more';
+    }
+
+    // ═══════════════════════════════════════════
+    // Generate Statics — Test Suggestions
+    // ═══════════════════════════════════════════
+    let cachedTestSuggestions = null;
+    let selectedTestIndex = null;
+
+    async function loadTestSuggestions() {
+      const btn = document.getElementById('loadTestsBtn');
+      const loading = document.getElementById('testSuggestionsLoading');
+      const grid = document.getElementById('testSuggestionsGrid');
+      btn.disabled = true;
+      loading.style.display = 'block';
+      grid.innerHTML = '';
+
+      try {
+        // Try cached first
+        let res = await fetch(`/api/facebook/analysis/test-suggestions/${currentBrandId}`);
+        let data = await res.json();
+
+        if (!data.success) {
+          // Generate fresh
+          res = await fetch(`/api/facebook/analysis/test-suggestions/${currentBrandId}`, { method: 'POST' });
+          data = await res.json();
+        }
+
+        loading.style.display = 'none';
+        btn.disabled = false;
+
+        if (!data.success) {
+          toast(data.message || 'Could not generate test suggestions', 'error');
+          return;
+        }
+
+        cachedTestSuggestions = data.suggestions;
+        selectedTestIndex = null;
+        renderTestSuggestions(data.suggestions);
+        toast('Test suggestions generated!', 'success');
+      } catch (err) {
+        loading.style.display = 'none';
+        btn.disabled = false;
+        toast('Error generating tests: ' + err.message, 'error');
+      }
+    }
+
+    function renderTestSuggestions(suggestions) {
+      const grid = document.getElementById('testSuggestionsGrid');
+      const tests = suggestions.tests || [];
+      const batchAnalysis = suggestions.batch_analysis;
+
+      if (tests.length === 0) {
+        grid.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No test suggestions available. Run "Analyze with AI" first, then generate test ideas.</p>';
+        return;
+      }
+
+      // Type badge styles
+      const typeStyles = {
+        'new_territory': { bg: '#e3f2fd', color: '#1565c0', label: 'NEW' },
+        'iteration': { bg: '#f5f5f5', color: '#666', label: 'ITERATION' },
+      };
+
+      // Source badge styles
+      const sourceStyles = {
+        'facebook_data': { bg: '#e8f5e9', color: '#2e7d32', label: 'FB Data' },
+        'reddit': { bg: '#fff3e0', color: '#e65100', label: 'Reddit' },
+        'trend': { bg: '#f3e5f5', color: '#7b1fa2', label: 'Trend' },
+      };
+
+      // Territory labels
+      const territoryLabels = {
+        'materials_health': 'Materials/Health',
+        'fit_appearance': 'Fit/Appearance',
+        'durability_value': 'Durability/Value',
+        'lifestyle_identity': 'Lifestyle/Identity',
+        'social_proof': 'Social Proof',
+      };
+
+      // Build batch analysis section
+      let batchHtml = '';
+      if (batchAnalysis) {
+        const warnings = batchAnalysis.overlap_warnings || [];
+        const coverage = batchAnalysis.territory_coverage || {};
+        const personas = batchAnalysis.persona_coverage || {};
+
+        batchHtml = `
+        <div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div style="font-weight:600;font-size:14px;color:#1a1a1a;">Batch Coverage</div>
+            <div style="font-size:12px;color:#666;">${batchAnalysis.mix_summary || ''}</div>
+          </div>
+
+          ${warnings.length > 0 ? `
+          <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:10px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#e65100;font-weight:600;margin-bottom:4px;">⚠️ OVERLAP WARNING</div>
+            ${warnings.map(w => `<div style="font-size:12px;color:#bf360c;">${esc(w)}</div>`).join('')}
+          </div>
+          ` : ''}
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:8px;">Territory Coverage</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                ${Object.entries(coverage).map(([territory, tests]) => {
+                  const count = Array.isArray(tests) ? tests.length : 0;
+                  const color = count === 0 ? '#ccc' : count === 1 ? '#81c784' : '#4caf50';
+                  return `<span style="background:${count > 0 ? '#e8f5e9' : '#f5f5f5'};color:${color};font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${color};">${territoryLabels[territory] || territory}: ${count}</span>`;
+                }).join('')}
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:8px;">Persona Coverage</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                ${Object.entries(personas).filter(([_, count]) => count > 0).map(([persona, count]) => {
+                  return `<span style="background:#e3f2fd;color:#1565c0;font-size:10px;padding:3px 8px;border-radius:4px;">${persona.replace('_', ' ')}: ${count}</span>`;
+                }).join('') || '<span style="color:#999;font-size:11px;">No persona data</span>'}
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+      }
+
+      grid.innerHTML = batchHtml + tests.map((test, i) => {
+        const type = typeStyles[test.type] || typeStyles['iteration'];
+        const sourceObj = test.source || {};
+        const sourceType = typeof sourceObj === 'string' ? sourceObj : sourceObj.type;
+        const sourceEvidence = typeof sourceObj === 'object' ? sourceObj.evidence : null;
+        const source = sourceStyles[sourceType] || { bg: '#f5f5f5', color: '#666', label: sourceType || 'Analysis' };
+
+        const personaObj = test.persona || {};
+        const personaId = typeof personaObj === 'string' ? personaObj : personaObj.id;
+        const personaDesc = typeof personaObj === 'object' ? personaObj.description : null;
+        const creativeImplication = typeof personaObj === 'object' ? personaObj.creative_implication : null;
+
+        const confidence = test.confidence || {};
+        const spendLikelihood = confidence.spend_likelihood || confidence.score || 'medium';
+        const learningValue = confidence.learning_value || 'medium';
+        const spendColor = spendLikelihood === 'high' ? '#2e7d32' : spendLikelihood === 'low' ? '#d32f2f' : '#f57c00';
+        const learnColor = learningValue === 'high' ? '#1565c0' : learningValue === 'low' ? '#999' : '#5c6bc0';
+
+        const hypothesis = test.hypothesis || {};
+        const formats = test.recommended_formats || [];
+        const territory = test.territory;
+
+        return `
+        <div class="test-card-clean" id="test-card-${i}" onclick="selectTest(${i})" data-formats='${JSON.stringify(formats)}' style="
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 10px;
+          padding: 20px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          position: relative;
+        ">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:15px;color:#1a1a1a;margin-bottom:6px;">${esc(test.title)}</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                <span style="background:${type.bg};color:${type.color};font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600;">${type.label}</span>
+                <span style="background:${source.bg};color:${source.color};font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500;">${source.label}</span>
+                ${territory ? `<span style="background:#fafafa;color:#666;font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid #e0e0e0;">${territoryLabels[territory] || territory}</span>` : ''}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;text-align:center;">
+              <div>
+                <div style="font-size:9px;color:#888;">SPEND</div>
+                <div style="font-size:11px;color:${spendColor};font-weight:600;">${spendLikelihood.toUpperCase()}</div>
+              </div>
+              <div>
+                <div style="font-size:9px;color:#888;">LEARN</div>
+                <div style="font-size:11px;color:${learnColor};font-weight:600;">${learningValue.toUpperCase()}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hook -->
+          <div style="background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:12px;">
+            <div style="font-size:15px;color:#1a1a1a;font-weight:500;text-align:center;">"${esc(test.hook)}"</div>
+          </div>
+
+          <!-- Hypothesis -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#17a2b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:600;">Hypothesis</div>
+            <div style="font-size:12px;color:#333;line-height:1.4;">${esc(hypothesis.learning || '')}</div>
+          </div>
+
+          <!-- Persona + Creative Implication -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Target → Creative</div>
+            <div style="font-size:12px;color:#555;">
+              <strong>${esc(personaId?.replace('_', ' ') || 'General')}</strong>
+              ${creativeImplication ? ` — ${esc(creativeImplication)}` : ''}
+            </div>
+          </div>
+
+          <!-- Source Evidence -->
+          ${sourceEvidence ? `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Source</div>
+            <div style="font-size:11px;color:#666;font-style:italic;">${esc(sourceEvidence)}</div>
+          </div>
+          ` : ''}
+
+          <!-- Iteration Detail (what's changing) -->
+          ${test.type === 'iteration' && test.iteration_detail ? `
+          <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:8px;margin-bottom:12px;">
+            <div style="font-size:10px;color:#1565c0;font-weight:600;margin-bottom:2px;">ITERATION</div>
+            <div style="font-size:11px;color:#1976d2;">${esc(test.iteration_detail)}</div>
+          </div>
+          ` : ''}
+
+          <!-- Historical Context Warning -->
+          ${test.historical_context?.warning ? `
+          <div style="background:${test.historical_context.likely_tested_no_data ? '#fce4ec' : '#fff3e0'};border:1px solid ${test.historical_context.likely_tested_no_data ? '#f48fb1' : '#ffcc80'};border-radius:6px;padding:8px;margin-bottom:12px;">
+            <div style="font-size:11px;color:${test.historical_context.likely_tested_no_data ? '#c2185b' : '#e65100'};font-weight:500;">${esc(test.historical_context.warning)}</div>
+            ${test.historical_context.justification ? `<div style="font-size:10px;color:#666;margin-top:4px;">${esc(test.historical_context.justification)}</div>` : ''}
+          </div>
+          ` : ''}
+
+          <!-- Why New (for new_territory) -->
+          ${test.type === 'new_territory' && test.why_untested ? `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#1565c0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Why This Is New</div>
+            <div style="font-size:11px;color:#555;">${esc(test.why_untested)}</div>
+          </div>
+          ` : ''}
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eee;padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              ${formats.map(f => `<span style="background:#e8f5e9;color:#2e7d32;font-size:9px;padding:2px 6px;border-radius:3px;">${esc(f)}</span>`).join('')}
+            </div>
+            ${confidence.learning_reasoning ? `
+            <div style="font-size:10px;color:#888;max-width:50%;text-align:right;">${esc(confidence.learning_reasoning)}</div>
+            ` : ''}
+          </div>
+        </div>
+      `}).join('');
+
+      // Add hover styles
+      document.querySelectorAll('.test-card-clean').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          if (!card.classList.contains('selected')) {
+            card.style.borderColor = '#17a2b8';
+            card.style.boxShadow = '0 4px 12px rgba(23,162,184,0.15)';
+          }
+        });
+        card.addEventListener('mouseleave', () => {
+          if (!card.classList.contains('selected')) {
+            card.style.borderColor = '#e0e0e0';
+            card.style.boxShadow = 'none';
+          }
+        });
+      });
+    }
+
+    function selectTest(index) {
+      // Deselect all cards
+      document.querySelectorAll('.test-card, .test-card-clean').forEach(c => {
+        c.classList.remove('selected');
+        c.style.borderColor = '#e0e0e0';
+        c.style.boxShadow = 'none';
+        c.style.background = 'white';
+      });
+
+      if (selectedTestIndex === index) {
+        selectedTestIndex = null;
+        document.getElementById('genAngle').value = '';
+        return;
+      }
+
+      selectedTestIndex = index;
+      const card = document.getElementById(`test-card-${index}`);
+      if (card) {
+        card.classList.add('selected');
+        card.style.borderColor = '#17a2b8';
+        card.style.boxShadow = '0 4px 12px rgba(23,162,184,0.2)';
+        card.style.background = '#f8fdfe';
+      }
+
+      // Auto-fill angle from selected test
+      const test = cachedTestSuggestions?.tests?.[index];
+      if (test) {
+        const hypothesis = test.hypothesis || {};
+        document.getElementById('genAngle').value = test.hook || `${hypothesis.angle || test.angle}`;
+
+        // Auto-select recommended formats if available
+        const formats = test.recommended_formats || [];
+        if (formats.length > 0) {
+          // Map format names to static type IDs
+          const formatToType = {
+            'product_hero': 'type1',
+            'comparison': 'type1', // Use product hero for comparison
+            'meme': 'type2',
+            'meme_static': 'type2',
+            'aesthetic': 'type3',
+            'aesthetic_offer': 'type3',
+            'illustrated': 'type4',
+            'vintage': 'type5',
+            'vintage_magazine': 'type5',
+            'news_editorial': 'type5', // Use vintage/magazine style
+            'ugc': 'type6',
+            'ugc_style': 'type6',
+            'ugc_caption': 'type6',
+            'testimonial': 'type6',
+            'before_after': 'type1',
+          };
+
+          // Reset all type selections first
+          document.querySelectorAll('#genApparelTypes .gen-type-btn').forEach(btn => {
+            btn.classList.remove('selected');
+          });
+          genApparelTypes = [];
+
+          // Select recommended types
+          formats.forEach(format => {
+            const typeId = formatToType[format.toLowerCase()];
+            if (typeId) {
+              const btn = document.querySelector(`#genApparelTypes .gen-type-btn[data-static="${typeId}"]`);
+              if (btn && !btn.classList.contains('selected')) {
+                btn.classList.add('selected');
+                if (!genApparelTypes.includes(typeId)) genApparelTypes.push(typeId);
+              }
+            }
+          });
+
+          updateGenCount();
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // Generate Statics — Category / Type / Variant
+    // ═══════════════════════════════════════════
+    function setGenCategory(cat, btn) {
+      genCategory = cat;
+      document.querySelectorAll('.gen-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('genApparelTypes').style.display = cat === 'apparel' ? 'block' : 'none';
+      document.getElementById('genSupplementsTypes').style.display = cat === 'supplements' ? 'block' : 'none';
+      document.getElementById('genPerfumeTypes').style.display = cat === 'perfume' ? 'block' : 'none';
+      if (cat === 'supplements') genVariants = 1;
+      else if (cat === 'perfume') genVariants = 1;
+      else genVariants = 2;
+      updateGenCount();
+    }
+
+    function toggleGenType(btn, cat) {
+      btn.classList.toggle('selected');
+      const type = btn.dataset.static;
+      let arr = cat === 'apparel' ? genApparelTypes : cat === 'supplements' ? genSuppTypes : genPerfTypes;
+      if (btn.classList.contains('selected')) {
+        if (!arr.includes(type)) arr.push(type);
+      } else {
+        const idx = arr.indexOf(type); if (idx > -1) arr.splice(idx, 1);
+      }
+      updateGenCount();
+    }
+
+    function setGenVariants(n, btn) {
+      genVariants = n;
+      btn.parentElement.querySelectorAll('.gen-var-btn').forEach(b => {
+        b.classList.toggle('selected', parseInt(b.dataset.variants) === n);
+      });
+      updateGenCount();
+    }
+
+    function getSelectedGenTypes() {
+      if (genCategory === 'apparel') return genApparelTypes;
+      if (genCategory === 'supplements') return genSuppTypes;
+      return genPerfTypes;
+    }
+
+    function updateGenCount() {
+      const total = getSelectedGenTypes().length * genVariants;
+      document.getElementById('genStaticCount').textContent = total + (total === 1 ? ' static' : ' statics');
+      updateGenLaunchBtn();
+    }
+
+    function updateGenLaunchBtn() {
+      const btn = document.getElementById('genStaticsBtn');
+      const url = document.getElementById('genUrl')?.value;
+      btn.disabled = !genProductFile || !url || getSelectedGenTypes().length === 0;
+    }
+
+    // ═══════════════════════════════════════════
+    // Generate Statics — Upload Handling
+    // ═══════════════════════════════════════════
+    function initGenUploads() {
+      const dropZone = document.getElementById('genDropZone');
+      const imageInput = document.getElementById('genProductImage');
+      const logoDropZone = document.getElementById('genLogoDropZone');
+      const logoInput = document.getElementById('genLogo');
+      const urlInput = document.getElementById('genUrl');
+
+      if (!dropZone) return;
+
+      dropZone.addEventListener('click', () => imageInput.click());
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; });
+      dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+      dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = ''; if (e.dataTransfer.files[0]) handleGenFile(e.dataTransfer.files[0]); });
+      imageInput.addEventListener('change', () => { if (imageInput.files[0]) handleGenFile(imageInput.files[0]); });
+
+      logoDropZone.addEventListener('click', () => logoInput.click());
+      logoDropZone.addEventListener('dragover', (e) => { e.preventDefault(); logoDropZone.style.borderColor = 'var(--accent)'; });
+      logoDropZone.addEventListener('dragleave', () => { logoDropZone.style.borderColor = ''; });
+      logoDropZone.addEventListener('drop', (e) => { e.preventDefault(); logoDropZone.style.borderColor = ''; if (e.dataTransfer.files[0]) handleGenLogo(e.dataTransfer.files[0]); });
+      logoInput.addEventListener('change', () => { if (logoInput.files[0]) handleGenLogo(logoInput.files[0]); });
+
+      urlInput.addEventListener('input', updateGenLaunchBtn);
+    }
+
+    function handleGenFile(file) {
+      genProductFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('genPreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        document.getElementById('genUploadText').style.display = 'none';
+        document.getElementById('genDropZone').querySelector('p').style.display = 'none';
+        document.getElementById('genDropZone').classList.add('has-file');
+      };
+      reader.readAsDataURL(file);
+      updateGenLaunchBtn();
+    }
+
+    function handleGenLogo(file) {
+      genLogoFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('genLogoPreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        document.getElementById('genLogoText').style.display = 'none';
+        document.getElementById('genLogoDropZone').querySelector('p').style.display = 'none';
+        document.getElementById('genLogoDropZone').classList.add('has-file');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ═══════════════════════════════════════════
+    // Generate Statics — Launch
+    // ═══════════════════════════════════════════
+    async function generateStatics() {
+      const btn = document.getElementById('genStaticsBtn');
+      const url = document.getElementById('genUrl').value;
+      const angleOverride = document.getElementById('genAngle').value;
+      const grid = document.getElementById('genImageGrid');
+      const statusBar = document.getElementById('genCampaignStatus');
+
+      if (!genProductFile) { toast('Please upload a product image', 'error'); return; }
+      if (!url) { toast('Please enter a website URL', 'error'); return; }
+
+      btn.disabled = true;
+      grid.innerHTML = '';
+      genCompleted = 0;
+      genImageCards = {};
+
+      const selectedTypes = getSelectedGenTypes();
+      genTotalImages = selectedTypes.length * genVariants;
+
+      // Show campaign status
+      statusBar.classList.add('active');
+      document.getElementById('genProgressText').textContent = `0 / ${genTotalImages}`;
+      document.getElementById('genProgressBar').style.width = '0%';
+      document.getElementById('genCompletedCount').textContent = '0';
+
+      // Create placeholder cards
+      for (let i = 0; i < genTotalImages; i++) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        card.id = `gen-card-${i}`;
+        card.innerHTML = `<div class="image-placeholder"><div class="spinner"></div><span class="status-text queue">QUEUE</span></div>`;
+        grid.appendChild(card);
+        genImageCards[i] = card;
+      }
+
+      // Build form data
+      const formData = new FormData();
+      formData.append('image', genProductFile);
+      if (genLogoFile) formData.append('logo', genLogoFile);
+      formData.append('url', url);
+      formData.append('category', genCategory);
+      formData.append('campaignId', 'fb-gen-' + Date.now());
+      formData.append('variantsPerType', String(genVariants));
+      formData.append('staticTypes', JSON.stringify(selectedTypes));
+
+      // Use angle override (which may be auto-filled from a selected test)
+      const selectedTest = selectedTestIndex != null ? cachedTestSuggestions?.tests?.[selectedTestIndex] : null;
+      const angle = angleOverride || '';
+      if (angle) formData.append('angle', angle);
+      if (selectedTest) {
+        formData.append('fbInsights', JSON.stringify({
+          proposedAngle: selectedTest.angle,
+          copyDirection: selectedTest.copyDirection,
+          hook: selectedTest.hook,
+          format: selectedTest.format,
+        }));
+      }
+
+      try {
+        const response = await fetch('/generate-statics', { method: 'POST', body: formData });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const evt = JSON.parse(line.substring(6));
+              if (evt.type === 'start' && genImageCards[evt.id]) {
+                genImageCards[evt.id].classList.add('forging');
+                const st = genImageCards[evt.id].querySelector('.status-text');
+                if (st) { st.textContent = 'FORGING'; st.className = 'status-text forging'; }
+              } else if (evt.type === 'complete' || (evt.type === 'image' && evt.url)) {
+                const id = evt.id != null ? evt.id : genCompleted;
+                const card = genImageCards[id];
+                if (card) {
+                  card.classList.remove('forging');
+                  const imgUrl = evt.url;
+                  card.innerHTML = `
+                    <img src="${esc(imgUrl)}" alt="Generated">
+                    <div class="info">
+                      <div class="direction">${esc(evt.direction || '')}</div>
+                      <div class="type-badge">${esc(evt.imageType || 'STATIC')}</div>
+                      <div class="actions">
+                        <a href="${esc(imgUrl)}" target="_blank" class="view-btn">View</a>
+                        <button class="download-btn" onclick="downloadGenImage('${esc(imgUrl)}','${esc(evt.direction || 'static')}.png')">Download</button>
+                      </div>
+                    </div>`;
+                }
+                genCompleted++;
+                document.getElementById('genProgressText').textContent = `${genCompleted} / ${genTotalImages}`;
+                document.getElementById('genProgressBar').style.width = (genCompleted / genTotalImages * 100) + '%';
+                document.getElementById('genCompletedCount').textContent = String(genCompleted);
+              } else if (evt.type === 'error') {
+                const id = evt.id != null ? evt.id : genCompleted;
+                const card = genImageCards[id];
+                if (card) {
+                  card.classList.remove('forging');
+                  card.classList.add('error');
+                  card.innerHTML = `<div class="image-placeholder"><span class="status-text" style="color:#ef4444;">FAILED</span><div class="error-msg">${esc(evt.error || 'Unknown error')}</div></div>`;
+                }
+                genCompleted++;
+                document.getElementById('genProgressText').textContent = `${genCompleted} / ${genTotalImages}`;
+                document.getElementById('genProgressBar').style.width = (genCompleted / genTotalImages * 100) + '%';
+              }
+            } catch (e) { /* skip non-JSON */ }
+          }
+        }
+
+        btn.disabled = false;
+        if (genCompleted > 0) toast(`Generated ${genCompleted} statics!`, 'success');
+      } catch (err) {
+        btn.disabled = false;
+        toast('Generation error: ' + err.message, 'error');
+      }
+    }
+
+    function downloadGenImage(url, filename) {
+      fetch(url).then(r => r.blob()).then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    }
+
+    function downloadAllGen() {
+      document.querySelectorAll('#genImageGrid .image-card img').forEach((img, i) => {
+        if (img.src) downloadGenImage(img.src, `static-${i + 1}.png`);
+      });
+    }
+
+    // ═══════════════════════════════════════════
+    // Utilities
+    // ═══════════════════════════════════════════
+    function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function formatMarkdown(text) { if (!text) return ''; return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n- /g, '\n<li>').replace(/\n\d+\.\s/g, '\n<li>').replace(/<li>/g, '</li><li>').replace(/\n/g, '<br>').replace(/^/, '<div>').replace(/$/, '</div>'); }
+    function toast(msg, type = '') { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show ' + type; setTimeout(() => t.className = 'toast', 3000); }
+
+    init();
+  </script>
+</body>
+</html>

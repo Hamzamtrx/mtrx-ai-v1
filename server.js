@@ -13,6 +13,13 @@ const MTRXImageGenerator = require('./src/index');
 const ImageHost = require('./src/utils/image-host');
 const CopyResearchService = require('./src/services/copy-research');
 
+// Facebook Ads integration routes
+const fbAuthRoutes = require('./src/facebook/routes/auth-routes');
+const fbDataRoutes = require('./src/facebook/routes/data-routes');
+const fbAnalysisRoutes = require('./src/facebook/routes/analysis-routes');
+const fbScheduledRoutes = require('./src/facebook/routes/scheduled-routes');
+const { startScheduler } = require('./src/facebook/automation/scheduler');
+
 /**
  * Run promises with limited concurrency to prevent API overload
  * @param {Array<Function>} tasks - Array of functions that return promises
@@ -370,6 +377,17 @@ app.use('/output', express.static('output'));
 app.use('/uploads', express.static('uploads'));
 app.use(express.json());
 
+// Facebook Ads integration routes (standalone section — static generator untouched)
+app.use('/api/auth/facebook', fbAuthRoutes);
+app.use('/api/facebook/data', fbDataRoutes);
+app.use('/api/facebook/analysis', fbAnalysisRoutes);
+app.use('/api/facebook/scheduled', fbScheduledRoutes);
+
+// Facebook Ads Dashboard — standalone page
+app.get('/facebook', (req, res) => {
+  res.sendFile('src/facebook/dashboard.html', { root: __dirname });
+});
+
 // Load directions config
 let directionsConfig = null;
 async function loadDirectionsConfig() {
@@ -390,8 +408,18 @@ app.get('/', (req, res) => {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #0a0a0a; min-height: 100vh; color: #fff; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; min-height: 100vh; color: #fff; display: flex; }
+    .sidebar { width: 220px; min-height: 100vh; background: #0f0f0f; border-right: 1px solid #1a1a1a; padding: 20px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 0 20px 24px; font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .sidebar-logo span { background: linear-gradient(135deg, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; color: #666; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-item:hover { color: #ccc; background: rgba(255,255,255,0.03); }
+    .sidebar-item.active { color: #fff; background: rgba(6,182,212,0.08); border-left-color: #06b6d4; }
+    .sidebar-item svg { width: 18px; height: 18px; opacity: 0.5; }
+    .sidebar-item.active svg { opacity: 1; }
+    .sidebar-section { padding: 16px 20px 8px; font-size: 10px; font-weight: 600; color: #444; text-transform: uppercase; letter-spacing: 1px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; margin-left: 220px; }
+    @media (max-width: 768px) { .sidebar { width: 60px; } .sidebar-item span, .sidebar-section, .sidebar-logo span { display: none; } .sidebar-item { justify-content: center; padding: 12px; } .container { margin-left: 60px; } }
     .badge { display: inline-block; background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #fff; font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; margin-bottom: 16px; text-transform: uppercase; }
     h1 { font-size: 42px; font-weight: 700; margin-bottom: 8px; }
     .subtitle { color: #666; font-size: 15px; margin-bottom: 32px; }
@@ -543,6 +571,34 @@ app.get('/', (req, res) => {
   </style>
 </head>
 <body>
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8c547" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><line x1="22" y1="8.5" x2="12" y2="15.5"/><line x1="2" y1="8.5" x2="12" y2="15.5"/></svg>
+      <span>MTRX AI</span>
+    </div>
+    <div class="sidebar-section">TOOLS</div>
+    <a href="/" class="sidebar-item active">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <span>Image Generator</span>
+    </a>
+    <div class="sidebar-section">FACEBOOK ADS</div>
+    <a href="/facebook" class="sidebar-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="/facebook#performance" class="sidebar-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Ad Performance</span>
+    </a>
+    <a href="/facebook#patterns" class="sidebar-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span>Patterns</span>
+    </a>
+    <a href="/facebook#brief" class="sidebar-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Creative Brief</span>
+    </a>
+  </nav>
   <div class="container">
     <span class="badge">AI Campaign Generator</span>
     <h1>MTRX AI</h1>
@@ -1673,8 +1729,15 @@ app.get('/', (req, res) => {
         img.outerHTML = '<div class="image-placeholder"><div class="spinner" style="display:block;"></div><span class="status-text forging">REGENERATING</span></div>';
       }
 
+      // Remove existing 9:16 tab while regenerating
+      const existingTab916 = card.querySelector('[data-aspect="9:16"]');
+      if (existingTab916) existingTab916.remove();
+
+      let url45 = '';
+      let url916 = '';
+
       try {
-        const res = await fetch('/regenerate', {
+        const response = await fetch('/regenerate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1685,73 +1748,122 @@ app.get('/', (req, res) => {
           })
         });
 
-        const data = await res.json();
+        // Read SSE stream (same pattern as main generation)
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        if (data.success) {
-          const url916 = data.url916 || '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\\n');
+          buffer = lines.pop();
 
-          // Update card with new image (preserve id and data attributes for aspect switching)
-          const placeholder = card.querySelector('.image-placeholder');
-          const existingImg = card.querySelector('img');
-          if (placeholder) {
-            placeholder.outerHTML = '<img src="' + data.url + '" alt="Generated" id="img-' + id + '" data-url45="' + data.url + '" data-url916="' + url916 + '">';
-          } else if (existingImg) {
-            existingImg.src = data.url;
-            existingImg.dataset.url45 = data.url;
-            existingImg.dataset.url916 = url916;
-            existingImg.style.aspectRatio = '4/5';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            let data;
+            try { data = JSON.parse(line.slice(6)); } catch(e) { continue; }
+
+            if (data.type === 'regen_45') {
+              // 4:5 is ready — show it immediately
+              url45 = data.url;
+
+              const placeholder = card.querySelector('.image-placeholder');
+              if (placeholder) {
+                placeholder.outerHTML = '<img src="' + url45 + '" alt="Generated" id="img-' + id + '" data-url45="' + url45 + '" data-url916="">';
+              }
+
+              // Ensure tabs container exists and show 4:5 tab as active
+              let tabsContainer = card.querySelector('.aspect-tabs');
+              if (!tabsContainer) {
+                const imgEl = card.querySelector('img');
+                if (imgEl) {
+                  const tabsDiv = document.createElement('div');
+                  tabsDiv.className = 'aspect-tabs';
+                  tabsDiv.style = 'display:flex;gap:4px;margin-bottom:8px;padding:0 8px;';
+                  tabsDiv.innerHTML = '<button class="aspect-tab active" data-aspect="4:5" onclick="switchAspect(' + id + ', \\'4:5\\')">4:5</button>';
+                  imgEl.parentNode.insertBefore(tabsDiv, imgEl);
+                }
+              }
+
+              // Update action buttons (4:5 only for now, regen shows "9:16...")
+              const actions = card.querySelector('.actions');
+              if (actions) {
+                let actionsHtml = '<a href="' + url45 + '" target="_blank" class="view-btn">4:5</a>';
+                actionsHtml += '<span style="color:#eebf12;font-size:11px;padding:4px 8px;">9:16 generating...</span>';
+                actionsHtml += '<button class="download-btn" onclick="downloadImage(\\'' + url45 + '\\', \\'' + direction + '_4x5.png\\')">DL</button>';
+                actionsHtml += '<button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+                actions.innerHTML = actionsHtml;
+              }
+
+              // Update campaign images array with 4:5
+              const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
+              if (imgIndex !== -1) {
+                currentCampaignImages[imgIndex].url = url45;
+                currentCampaignImages[imgIndex].url916 = null;
+              }
+
+            } else if (data.type === 'regen_916') {
+              // 9:16 is ready — add tab and update buttons
+              url916 = data.url;
+
+              // Update img data attribute
+              const imgEl = document.getElementById('img-' + id);
+              if (imgEl) {
+                imgEl.dataset.url916 = url916;
+              }
+              card.dataset.url916 = url916;
+
+              // Add 9:16 tab
+              const tabsContainer = card.querySelector('.aspect-tabs');
+              if (tabsContainer && !card.querySelector('[data-aspect="9:16"]')) {
+                const tab916El = document.createElement('button');
+                tab916El.className = 'aspect-tab';
+                tab916El.dataset.aspect = '9:16';
+                tab916El.textContent = '9:16';
+                tab916El.onclick = function() { switchAspect(id, '9:16'); };
+                tabsContainer.appendChild(tab916El);
+              }
+
+              // Update action buttons with both sizes
+              const actions = card.querySelector('.actions');
+              if (actions) {
+                let actionsHtml = '<a href="' + url45 + '" target="_blank" class="view-btn">4:5</a>';
+                actionsHtml += '<a href="' + url916 + '" target="_blank" class="view-btn" style="background:#eebf12;color:#000;font-weight:600;">9:16</a>';
+                actionsHtml += '<button class="download-btn" onclick="downloadImage(\\'' + url45 + '\\', \\'' + direction + '_4x5.png\\')">DL</button>';
+                actionsHtml += '<button class="download-btn" style="background:#d4a910;color:#000;" onclick="downloadImage(\\'' + url916 + '\\', \\'' + direction + '_9x16.png\\')">DL 9:16</button>';
+                actionsHtml += '<button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
+                actions.innerHTML = actionsHtml;
+              }
+
+              // Update campaign images array
+              const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
+              if (imgIndex !== -1) {
+                currentCampaignImages[imgIndex].url916 = url916;
+              }
+
+            } else if (data.type === 'regen_error') {
+              console.error('Regenerate failed:', data.error);
+              const placeholder = card.querySelector('.image-placeholder');
+              if (placeholder) {
+                placeholder.innerHTML = '<span class="status-text" style="color:#ef4444;">FAILED</span><br><small style="color:#888;font-size:10px;">' + data.error + '</small>';
+              }
+            }
           }
+        }
 
-          // Update 9:16 data
-          card.dataset.url916 = url916;
-
-          // Handle 9:16 tab
-          const tabsContainer = card.querySelector('.aspect-tabs');
-          const existingTab916 = card.querySelector('[data-aspect="9:16"]');
-          if (url916 && !existingTab916 && tabsContainer) {
-            const tab916El = document.createElement('button');
-            tab916El.className = 'aspect-tab';
-            tab916El.dataset.aspect = '9:16';
-            tab916El.textContent = '9:16';
-            tab916El.onclick = function() { switchAspect(id, '9:16'); };
-            tabsContainer.appendChild(tab916El);
-          } else if (!url916 && existingTab916) {
-            existingTab916.remove();
-          }
-
-          // Make sure 4:5 tab is active
-          const tab45 = card.querySelector('[data-aspect="4:5"]');
-          if (tab45) tab45.classList.add('active');
-
-          // Update the actions
+        // If 4:5 succeeded but 9:16 didn't arrive, finalize with 4:5 only
+        if (url45 && !url916) {
           const actions = card.querySelector('.actions');
           if (actions) {
-            let actionsHtml = '<a href="' + data.url + '" target="_blank" class="view-btn">4:5</a>';
-            if (url916) {
-              actionsHtml += '<a href="' + url916 + '" target="_blank" class="view-btn btn-916-view" style="background:#eebf12;color:#000;font-weight:600;">9:16</a>';
-            }
-            actionsHtml += '<button class="download-btn" onclick="downloadImage(\\'' + data.url + '\\', \\'' + card.dataset.direction + '_4x5.png\\')">DL</button>';
-            if (url916) {
-              actionsHtml += '<button class="download-btn btn-916-dl" style="background:#d4a910;color:#000;" onclick="downloadImage(\\'' + url916 + '\\', \\'' + card.dataset.direction + '_9x16.png\\')">DL 9:16</button>';
-            }
+            let actionsHtml = '<a href="' + url45 + '" target="_blank" class="view-btn">4:5</a>';
+            actionsHtml += '<button class="download-btn" onclick="downloadImage(\\'' + url45 + '\\', \\'' + direction + '_4x5.png\\')">DL</button>';
             actionsHtml += '<button class="regen-btn" onclick="regenerateImage(' + id + ')">Regen</button>';
             actions.innerHTML = actionsHtml;
           }
-
-          // Update campaign images array
-          const imgIndex = currentCampaignImages.findIndex(img => img.id === id);
-          if (imgIndex !== -1) {
-            currentCampaignImages[imgIndex].url = data.url;
-            currentCampaignImages[imgIndex].url916 = url916 || null;
-          }
-        } else {
-          console.error('Regenerate failed:', data.error);
-          alert('Regeneration failed: ' + data.error);
-          const placeholder = card.querySelector('.image-placeholder');
-          if (placeholder) {
-            placeholder.innerHTML = '<span class="status-text" style="color:#ef4444;">FAILED</span><br><small style="color:#888;font-size:10px;">' + data.error + '</small>';
-          }
         }
+
       } catch (err) {
         console.error('Regenerate failed:', err);
         alert('Regeneration failed: ' + err.message);
@@ -1946,6 +2058,19 @@ app.post('/generate', upload.single('image'), async (req, res) => {
 
 // Regenerate single image endpoint
 app.post('/regenerate', async (req, res) => {
+  // Use SSE so 4:5 shows immediately and 9:16 streams in after
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const keepAlive = setInterval(() => { res.write(': keepalive\n\n'); }, 10000);
+  const send = (data) => {
+    res.write('data: ' + JSON.stringify(data) + '\n\n');
+    if (res.flush) res.flush();
+  };
+
   try {
     const { id, direction, imageType, campaignId } = req.body;
 
@@ -1956,7 +2081,10 @@ app.post('/regenerate', async (req, res) => {
     const params = imageParamsCache.get(campaignId);
     if (!params) {
       console.log('   Campaign not found in cache. Available:', Array.from(imageParamsCache.keys()));
-      return res.json({ success: false, error: 'Campaign expired. Please run a new campaign first.' });
+      send({ type: 'regen_error', error: 'Campaign expired. Please run a new campaign first.' });
+      clearInterval(keepAlive);
+      res.end();
+      return;
     }
 
     console.log('   Found campaign params, regenerating...');
@@ -1998,7 +2126,10 @@ app.post('/regenerate', async (req, res) => {
       const url45 = results.url;
       console.log('✅ Regeneration 4:5 complete:', url45);
 
-      // Now generate 9:16 extension
+      // Send 4:5 result immediately so client can show it
+      send({ type: 'regen_45', url: url45 });
+
+      // Now generate 9:16 extension (client already has 4:5)
       let url916 = null;
       try {
         console.log('   Extending regen to 9:16...');
@@ -2060,20 +2191,25 @@ Output: 9:16 aspect ratio`;
         if (results916.success) {
           url916 = results916.url;
           console.log('   ✓ Regen 9:16 complete:', url916);
+          send({ type: 'regen_916', url: url916 });
         }
       } catch (err916) {
         console.error('   Regen 9:16 extension failed:', err916.message);
       }
 
-      res.json({ success: true, url: url45, url916: url916 });
+      // Signal completion
+      send({ type: 'regen_done' });
     } else {
       console.log('❌ Regeneration failed:', results.error);
-      res.json({ success: false, error: results.error });
+      send({ type: 'regen_error', error: results.error });
     }
   } catch (error) {
     console.error('Regeneration error:', error);
-    res.json({ success: false, error: error.message });
+    send({ type: 'regen_error', error: error.message });
   }
+
+  clearInterval(keepAlive);
+  res.end();
 });
 
 // Static Designer generation endpoint
@@ -2276,6 +2412,17 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
         console.log('   🎯 Proposed angle:', proposedAngle);
       }
 
+      // Parse optional FB insights context
+      let fbInsights = null;
+      if (req.body.fbInsights) {
+        try {
+          fbInsights = typeof req.body.fbInsights === 'string' ? JSON.parse(req.body.fbInsights) : req.body.fbInsights;
+          console.log('   📊 FB Insights provided — injecting into copy research');
+        } catch (e) {
+          console.log('   Could not parse fbInsights:', e.message);
+        }
+      }
+
       // Use different research based on category
       if (category === 'supplements') {
         copyResearch = await copyService.researchSupplementCopy({
@@ -2301,7 +2448,8 @@ app.post('/generate-statics', upload.fields([{ name: 'image', maxCount: 1 }, { n
           brandName: brandName,
           productName: cachedAnalysis?.product_info?.product_name || 'product',
           category: cachedAnalysis?.product_info?.category || 'apparel',
-          proposedAngle: proposedAngle
+          proposedAngle: proposedAngle,
+          fbInsights: fbInsights
         });
       }
     } catch (err) {
@@ -3071,6 +3219,9 @@ async function start() {
   await ensureDirs();
   await loadDirectionsConfig();
   await loadRegenCache();
+
+  // Start Facebook Ads scheduler (daily sync + fatigue checks)
+  try { startScheduler(); } catch (err) { console.log('Scheduler start skipped:', err.message); }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log('\n🚀 MTRX AI Server running at http://localhost:' + PORT + '\n');
