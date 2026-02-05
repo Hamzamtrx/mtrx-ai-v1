@@ -27,8 +27,45 @@ class CopyResearchService {
    * @param {string} options.category - Product category
    * @returns {Promise<Object>} - Research brief with custom copy variants
    */
-  async researchAndGenerateCopy({ websiteUrl, websiteContent, brandName, productName, category, proposedAngle }) {
+  async researchAndGenerateCopy({ websiteUrl, websiteContent, brandName, productName, category, proposedAngle, fbInsights }) {
     console.log('🧠 Starting AI research and copy generation...');
+
+    // Build FB insights context section if provided
+    let fbInsightsSection = '';
+    if (fbInsights) {
+      const winningCopyExamples = (fbInsights.winningCopy || [])
+        .map((c, i) => `  ${i + 1}. "${c.body}" (CPA: $${c.cpa?.toFixed(2)}, ROAS: ${c.roas?.toFixed(2)}x)`)
+        .join('\n');
+      const copyCtx = fbInsights.copyContext || {};
+      const powerWords = (copyCtx.powerWords || []).join(', ');
+      const tone = copyCtx.tone || {};
+
+      fbInsightsSection = `
+═══════════════════════════════════════════════════════════════
+FACEBOOK AD INTELLIGENCE (from real campaign data)
+═══════════════════════════════════════════════════════════════
+
+WINNING AD COPY EXAMPLES:
+${winningCopyExamples || '  No examples available'}
+
+COPY APPROACH (what works for this brand):
+- Winning copy avg length: ${copyCtx.avgLength || 'unknown'} chars
+- Emoji usage rate: ${copyCtx.emojiRate || 0}%
+- Question hooks: ${copyCtx.questionRate || 0}%
+- Structure: ${copyCtx.structure || 'unknown'}
+- Tone profile: Urgency ${tone.urgency || 0}%, Social proof ${tone.socialProof || 0}%, Emotional ${tone.emotional || 0}%, Benefit-focused ${tone.benefitFocused || 0}%
+- Power words that work: ${powerWords || 'none detected'}
+
+WINNING ANGLES:
+${fbInsights.proposedAngle || 'No angle data'}
+
+AUDIENCE INSIGHTS:
+${fbInsights.audienceInsights || 'No audience data'}
+
+INSTRUCTION: Use these real performance insights to inform your copy. Test variations of what's already working — don't copy verbatim. Evolve the winning patterns into fresh headlines and copy.
+
+`;
+    }
 
     // Build angle-specific research instructions
     let angleResearch = '';
@@ -68,6 +105,7 @@ DO NOT USE generic durability/BIFL copy unless your angle IS durability/BIFL.
 
     const prompt = `You are an expert direct response copywriter and researcher.
 
+${fbInsightsSection}
 ${angleResearch}
 
 ═══════════════════════════════════════════════════════════════
