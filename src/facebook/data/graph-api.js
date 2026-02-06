@@ -88,8 +88,8 @@ class GraphApiClient {
     let page = 0;
     let nextUrl = null;
 
-    // First request
-    const firstPage = await this.request(endpoint, { ...params, limit: '100' });
+    // First request (limit 25 to avoid FB "too much data" errors on large accounts)
+    const firstPage = await this.request(endpoint, { ...params, limit: '25' });
     allData.push(...(firstPage.data || []));
     nextUrl = firstPage.paging?.next || null;
     page++;
@@ -213,8 +213,11 @@ class GraphApiClient {
    * @param {string} adAccountId
    */
   async getAdsWithInsights(adAccountId, datePreset = 'last_90d') {
+    // For large accounts, we filter to ads with spend to reduce data volume
+    // The filtering happens server-side so we get less data per page
     return this.fetchAllPages(`/${adAccountId}/ads`, {
       fields: `id,name,status,adset_id,campaign_id,created_time,creative{id,title,body,image_url,thumbnail_url,video_id,call_to_action_type},insights.date_preset(${datePreset}){spend,impressions,clicks,ctr,cpm,cpc,actions,action_values,cost_per_action_type}`,
+      filtering: JSON.stringify([{ field: 'impressions', operator: 'GREATER_THAN', value: '0' }]),
     });
   }
 }

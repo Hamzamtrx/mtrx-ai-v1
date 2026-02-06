@@ -18,6 +18,7 @@ const fbAuthRoutes = require('./src/facebook/routes/auth-routes');
 const fbDataRoutes = require('./src/facebook/routes/data-routes');
 const fbAnalysisRoutes = require('./src/facebook/routes/analysis-routes');
 const fbScheduledRoutes = require('./src/facebook/routes/scheduled-routes');
+const fbCampaignRoutes = require('./src/facebook/routes/campaign-routes');
 const { startScheduler } = require('./src/facebook/automation/scheduler');
 
 /**
@@ -382,6 +383,7 @@ app.use('/api/auth/facebook', fbAuthRoutes);
 app.use('/api/facebook/data', fbDataRoutes);
 app.use('/api/facebook/analysis', fbAnalysisRoutes);
 app.use('/api/facebook/scheduled', fbScheduledRoutes);
+app.use('/api/facebook/campaigns', fbCampaignRoutes);
 
 // Facebook Ads Dashboard — standalone page
 app.get('/facebook', (req, res) => {

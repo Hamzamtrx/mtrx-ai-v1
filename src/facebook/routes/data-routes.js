@@ -190,6 +190,48 @@ router.get('/comments/:brandId/:adId', async (req, res) => {
 });
 
 /**
+ * GET /api/facebook/data/video-source/:brandId/:videoId
+ * Get video source URL for playback
+ */
+router.get('/video-source/:brandId/:videoId', async (req, res) => {
+  try {
+    const { brandId, videoId } = req.params;
+    const db = getDb();
+
+    // First check if we have a stored video_url
+    const ad = db.prepare('SELECT video_url FROM fb_ads WHERE brand_id = ? AND video_id = ?').get(parseInt(brandId), videoId);
+    if (ad?.video_url) {
+      return res.json({ source: ad.video_url });
+    }
+
+    // Otherwise try to fetch from Graph API
+    const conn = db.prepare('SELECT access_token, ad_account_id FROM fb_connections WHERE brand_id = ? AND status = ?').get(parseInt(brandId), 'active');
+    if (!conn) return res.json({ source: null, error: 'No active Facebook connection' });
+
+    const accessToken = decrypt(conn.access_token);
+    const client = new GraphApiClient(accessToken);
+
+    // Try direct video endpoint first, then fallback to advideos
+    let source = null;
+    try {
+      source = await client.getVideoSource(videoId);
+    } catch (e) {
+      // Try via ad account
+      try {
+        source = await client.getVideoSourceViaAccount(conn.ad_account_id, videoId);
+      } catch (e2) {
+        console.log('[Data Routes] Video source fallback failed:', e2.message);
+      }
+    }
+
+    res.json({ source });
+  } catch (err) {
+    console.error('[Data Routes] Video source error:', err.message);
+    res.json({ source: null, error: err.message });
+  }
+});
+
+/**
  * POST /api/facebook/data/transcribe/:brandId/:adId
  * Transcribe a single video ad on-demand
  */

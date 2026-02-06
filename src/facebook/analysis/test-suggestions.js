@@ -122,13 +122,44 @@ function analyzeHistoricalTerritories(ads) {
 /**
  * Generate test suggestions using Claude AI
  * @param {number} brandId
+ * @param {Object} options
+ * @param {boolean} options.force - Force regeneration, bypass cache
+ * @param {Object} options.externalSignals - External signals (Reddit, TikTok, articles)
  * @returns {object} Array of test suggestions
  */
-async function generateTestSuggestions(brandId) {
+async function generateTestSuggestions(brandId, options = {}) {
+  const { force = false, externalSignals = {} } = options;
   const db = getDb();
+
+  // Check cache first (unless force is true)
+  if (!force) {
+    const cached = db.prepare(`
+      SELECT data FROM fb_analysis_cache
+      WHERE brand_id = ? AND analysis_type = 'test_suggestions'
+      AND expires_at > datetime('now')
+      ORDER BY created_at DESC LIMIT 1
+    `).get(brandId);
+
+    if (cached) {
+      console.log('[Test Suggestions] Using cached suggestions (use force=true to regenerate)');
+      return { success: true, suggestions: JSON.parse(cached.data), cached: true };
+    }
+  }
+
+  console.log(`[Test Suggestions] Generating fresh suggestions (force=${force})`);
 
   const brand = db.prepare('SELECT * FROM brands WHERE id = ?').get(brandId);
   if (!brand) throw new Error('Brand not found');
+
+  // Get existing campaigns to avoid suggesting already-tested ideas
+  const existingCampaigns = db.prepare(`
+    SELECT title, hook, angle FROM test_campaigns
+    WHERE brand_id = ? AND status IN ('ready', 'launched', 'completed')
+    ORDER BY created_at DESC
+    LIMIT 20
+  `).all(brandId);
+
+  console.log(`[Test Suggestions] Found ${existingCampaigns.length} existing campaigns to exclude`);
 
   // Get top 50 ads by spend — HIGH SPEND = WINNER
   const topAds = db.prepare(`
@@ -193,12 +224,12 @@ async function generateTestSuggestions(brandId) {
   console.log(`[Test Suggestions] Analyzing top ${topAds.length} ads by spend...`);
   console.log(`[Test Suggestions] Content: ${withTranscript} have transcripts, ${withVisuals} have visual descriptions`);
 
-  const prompt = buildTestSuggestionsPrompt(brand, { topAds, strategicInsights, historicalTerritories });
+  const prompt = buildTestSuggestionsPrompt(brand, { topAds, strategicInsights, historicalTerritories, existingCampaigns, externalSignals });
 
   console.log(`[Test Suggestions] Calling Claude for brand ${brandId}, prompt length: ${prompt.length} chars`);
   const client = new Anthropic();
   const response = await client.messages.create({
-    model: 'claude-opus-4-5-20251101',
+    model: 'claude-opus-4-6',
     max_tokens: 8000,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -216,8 +247,103 @@ async function generateTestSuggestions(brandId) {
   return { success: true, suggestions };
 }
 
+/**
+ * Build external signals section for the prompt
+ * Includes Reddit threads, TikTok trends, Facebook comments, articles
+ */
+function buildExternalSignalsSection(signals = {}) {
+  const sections = [];
+
+  // Reddit discussions
+  if (signals.reddit && signals.reddit.length > 0) {
+    sections.push(`
+═══════════════════════════════════════════════════════════════
+🔴 FRESH REDDIT SIGNALS
+═══════════════════════════════════════════════════════════════
+
+${signals.reddit.map((thread, i) => `
+[Reddit ${i + 1}] r/${thread.subreddit || 'unknown'}
+Title: "${thread.title}"
+Key discussion: ${thread.summary || thread.content?.substring(0, 300) || 'N/A'}
+Upvotes: ${thread.upvotes || 'N/A'} | Comments: ${thread.comments || 'N/A'}
+${thread.insight ? `💡 Insight: ${thread.insight}` : ''}`).join('\n')}
+
+Use these Reddit signals to find NEW angles or validate existing ideas.`);
+  }
+
+  // TikTok trends
+  if (signals.tiktok && signals.tiktok.length > 0) {
+    sections.push(`
+═══════════════════════════════════════════════════════════════
+📱 VIRAL TIKTOK SIGNALS
+═══════════════════════════════════════════════════════════════
+
+${signals.tiktok.map((video, i) => `
+[TikTok ${i + 1}]
+Content: "${video.description || video.summary}"
+Views: ${video.views || 'N/A'} | Engagement: ${video.engagement || 'N/A'}
+${video.hook ? `Hook used: "${video.hook}"` : ''}
+${video.insight ? `💡 Insight: ${video.insight}` : ''}`).join('\n')}
+
+Consider TikTok native formats and hooks for test ideas.`);
+  }
+
+  // Facebook comments (from strategic insights)
+  if (signals.facebookComments && signals.facebookComments.length > 0) {
+    sections.push(`
+═══════════════════════════════════════════════════════════════
+💬 FACEBOOK COMMENT SIGNALS
+═══════════════════════════════════════════════════════════════
+
+Recent comments on winning ads reveal customer language and concerns:
+
+${signals.facebookComments.slice(0, 10).map((comment, i) =>
+  `[${i + 1}] "${comment.text?.substring(0, 150) || comment}"${comment.likes ? ` (${comment.likes} likes)` : ''}`
+).join('\n')}
+
+Use customer language directly in hooks. Address their specific concerns.`);
+  }
+
+  // Industry articles/trends
+  if (signals.articles && signals.articles.length > 0) {
+    sections.push(`
+═══════════════════════════════════════════════════════════════
+📰 INDUSTRY TREND SIGNALS
+═══════════════════════════════════════════════════════════════
+
+${signals.articles.map((article, i) => `
+[Article ${i + 1}] ${article.source || 'Unknown source'}
+Headline: "${article.title}"
+Key point: ${article.summary || article.content?.substring(0, 200) || 'N/A'}
+${article.relevance ? `Relevance: ${article.relevance}` : ''}`).join('\n')}
+
+Use trending topics to make ads feel timely and relevant.`);
+  }
+
+  // Account changes/movements
+  if (signals.accountChanges && signals.accountChanges.length > 0) {
+    sections.push(`
+═══════════════════════════════════════════════════════════════
+📊 RECENT ACCOUNT MOVEMENTS
+═══════════════════════════════════════════════════════════════
+
+${signals.accountChanges.map((change, i) => `
+[${i + 1}] ${change.type}: ${change.description}
+Impact: ${change.impact || 'Unknown'}
+${change.implication ? `Implication: ${change.implication}` : ''}`).join('\n')}
+
+React to these changes with appropriate test ideas.`);
+  }
+
+  if (sections.length === 0) {
+    return ''; // No external signals to include
+  }
+
+  return sections.join('\n');
+}
+
 function buildTestSuggestionsPrompt(brand, data) {
-  const { topAds, strategicInsights, historicalTerritories } = data;
+  const { topAds, strategicInsights, historicalTerritories, existingCampaigns = [], externalSignals = {} } = data;
 
   // Format ad — prioritize video content (transcript + visuals)
   const formatAd = (ad, rank) => {
@@ -314,6 +440,18 @@ ${Object.entries(historicalTerritories || {}).map(([territory, data]) => {
    ${data.verdict === 'tested_underperformed' ? '⚠️ This territory underperformed — needs strong justification to retest' : ''}`;
   }).join('\n\n') || 'No historical data available'}
 
+${existingCampaigns.length > 0 ? `
+═══════════════════════════════════════════════════════════════
+🚫 ALREADY GENERATED TESTS — DO NOT SUGGEST THESE AGAIN
+═══════════════════════════════════════════════════════════════
+
+The following tests have ALREADY been created as campaigns. Do NOT suggest similar tests:
+
+${existingCampaigns.map(c => `• "${c.title}" — Hook: "${c.hook || 'N/A'}" — Angle: "${c.angle || 'N/A'}"`).join('\n')}
+
+Suggest NEW tests that explore DIFFERENT angles, hooks, and territories.
+` : ''}
+${buildExternalSignalsSection(externalSignals)}
 ═══════════════════════════════════════════════════════════════
 BUYER PERSONAS TO CONSIDER
 ═══════════════════════════════════════════════════════════════

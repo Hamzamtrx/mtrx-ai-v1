@@ -36,6 +36,7 @@ function initSchema(db) {
       name TEXT NOT NULL,
       website_url TEXT,
       logo_url TEXT,
+      product_image_url TEXT,
       category TEXT DEFAULT 'apparel' CHECK(category IN ('apparel', 'supplements', 'perfume', 'other')),
       target_roas REAL DEFAULT 0,
       target_cpa REAL DEFAULT 0,
@@ -142,11 +143,45 @@ function initSchema(db) {
       FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
     );
 
+    -- Test campaigns: stores test ideas with their generated statics
+    CREATE TABLE IF NOT EXISTS test_campaigns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      brand_id INTEGER NOT NULL,
+      -- Test info (from AI suggestions)
+      title TEXT NOT NULL,
+      hook TEXT,
+      angle TEXT,
+      hypothesis TEXT,
+      copy_direction TEXT,
+      visual_direction TEXT,
+      priority TEXT,
+      rationale TEXT,
+      based_on TEXT,
+      recommended_formats TEXT,
+      -- Generated statics (JSON array of {type, format, imageUrl, aspectRatio})
+      statics TEXT,
+      -- Status tracking
+      status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'ready', 'launched', 'completed')),
+      -- Performance (linked when ad is created)
+      fb_ad_ids TEXT,
+      total_spend REAL DEFAULT 0,
+      total_purchases INTEGER DEFAULT 0,
+      avg_roas REAL DEFAULT 0,
+      -- Notes
+      notes TEXT,
+      -- Timestamps
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
+    );
+
     -- Indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_fb_ads_brand ON fb_ads(brand_id);
     CREATE INDEX IF NOT EXISTS idx_fb_ads_classification ON fb_ads(brand_id, classification);
     CREATE INDEX IF NOT EXISTS idx_fb_insights_date ON fb_insights_history(brand_id, fb_ad_id, date);
     CREATE INDEX IF NOT EXISTS idx_fb_analysis_type ON fb_analysis_cache(brand_id, analysis_type);
+    CREATE INDEX IF NOT EXISTS idx_test_campaigns_brand ON test_campaigns(brand_id);
+    CREATE INDEX IF NOT EXISTS idx_test_campaigns_status ON test_campaigns(brand_id, status);
   `);
 
   // Migrations for existing databases
@@ -164,6 +199,9 @@ function migrate(db) {
   }
   if (!brandCols.includes('target_cpa')) {
     db.exec("ALTER TABLE brands ADD COLUMN target_cpa REAL DEFAULT 0");
+  }
+  if (!brandCols.includes('product_image_url')) {
+    db.exec("ALTER TABLE brands ADD COLUMN product_image_url TEXT");
   }
 
   // --- fb_ads table migrations ---

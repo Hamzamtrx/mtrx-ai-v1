@@ -1,10 +1,14 @@
 /**
  * Ad Performance Classifier
  * Classifications:
- *   Winner — Top 5 by spend that hit the ROAS goal
- *   Potential — Top 5-20 by spend that hit the ROAS goal
+ *   Winner — Top performers by spend that hit the ROAS goal
+ *            - Last 30 days: Top 5
+ *            - Lifetime: Top 10
+ *   Potential — Next tier by spend that hit the ROAS goal
+ *            - Last 30 days: Top 6-20
+ *            - Lifetime: Top 11-20
  *   New — Ad launched less than 7 days ago
- *   Loser — Everything else (including turned-off ads)
+ *   Loser — Everything else (turned off, not hitting ROAS, or outside top 20)
  */
 
 const { getDb } = require('../../database/db');
@@ -50,16 +54,17 @@ function median(sorted) {
 }
 
 /**
- * Classify all ads for a brand using the new system:
- *   Winner = Top 5 by ROAS that hit client goals
- *   Potential = Top 20 that hit ROAS goals
+ * Classify all ads for a brand using time-based thresholds:
+ *   Last 30 days: Winner = Top 5, Potential = 6-20
+ *   Lifetime: Winner = Top 10, Potential = 11-20
  *   New = launched < 7 days ago
  *   Loser = everything else
  *
  * @param {number} brandId
+ * @param {string} datePreset - 'last_30d', 'last_90d', or 'lifetime'
  * @returns {object} Classification summary
  */
-function classifyAllAds(brandId) {
+function classifyAllAds(brandId, datePreset = 'last_90d') {
   const db = getDb();
   const benchmarks = calculateBenchmarks(brandId);
 
@@ -97,23 +102,42 @@ function classifyAllAds(brandId) {
   }
 
   // Sort ads that are NOT new by spend descending for ranking
-  // Turned-off ads are never winners/potential
-  const rankableAds = allAds.filter(ad => !newAdIds.has(ad.id) && ad.status === 'ACTIVE' && ad.purchases >= 1 && ad.spend >= 10);
-  rankableAds.sort((a, b) => b.spend - a.spend);
+  // Winners must be ACTIVE, but paused ads can be potential if they have good metrics
+  const activeAds = allAds.filter(ad => !newAdIds.has(ad.id) && ad.status === 'ACTIVE' && ad.purchases >= 1 && ad.spend >= 10);
+  const pausedAds = allAds.filter(ad => !newAdIds.has(ad.id) && ad.status === 'PAUSED' && ad.purchases >= 1 && ad.spend >= 10);
+
+  activeAds.sort((a, b) => b.spend - a.spend);
+  pausedAds.sort((a, b) => b.spend - a.spend);
 
   // Track top performers that hit ROAS goal
+  // Thresholds adjust based on date range:
+  //   - Last 30 days: stricter (top 5 winners, 6-20 potential)
+  //   - Lifetime/90d: expanded (top 10 winners, 11-20 potential)
+  const isShortRange = datePreset === 'last_30d';
+  const maxWinners = isShortRange ? 5 : 10;
+  const maxPotential = isShortRange ? 15 : 10; // total top 20 either way
+
   let winnerCount = 0;
   let potentialCount = 0;
   const winnerIds = new Set();
   const potentialIds = new Set();
 
-  for (const ad of rankableAds) {
+  // First pass: assign winners from ACTIVE ads only
+  for (const ad of activeAds) {
     const hitsRoas = ad.roas >= targetRoas;
-
-    if (winnerCount < 5 && hitsRoas) {
+    if (winnerCount < maxWinners && hitsRoas) {
       winnerIds.add(ad.id);
       winnerCount++;
-    } else if (potentialCount < 15 && hitsRoas) { // top 20 total (5 winners + 15 potential)
+    } else if (potentialCount < maxPotential && hitsRoas) {
+      potentialIds.add(ad.id);
+      potentialCount++;
+    }
+  }
+
+  // Second pass: paused ads with good metrics become potential (no limit - these are historical winners)
+  for (const ad of pausedAds) {
+    const hitsRoas = ad.roas >= targetRoas;
+    if (hitsRoas) {
       potentialIds.add(ad.id);
       potentialCount++;
     }
