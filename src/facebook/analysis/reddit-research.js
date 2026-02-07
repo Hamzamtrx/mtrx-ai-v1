@@ -4,8 +4,71 @@
  * Scrapes Reddit for customer discussions, pain points, and desires
  * to find new advertising angles for the brand.
  *
- * Uses Reddit's public JSON API (no auth required for public content)
+ * Uses Reddit OAuth API for reliable access.
+ *
+ * SETUP:
+ * 1. Go to https://www.reddit.com/prefs/apps
+ * 2. Click "create another app..." at bottom
+ * 3. Select "script" type
+ * 4. Name: "MTRX Research" (or anything)
+ * 5. Redirect URI: http://localhost (not used for script apps)
+ * 6. Copy the client_id (under app name) and client_secret
+ * 7. Add to .env: REDDIT_CLIENT_ID=xxx and REDDIT_CLIENT_SECRET=xxx
  */
+
+require('dotenv').config();
+
+// Reddit OAuth token cache
+let redditAccessToken = null;
+let redditTokenExpiry = 0;
+
+/**
+ * Get Reddit OAuth access token
+ */
+async function getRedditAccessToken() {
+  // Return cached token if still valid
+  if (redditAccessToken && Date.now() < redditTokenExpiry) {
+    return redditAccessToken;
+  }
+
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    console.log('[Reddit] No OAuth credentials found - will use fallback data');
+    return null;
+  }
+
+  try {
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+    const response = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'MTRX-Research/1.0'
+      },
+      body: 'grant_type=client_credentials'
+    });
+
+    if (!response.ok) {
+      console.log(`[Reddit] OAuth failed: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    redditAccessToken = data.access_token;
+    // Token expires in ~1 hour, refresh 5 min early
+    redditTokenExpiry = Date.now() + (data.expires_in - 300) * 1000;
+
+    console.log('[Reddit] OAuth token obtained successfully');
+    return redditAccessToken;
+  } catch (err) {
+    console.log('[Reddit] OAuth error:', err.message);
+    return null;
+  }
+}
 
 // Subreddit mapping by brand category
 const SUBREDDITS_BY_CATEGORY = {
@@ -128,36 +191,35 @@ const DESIRE_PATTERNS = [
  * @param {number} limit - Max results per subreddit
  * @returns {Promise<Array>} - Array of relevant posts
  */
-async function searchReddit(query, subreddits, limit = 5) {
+async function searchReddit(query, subreddits, limit = 10) {
   const results = [];
 
-  // Use old.reddit.com and browser-like headers to avoid 403
-  const userAgents = [
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-  ];
-  const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  // Try to get OAuth token first
+  const accessToken = await getRedditAccessToken();
 
-  for (const subreddit of subreddits.slice(0, 5)) { // Limit to 5 subreddits
+  for (const subreddit of subreddits.slice(0, 8)) { // Search up to 8 subreddits
     try {
-      // Use old.reddit.com which is more permissive
-      const searchUrl = `https://old.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&limit=${limit}&sort=relevance&t=year`;
+      let searchUrl, headers;
 
-      const response = await fetch(searchUrl, {
-        headers: {
-          'User-Agent': userAgent,
-          'Accept': 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-        }
-      });
+      if (accessToken) {
+        // Use OAuth API (oauth.reddit.com)
+        searchUrl = `https://oauth.reddit.com/r/${subreddit}/search?q=${encodeURIComponent(query)}&restrict_sr=1&limit=${limit}&sort=relevance&t=year`;
+        headers = {
+          'Authorization': `Bearer ${accessToken}`,
+          'User-Agent': 'MTRX-Research/1.0'
+        };
+      } else {
+        // Fallback to public API (may fail)
+        searchUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&limit=${limit}&sort=relevance&t=year`;
+        headers = {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+        };
+      }
+
+      const response = await fetch(searchUrl, { headers });
 
       if (!response.ok) {
         console.log(`[Reddit] Search failed for r/${subreddit}: ${response.status}`);
-        // Try alternative: search all of Reddit instead
-        if (response.status === 403) {
-          continue;
-        }
         continue;
       }
 
@@ -171,7 +233,7 @@ async function searchReddit(query, subreddits, limit = 5) {
         results.push({
           subreddit: p.subreddit,
           title: p.title,
-          selftext: (p.selftext || '').substring(0, 500),
+          selftext: (p.selftext || '').substring(0, 800),
           score: p.score,
           num_comments: p.num_comments,
           url: `https://reddit.com${p.permalink}`,
@@ -179,8 +241,8 @@ async function searchReddit(query, subreddits, limit = 5) {
         });
       }
 
-      // Longer delay to avoid rate limiting
-      await new Promise(r => setTimeout(r, 500));
+      // Delay between requests (OAuth has higher limits)
+      await new Promise(r => setTimeout(r, accessToken ? 200 : 500));
     } catch (err) {
       console.log(`[Reddit] Error searching r/${subreddit}:`, err.message);
     }
@@ -195,15 +257,25 @@ async function searchReddit(query, subreddits, limit = 5) {
  * @param {number} limit - Max comments to fetch
  * @returns {Promise<Array>} - Array of top comments
  */
-async function getPostComments(permalink, limit = 10) {
+async function getPostComments(permalink, limit = 15) {
   try {
-    const url = `https://www.reddit.com${permalink}.json?limit=${limit}&depth=1&sort=top`;
+    const accessToken = await getRedditAccessToken();
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MTRX-Research/1.0)'
-      }
-    });
+    let url, headers;
+    if (accessToken) {
+      url = `https://oauth.reddit.com${permalink}?limit=${limit}&depth=2&sort=top`;
+      headers = {
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'MTRX-Research/1.0'
+      };
+    } else {
+      url = `https://www.reddit.com${permalink}.json?limit=${limit}&depth=1&sort=top`;
+      headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+      };
+    }
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) return [];
 
@@ -214,7 +286,7 @@ async function getPostComments(permalink, limit = 10) {
       .filter(c => c.kind === 't1' && c.data.body && c.data.body !== '[removed]')
       .slice(0, limit)
       .map(c => ({
-        body: c.data.body.substring(0, 400),
+        body: c.data.body.substring(0, 600),
         score: c.data.score
       }));
   } catch (err) {
