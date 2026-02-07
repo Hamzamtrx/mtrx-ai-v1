@@ -3305,7 +3305,7 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
       let doubleDownsHtml = '';
       if (doubleDowns.length > 0) {
         doubleDownsHtml = `
-          <div style="grid-column: 1 / -1; margin-bottom:24px;">
+          <div id="doubleDownsSection" style="grid-column: 1 / -1; margin-bottom:24px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
               <span style="font-size:18px;">🔥</span>
               <span style="font-weight:700;font-size:15px;color:#fbbf24;">DOUBLE DOWNS</span>
@@ -3492,7 +3492,7 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
       let newAnglesHeaderHtml = '';
       if (tests.length > 0) {
         newAnglesHeaderHtml = `
-          <div style="grid-column: 1 / -1; display:flex;align-items:center;gap:8px;margin:24px 0 16px 0;padding-top:16px;border-top:1px solid var(--border-secondary);">
+          <div id="newAnglesHeader" style="grid-column: 1 / -1; display:flex;align-items:center;gap:8px;margin:24px 0 16px 0;padding-top:16px;border-top:1px solid var(--border-secondary);">
             <span style="font-size:18px;">💡</span>
             <span style="font-weight:700;font-size:15px;color:#a78bfa;">NEW ANGLES</span>
             <span style="font-size:12px;color:var(--text-muted);">— Fresh directions to test</span>
@@ -5046,7 +5046,26 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
       const existingNoResults = grid.querySelector('.no-filter-results');
       if (existingNoResults) existingNoResults.remove();
 
-      // Filter the cards
+      // Get section elements
+      const doubleDownsSection = document.getElementById('doubleDownsSection');
+      const newAnglesHeader = document.getElementById('newAnglesHeader');
+
+      // Handle section visibility based on filter
+      if (source === 'all') {
+        // Show everything
+        if (doubleDownsSection) doubleDownsSection.style.display = '';
+        if (newAnglesHeader) newAnglesHeader.style.display = '';
+      } else if (source === 'double_down') {
+        // Show only Double Downs section
+        if (doubleDownsSection) doubleDownsSection.style.display = '';
+        if (newAnglesHeader) newAnglesHeader.style.display = 'none';
+      } else {
+        // Hide Double Downs, show New Angles for other filters
+        if (doubleDownsSection) doubleDownsSection.style.display = 'none';
+        if (newAnglesHeader) newAnglesHeader.style.display = '';
+      }
+
+      // Filter the test cards (New Angles cards)
       let visibleCount = 0;
       document.querySelectorAll('.test-card-v2').forEach(card => {
         if (source === 'all') {
@@ -5055,12 +5074,10 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
           return;
         }
 
-        // Special handling for double_down filter - check type instead of source
+        // Special handling for double_down filter - hide all test cards (they're in Double Downs section)
         if (source === 'double_down') {
-          const cardType = card.getAttribute('data-type') || '';
-          const matches = cardType === 'double_down';
-          card.style.display = matches ? '' : 'none';
-          if (matches) visibleCount++;
+          card.style.display = 'none';
+          // Count the double down cards in the section instead
           return;
         }
 
@@ -5071,6 +5088,12 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
         card.style.display = matches ? '' : 'none';
         if (matches) visibleCount++;
       });
+
+      // For double_down filter, count the winner cards
+      if (source === 'double_down' && doubleDownsSection) {
+        const doubleDownCards = doubleDownsSection.querySelectorAll('[id^="double-down-card-"]');
+        visibleCount = doubleDownCards.length;
+      }
 
       // Show message if no results
       if (visibleCount === 0) {
