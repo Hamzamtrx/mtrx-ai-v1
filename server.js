@@ -376,6 +376,53 @@ async function saveCampaign(campaign) {
 
 app.use('/output', express.static('output'));
 app.use('/uploads', express.static('uploads'));
+
+// Founder image upload endpoint - MUST be BEFORE express.json() to work with multipart
+const fsSync = require('fs');
+if (!fsSync.existsSync('./uploads')) fsSync.mkdirSync('./uploads');
+if (!fsSync.existsSync('./uploads/founders')) fsSync.mkdirSync('./uploads/founders');
+
+const founderUpload = multer({
+  storage: multer.diskStorage({
+    destination: './uploads/founders',
+    filename: (req, file, cb) => {
+      const brandId = req.params.brandId || 'unknown';
+      const ext = path.extname(file.originalname) || '.jpg';
+      cb(null, `founder_${brandId}_${Date.now()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+app.post('/api/facebook/upload-founder-image/:brandId', founderUpload.single('founderImage'), async (req, res) => {
+  console.log('[Founder Upload] Request for brand:', req.params.brandId);
+  console.log('[Founder Upload] req.file:', req.file);
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file received' });
+    }
+
+    const brandId = parseInt(req.params.brandId);
+    const { getDb } = require('./src/database/db');
+    const db = getDb();
+
+    // Upload to reliable image host (catbox, imgbb, etc.) for Kie.ai API access
+    console.log('[Founder Upload] Uploading to image host...');
+    const imageUrl = await ImageHost.upload(req.file.path);
+    console.log('[Founder Upload] Got public URL:', imageUrl);
+
+    db.prepare('UPDATE brands SET founder_image_url = ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(imageUrl, brandId);
+
+    console.log(`[Founder Upload] SUCCESS: ${imageUrl}`);
+    res.json({ success: true, imageUrl, filename: req.file.filename });
+  } catch (err) {
+    console.error('[Founder Upload] Error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.use(express.json());
 
 // Facebook Ads integration routes (standalone section — static generator untouched)
@@ -3234,6 +3281,7 @@ async function start() {
       const localtunnel = require('localtunnel');
       const tunnel = await localtunnel({ port: PORT });
       publicUrl = tunnel.url;
+      app.set('publicUrl', tunnel.url);
       console.log('🌐 Public URL: ' + tunnel.url + '\n');
       tunnel.on('close', () => {
         publicUrl = null;

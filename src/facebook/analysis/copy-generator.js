@@ -15,7 +15,7 @@ const Anthropic = require('@anthropic-ai/sdk');
  * @param {Object} params.strategicContext - Strategic insights summary
  * @returns {Promise<Object>} Generated copy for the format
  */
-async function generateAICopy({ format, test, brandName, winningCopy = [], strategicContext = {}, variationHint = null }) {
+async function generateAICopy({ format, test, brandName, winningCopy = [], strategicContext = {}, variationHint = null, brandFacts = '' }) {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.log('[CopyGenerator] No API key, using fallback copy');
     return generateFallbackCopy(format, test, brandName);
@@ -28,6 +28,11 @@ async function generateAICopy({ format, test, brandName, winningCopy = [], strat
     `${i + 1}. Headline: "${ad.headline || 'N/A'}" | Body: "${ad.body || 'N/A'}" | ROAS: ${ad.roas?.toFixed(2) || 'N/A'}`
   ).join('\n');
 
+  // Build verified brand facts section
+  const brandFactsSection = brandFacts
+    ? `\n=== VERIFIED BRAND FACTS (USE ONLY THESE) ===\n${brandFacts}\n\nCRITICAL: You may ONLY use claims from the list above. Do NOT invent numbers like "200 washes" or "30 years" or cost-per-wear calculations.`
+    : '';
+
   // Random framework hint for variation
   const frameworks = ['comparison', 'problem_solution', 'direct_command', 'stat_implication', 'short_punchy', 'question'];
   const selectedFramework = variationHint || frameworks[Math.floor(Math.random() * frameworks.length)];
@@ -38,6 +43,13 @@ async function generateAICopy({ format, test, brandName, winningCopy = [], strat
 1. ONLY use USD ($) currency - NEVER euros (€) or pounds (£)
 2. Keep prices realistic for apparel ($15-$60 range typically)
 3. Each format should get a DIFFERENT headline approach - don't repeat the same headline
+4. DO NOT MAKE UP SPECIFIC STATISTICS OR CLAIMS - no fake numbers like "200 washes" or "30 years" or "2% return rate"
+5. Only use GENERIC benefit language unless the brand info explicitly states a fact
+6. SAFE generic claims: "Built to last", "Lifetime guarantee", "Premium quality", "All natural materials"
+7. UNSAFE made-up claims: "Lasts 200 washes", "30-year guarantee", "2% return rate", "$180/year savings"
+8. LANGUAGE MUST BE NATURAL — write how a real person talks, not marketing jargon
+9. NEVER use confusing concepts like "cost per wear", "price per use", or math that requires explanation
+10. If a normal person wouldn't understand the headline in 2 seconds, rewrite it simpler
 
 === HEADLINE FRAMEWORKS (USE THESE) ===
 
@@ -53,17 +65,17 @@ Example: "POLYESTER IS LINKED TO LOW TESTOSTERONE. WE DON'T USE IT."
 "STOP [PAINFUL BEHAVIOR]."
 Example: "STOP BUYING SHIRTS THAT FALL APART."
 
-**D) Stat + Implication** (10-15 words)
-"[SHOCKING STAT]. [WHAT THIS MEANS]."
-Example: "THE AVERAGE MAN SPENDS $180/YEAR REPLACING SHIRTS. THIS ONE LASTS 30 YEARS."
+**D) Bold Claim + Implication** (10-15 words)
+"[BOLD CLAIM]. [WHAT THIS MEANS]."
+Example: "MOST SHIRTS END UP IN LANDFILLS. OURS COMES WITH A LIFETIME GUARANTEE."
 
 **E) Short Punchy** (3-8 words)
 "[BENEFIT STATEMENT]." or "NO [BAD]. NO [BAD]."
-Examples: "BUILT LIKE CAST IRON." / "NO SAG. NO STINK." / "30 YEARS. ONE SHIRT."
+Examples: "BUILT LIKE CAST IRON." / "NO SAG. NO STINK." / "LIFETIME GUARANTEE."
 
 **F) Question Hook** (5-10 words)
 "[PROVOCATIVE QUESTION]?"
-Examples: "Why does your $15 shirt cost $1/wear?" / "What's really in your shirt?"
+Examples: "What's really in your shirt?" / "Why do cheap shirts fall apart so fast?"
 
 === YOUR JOB ===
 Take the raw "test hook" (which may be awkward/incomplete) and TRANSFORM it into a proper headline using one of the frameworks above.
@@ -90,12 +102,17 @@ If the test title mentions "Expert Authority" or "Doctor" or "Scientist":
 - "Introducing..." (no one cares)
 - ANY competitor brand names (Amazon, Nike, Hanes, etc.) - LEGAL RISK!
 - Use generic terms instead: "regular shirts", "polyester brands", "fast fashion"
+- "Cost per wear" / "price per use" / any math-based value propositions (confusing)
+- "$X per wear scam" or similar (people don't think in these terms)
+- Any headline that requires calculation to understand
+- Marketing jargon that a normal person wouldn't say out loud
 
 === GREEN FLAGS ===
-- Specific numbers ("30 years", "100+ washes")
 - Familiar comparisons ("cast iron", "grandpa's tools")
 - Direct frustration language ("fall apart", "shrink", "stink")
 - Unexpected claims that create curiosity
+- Generic durability claims ("lifetime guarantee", "built to last")
+- ONLY use specific numbers if they come from verified brand info
 
 === VISUAL DIRECTION ===
 - "Expert Authority" in test → show doctor/scientist in lab coat
@@ -149,6 +166,7 @@ STRATEGIC CONTEXT:
 ${strategicContext.winningAngles ? `- Winning angles: ${strategicContext.winningAngles}` : ''}
 ${strategicContext.copyPatterns ? `- Copy patterns: ${strategicContext.copyPatterns}` : ''}
 ${strategicContext.audienceSignals ? `- Audience: ${strategicContext.audienceSignals}` : ''}
+${brandFactsSection}
 
 ${formatInstructions}
 
@@ -205,10 +223,12 @@ Generate:
   A) "[FAMILIAR DURABLE THING] LASTS FOREVER. [YOUR PRODUCT] SHOULD TOO."
   B) "[PROBLEM STATEMENT]. [WE FIXED IT]."
   C) "STOP [PAINFUL BEHAVIOR]."
-  D) "[SHOCKING STAT]. [WHAT THIS MEANS]."
+  D) "[BOLD CLAIM]. [WHAT THIS MEANS]."
 - offerText: Single trust signal like "✓ Lifetime Guarantee" or "✓ Free Shipping"
 - ctaText: Direct action like "SHOP NOW" or "GET YOURS"
-TONE: Bold, confident, direct. No fluff.`;
+- visualDirection: MUST say "Clean product photography only - no graphics, no dashboards, no overlays"
+TONE: Bold, confident, direct. No fluff.
+CRITICAL: Product Hero is MINIMAL - just product + text. NO dashboards, NO charts, NO analytics graphics, NO floating UI elements.`;
 
     case 'meme':
       return `FORMAT: Type 2 Meme Style
@@ -269,6 +289,61 @@ Generate:
 - ctaText: Upgrade-focused CTA like "UPGRADE NOW" or "SIMPLIFY YOUR WARDROBE"
 TONE: Simplification, upgrade, life improvement.
 KEY: Show the transformation from cluttered/mediocre to simple/premium.`;
+
+    case 'news_editorial':
+      return `FORMAT: Vintage Newspaper (1930s NEWSPAPER CLIPPING AESTHETIC)
+This format mimics a scanned 1930s newspaper article. Aged yellowed paper, sepia photography.
+Think archived newspaper clipping discovered in grandpa's attic.
+Generate:
+- headline: 8-15 words, VALUES-level story headline (not product features). Formulas that work:
+  A) "The [Person] Who [Did Something Against The Grain]" — e.g., "The Man Who Refused To Sell A Shirt He Wouldn't Wear"
+  B) "The [Thing] Has Been [Forgotten/Lost]" — e.g., "The Fabric America Forgot How To Make"
+  C) "[Specific Claim] And [Surprising Detail]" — e.g., "One Shirt Lasted A Decade. Then They Stopped Making It."
+- subheadline: Supporting statement, newspaper style. E.g., "Kentucky craftsman: If I won't wear it myself, I've got no business selling it to you"
+- newspaperName: Vintage newspaper name. E.g., "The American Textile Record" or "The National Quality Gazette"
+- photoCaption: Caption for the black & white photo. E.g., "Walter Briggs has worn the same hemp shirt for over a decade"
+- photoSubject: Who is in the photo (1930s aesthetic). E.g., "weathered 1930s craftsman, late 50s, grey stubble, work-worn hands"
+- photoAction: What they're doing (candid, NOT posing). E.g., "sitting at wooden workbench, inspecting fabric with calloused hands"
+- photoSetting: Where (1930s setting). E.g., "small textile workshop, warm window light, dust in air"
+- photoEmotion: The mood (authentic). E.g., "quiet pride in craftsmanship, private moment"
+- ctaLine: CTA for bottom bar. E.g., "THEY STOPPED MAKING THEM. WE DIDN'T." or "YOUR GRANDPA KNEW. NOW YOU DO TOO."
+TONE: Nostalgic, authentic, values-driven. Like discovering a piece of history.
+KEY: Headlines tell VALUES stories about people, not product features. Photo subject must NOT look at camera.`;
+
+    case 'testimonial':
+      return `FORMAT: Customer Testimonial (PERSONAL STORY + PRODUCT)
+This format features a real customer sharing their personal experience.
+Think: iPhone selfie + authentic story text overlay.
+Generate:
+- headline: 8-20 words, FIRST PERSON story that sounds like a real person wrote it. Examples:
+  A) "I was honestly skeptical at first, but after a month with this shirt..."
+  B) "Finally found a shirt that doesn't fall apart after 3 washes"
+  C) "My husband kept stealing mine so I bought him his own"
+  D) "After years of polyester giving me rashes, I switched to hemp"
+- testimonialStory: 15-30 words, longer personal narrative. Authentic, casual, with genuine emotion.
+  Include: specific timeframe ("after a month"), specific detail, genuine reaction
+- photoSetting: Casual home environment description. E.g., "cozy living room, natural window light"
+- personDescription: Who's in the photo. E.g., "woman mid-30s, genuine smile, casual outfit"
+- ctaText: Soft CTA like "Shop Now" or brand name
+TONE: Authentic, personal, relatable. NOT salesy. Reads like a real review.
+KEY: First person voice, specific details, genuine emotion. Person should look natural, not model-like.`;
+
+    case 'stat_stack_hero':
+      return `FORMAT: Stat Stack Hero (EDITORIAL PROOF STORY)
+This format shows a real person doing something impressive + stat badges as proof.
+Think: Documentary photo of person + overlaid stat badges + social proof.
+Generate:
+- headline: NOT a traditional headline. Instead, generate a STAT LINE like:
+  "365 days | 12 hour shifts | 1 shirt" or "14 job sites | 3 years | 1,460 days of sweat"
+- subheadline: The punchline that follows the stats. E.g., "Still going strong" or "1 shirt that actually lasts"
+- badges: Array of 4 short proof points, 2-4 words each. E.g., ["4x stronger than cotton", "Zero microplastics", "Hemp + bamboo blend", "Lifetime guarantee"]
+- heroSubject: Who is the hero. E.g., "rugged construction worker, mid 30s, tanned weathered skin"
+- heroAction: What they're doing (MID-ACTION, not posing). E.g., "carrying lumber on active job site"
+- heroClothing: What they're wearing. E.g., "fitted plain black t-shirt, work pants"
+- setting: Environment description. E.g., "busy job site, sawdust in air, bright midday sun"
+- socialProof: Object with name and credential. E.g., { name: "Jake, 34", credential: "General contractor — same shirt, 14 job sites, 3 years" }
+TONE: Documentary, authentic, proof-focused. Like editorial content, NOT advertising.
+KEY: Stats must be SPECIFIC numbers. Hero must be MID-ACTION, NOT posing. Feels like earned media.`;
 
     default:
       return `Generate headline, subheadline, offerText, and ctaText appropriate for the format.`;
@@ -337,6 +412,40 @@ function generateFallbackCopy(format, test, brandName) {
         headline: hook.toUpperCase() || 'ONE SHIRT. EVERY OCCASION.',
         subheadline: '✓ Work  ✓ Weekend  ✓ Date Night',
         ctaText: 'UPGRADE NOW',
+      };
+
+    case 'news_editorial':
+      return {
+        headline: 'The Man Who Refused To Sell A Shirt He Wouldn\'t Wear',
+        subheadline: 'Craftsman: If I won\'t wear it myself, I\'ve got no business selling it to you',
+        newspaperName: 'The American Textile Record',
+        photoCaption: `${brandName} founder inspecting fabric by hand, as he does every batch`,
+        photoSubject: 'weathered craftsman, late 50s, grey stubble, work-worn hands',
+        photoAction: 'sitting at wooden workbench, inspecting fabric with calloused hands',
+        photoSetting: 'small workshop, warm window light, authentic 1930s setting',
+        photoEmotion: 'quiet pride in craftsmanship',
+        ctaLine: 'THEY STOPPED MAKING THEM. WE DIDN\'T.',
+      };
+
+    case 'testimonial':
+      return {
+        headline: `I was honestly skeptical at first, but ${brandName} changed my mind`,
+        testimonialStory: `After years of buying cheap shirts that fall apart, I finally found ${brandName}. ${hook} I'm obsessed.`,
+        photoSetting: 'cozy living room, natural window light',
+        personDescription: 'real person, mid-30s, genuine smile, casual outfit',
+        ctaText: `Shop ${brandName}`,
+      };
+
+    case 'stat_stack_hero':
+      return {
+        headline: '365 days | 12 hour shifts | 1 shirt',
+        subheadline: 'Still going strong',
+        badges: ['Lifetime Guarantee', 'Premium materials', 'Built to last', 'Zero compromises'],
+        heroSubject: 'rugged working professional, mid 40s, confident stance',
+        heroAction: 'in their natural work environment',
+        heroClothing: 'fitted plain black t-shirt, work pants',
+        setting: 'authentic workplace, natural lighting',
+        socialProof: { name: 'Real Customer', credential: 'Wears it every single day' },
       };
 
     default:

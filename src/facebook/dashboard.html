@@ -687,6 +687,9 @@
     .test-card-accent.iter {
       background: linear-gradient(90deg, #8b5cf6, #a855f7);
     }
+    .test-card-accent.double {
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
 
     /* Card body */
     .test-card-body {
@@ -715,6 +718,11 @@
     .badge-iter {
       background: rgba(139, 92, 246, 0.15);
       color: #a78bfa;
+    }
+    .badge-double {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
     .badge-reddit {
       background: rgba(255, 87, 34, 0.15);
@@ -804,6 +812,27 @@
       border: 1px solid var(--border-secondary);
       border-radius: 20px;
       color: var(--text-muted);
+      text-transform: capitalize;
+    }
+
+    .format-selector {
+      font-size: 10px;
+      padding: 4px 8px;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      color: white;
+      text-transform: capitalize;
+      cursor: pointer;
+      font-weight: 600;
+      outline: none;
+    }
+    .format-selector:hover {
+      background: var(--accent-hover);
+    }
+    .format-selector option {
+      background: var(--bg-card);
+      color: var(--text-primary);
       text-transform: capitalize;
     }
 
@@ -1293,14 +1322,17 @@
                 <svg style="width:14px;height:14px;margin-right:4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 Refresh
               </button>
-              <button class="btn btn-primary btn-sm" onclick="loadTestSuggestions()" id="loadTestsBtn">Generate Test Ideas</button>
+              <button class="btn btn-primary btn-sm" onclick="loadTestSuggestions(true)" id="loadTestsBtn">Generate Test Ideas</button>
             </div>
           </div>
 
           <!-- Source Filter Tabs -->
-          <div class="source-filter-tabs" style="display:flex;gap:6px;margin-bottom:16px;">
+          <div class="source-filter-tabs" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
             <button class="source-filter-btn active" data-source="all" onclick="filterTestsBySource('all', this)">
               <span class="filter-icon">📊</span> All
+            </button>
+            <button class="source-filter-btn" data-source="double_down" onclick="filterTestsBySource('double_down', this)">
+              <span class="filter-icon">🎯</span> Double Downs
             </button>
             <button class="source-filter-btn" data-source="facebook_data" onclick="filterTestsBySource('facebook_data', this)">
               <span class="filter-icon">📘</span> FB Data
@@ -1351,6 +1383,11 @@
                 <button class="type-btn" data-static="type4" onclick="toggleGenType(this,'apparel')"><span class="name">Illustrated</span><span class="desc">Hand-drawn style</span></button>
                 <button class="type-btn" data-static="type5" onclick="toggleGenType(this,'apparel')"><span class="name">Vintage Magazine</span><span class="desc">Retro editorial</span></button>
                 <button class="type-btn" data-static="type6" onclick="toggleGenType(this,'apparel')"><span class="name">UGC Caption</span><span class="desc">Model + handwritten text</span></button>
+                <button class="type-btn" data-static="comparison" onclick="toggleGenType(this,'apparel')"><span class="name">Comparison</span><span class="desc">Side-by-side vs format</span></button>
+                <button class="type-btn" data-static="news_editorial" onclick="toggleGenType(this,'apparel')"><span class="name">News Editorial</span><span class="desc">1930s newspaper clipping</span></button>
+                <button class="type-btn" data-static="testimonial" onclick="toggleGenType(this,'apparel')"><span class="name">Testimonial</span><span class="desc">Customer story + photo</span></button>
+                <button class="type-btn" data-static="before_after" onclick="toggleGenType(this,'apparel')"><span class="name">Before/After</span><span class="desc">Transformation visual</span></button>
+                <button class="type-btn" data-static="stat_stack_hero" onclick="toggleGenType(this,'apparel')"><span class="name">Stat Stack Hero</span><span class="desc">Proof story + badges</span></button>
               </div>
               <div style="margin-top:16px;">
                 <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px;">Variants per type (different angles)</label>
@@ -1582,6 +1619,31 @@
         Public URL to your brand logo. Used in generated statics. Best results: PNG with transparent background.
       </div>
 
+      <label>Founder Image</label>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+        <div style="flex:1;">
+          <input type="file" id="settingsFounderImageFile" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFounderImageUpload(this)">
+          <button type="button" onclick="document.getElementById('settingsFounderImageFile').click()" style="width:100%;padding:10px;background:var(--bg-card);border:2px dashed var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:12px;">
+            <span id="founderUploadBtnText">📷 Upload Founder Photo</span>
+          </button>
+        </div>
+        <div id="founderImagePreview" style="width:60px;height:60px;border-radius:8px;background:var(--bg-card);border:1px solid var(--border);display:none;overflow:hidden;">
+          <img id="founderImagePreviewImg" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+      </div>
+      <input type="url" id="settingsFounderImageUrl" placeholder="Or paste image URL..." style="font-size:11px;">
+      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;margin-bottom:8px;">
+        Upload a clear photo of the founder for reference.
+      </div>
+
+      <label>Founder Description <span style="color:var(--text-dim);font-weight:normal;">(for AI image generation)</span></label>
+      <textarea id="settingsFounderDescription" rows="4" placeholder="Describe the founder's appearance in detail...
+
+Example: Male, early 30s, slim face shape, light brown hair swept to the side, short trimmed beard, light brown eyes, lean athletic build, tattoo sleeve on left arm, usually wears fitted black t-shirts." style="font-size:12px;line-height:1.4;resize:vertical;"></textarea>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;margin-bottom:12px;">
+        Be specific: face shape, hair color/style, facial hair, eye color, build, distinguishing features (tattoos, glasses, etc). The more detail, the better the AI matches.
+      </div>
+
       <label>Product Category</label>
       <div class="modal-category-grid">
         <button class="modal-cat-btn" data-cat="apparel" onclick="selectSettingsCategory(this)">
@@ -1781,8 +1843,24 @@
       document.getElementById('settingsBrandUrl').value = brand.website_url || '';
       document.getElementById('settingsProductImageUrl').value = brand.product_image_url || '';
       document.getElementById('settingsLogoUrl').value = brand.logo_url || '';
+      document.getElementById('settingsFounderImageUrl').value = brand.founder_image_url || '';
+      document.getElementById('settingsFounderDescription').value = brand.founder_description || '';
       document.getElementById('settingsTargetRoas').value = brand.target_roas || '';
       document.getElementById('settingsTargetCpa').value = brand.target_cpa || '';
+
+      // Show founder image preview if exists
+      const founderUrl = brand.founder_image_url || '';
+      const previewDiv = document.getElementById('founderImagePreview');
+      const previewImg = document.getElementById('founderImagePreviewImg');
+      const uploadBtn = document.getElementById('founderUploadBtnText');
+      if (founderUrl) {
+        previewImg.src = founderUrl;
+        previewDiv.style.display = 'block';
+        uploadBtn.textContent = '📷 Change Photo';
+      } else {
+        previewDiv.style.display = 'none';
+        uploadBtn.textContent = '📷 Upload Founder Photo';
+      }
 
       settingsSelectedCategory = brand.category || 'apparel';
       document.querySelectorAll('#brandSettingsModal .modal-cat-btn').forEach(b =>
@@ -1795,6 +1873,74 @@
 
     function closeBrandSettings() {
       document.getElementById('brandSettingsModal').classList.remove('show');
+    }
+
+    async function handleFounderImageUpload(input) {
+      console.log('handleFounderImageUpload called', input.files);
+      if (!input.files || !input.files[0]) {
+        console.log('No file selected');
+        return;
+      }
+      if (!currentBrandId) {
+        toast('Select a brand first', 'error');
+        return;
+      }
+
+      const file = input.files[0];
+      console.log('File selected:', file.name, file.type, file.size);
+
+      const uploadBtn = document.getElementById('founderUploadBtnText');
+      const previewDiv = document.getElementById('founderImagePreview');
+      const previewImg = document.getElementById('founderImagePreviewImg');
+      const urlInput = document.getElementById('settingsFounderImageUrl');
+
+      // Show loading state
+      uploadBtn.textContent = '⏳ Uploading...';
+
+      try {
+        const formData = new FormData();
+        formData.append('founderImage', file);
+        console.log('FormData created, sending to:', `/api/facebook/upload-founder-image/${currentBrandId}`);
+
+        const res = await fetch(`/api/facebook/upload-founder-image/${currentBrandId}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        // Check if response is JSON
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          console.error('Non-JSON response:', text);
+          throw new Error('Server error - check terminal logs');
+        }
+
+        const result = await res.json();
+        if (!result.success) throw new Error(result.error || 'Upload failed');
+
+        // Update preview
+        previewImg.src = result.imageUrl;
+        previewDiv.style.display = 'block';
+        uploadBtn.textContent = '✅ Uploaded!';
+
+        // Update the URL input with the uploaded image path
+        urlInput.value = result.imageUrl;
+
+        toast('Founder image uploaded!', 'success');
+
+        // Reset button text after a moment
+        setTimeout(() => {
+          uploadBtn.textContent = '📷 Change Photo';
+        }, 2000);
+
+      } catch (err) {
+        console.error('Upload error:', err);
+        toast('Upload failed: ' + err.message, 'error');
+        uploadBtn.textContent = '📷 Upload Founder Photo';
+      }
+
+      // Clear the file input so the same file can be re-selected
+      input.value = '';
     }
 
     function selectSettingsCategory(btn) {
@@ -1812,6 +1958,8 @@
         websiteUrl: document.getElementById('settingsBrandUrl').value.trim(),
         productImageUrl: document.getElementById('settingsProductImageUrl').value.trim(),
         logoUrl: document.getElementById('settingsLogoUrl').value.trim(),
+        founderImageUrl: document.getElementById('settingsFounderImageUrl').value.trim(),
+        founderDescription: document.getElementById('settingsFounderDescription').value.trim(),
         category: settingsSelectedCategory,
         targetRoas: parseFloat(document.getElementById('settingsTargetRoas').value) || 0,
         targetCpa: parseFloat(document.getElementById('settingsTargetCpa').value) || 0,
@@ -2199,26 +2347,77 @@
     }
 
     // Image lightbox for viewing generated statics
-    function openImageLightbox(imageUrl, title = '') {
+    // Now supports toggling between aspect ratios
+    let lightboxImages = { '4:5': null, '9:16': null };
+    let lightboxCurrentRatio = '4:5';
+    let lightboxTitle = '';
+
+    function openImageLightbox(imageUrl, title = '', altUrl = null, altRatio = null) {
+      // Reset and store image URLs
+      lightboxImages = { '4:5': null, '9:16': null };
+      lightboxTitle = title;
+
+      // Determine current ratio from title or default
+      if (title.includes('9:16')) {
+        lightboxCurrentRatio = '9:16';
+        lightboxImages['9:16'] = imageUrl;
+        if (altUrl) lightboxImages['4:5'] = altUrl;
+      } else {
+        lightboxCurrentRatio = '4:5';
+        lightboxImages['4:5'] = imageUrl;
+        if (altUrl) lightboxImages['9:16'] = altUrl;
+      }
+
+      renderImageLightbox();
+    }
+
+    function renderImageLightbox() {
+      // Remove existing lightbox if any
+      const existing = document.getElementById('imageLightbox');
+      if (existing) existing.remove();
+
+      const currentUrl = lightboxImages[lightboxCurrentRatio];
+      if (!currentUrl) return;
+
+      const has45 = !!lightboxImages['4:5'];
+      const has916 = !!lightboxImages['9:16'];
+      const hasBoth = has45 && has916;
+
       const lightbox = document.createElement('div');
       lightbox.id = 'imageLightbox';
       lightbox.className = 'video-lightbox';
       lightbox.onclick = (e) => { if (e.target === lightbox) closeImageLightbox(); };
 
+      // Format title without ratio suffix if we're showing toggle
+      const displayTitle = hasBoth ? lightboxTitle.replace(/\s*\([49]:1?[56]\)$/i, '') : lightboxTitle;
+
       lightbox.innerHTML = `
         <button class="video-lightbox-close" onclick="closeImageLightbox()">×</button>
         <div style="display:flex;flex-direction:column;align-items:center;gap:16px;max-width:90vw;max-height:90vh;">
-          ${title ? `<div style="color:#fff;font-size:14px;font-weight:600;">${esc(title)}</div>` : ''}
-          <img src="${esc(imageUrl)}" style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+          ${displayTitle ? `<div style="color:#fff;font-size:14px;font-weight:600;">${esc(displayTitle)}</div>` : ''}
+          ${hasBoth ? `
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+              <button onclick="switchLightboxRatio('4:5')" style="padding:6px 16px;font-size:12px;border-radius:6px;border:1px solid ${lightboxCurrentRatio === '4:5' ? 'var(--accent)' : 'var(--border-secondary)'};background:${lightboxCurrentRatio === '4:5' ? 'var(--accent)' : 'transparent'};color:${lightboxCurrentRatio === '4:5' ? 'white' : 'var(--text-muted)'};cursor:pointer;font-weight:600;">4:5</button>
+              <button onclick="switchLightboxRatio('9:16')" style="padding:6px 16px;font-size:12px;border-radius:6px;border:1px solid ${lightboxCurrentRatio === '9:16' ? 'var(--accent)' : 'var(--border-secondary)'};background:${lightboxCurrentRatio === '9:16' ? 'var(--accent)' : 'transparent'};color:${lightboxCurrentRatio === '9:16' ? 'white' : 'var(--text-muted)'};cursor:pointer;font-weight:600;">9:16</button>
+            </div>
+          ` : `<div style="color:var(--text-muted);font-size:11px;">${lightboxCurrentRatio}</div>`}
+          <img src="${esc(currentUrl)}" style="max-width:90vw;max-height:70vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
           <div style="display:flex;gap:12px;">
-            <a href="${esc(imageUrl)}" download style="background:var(--accent);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">⬇ Download</a>
-            <button onclick="window.open('${esc(imageUrl)}', '_blank')" style="background:var(--bg-input);color:#fff;padding:10px 20px;border-radius:8px;border:1px solid var(--border-hover);font-size:13px;cursor:pointer;">Open in New Tab</button>
+            <a href="${esc(currentUrl)}" download style="background:var(--accent);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">⬇ Download</a>
+            <button onclick="window.open('${esc(currentUrl)}', '_blank')" style="background:var(--bg-input);color:#fff;padding:10px 20px;border-radius:8px;border:1px solid var(--border-hover);font-size:13px;cursor:pointer;">Open in New Tab</button>
           </div>
         </div>
       `;
 
       document.body.appendChild(lightbox);
       document.body.style.overflow = 'hidden';
+    }
+
+    function switchLightboxRatio(ratio) {
+      if (lightboxImages[ratio]) {
+        lightboxCurrentRatio = ratio;
+        renderImageLightbox();
+      }
     }
 
     function closeImageLightbox() {
@@ -2483,15 +2682,46 @@
           completed: 'Completed',
         };
 
+        // Group statics by format, then by aspect ratio
+        const staticsByFormat = {};
+        statics.forEach(s => {
+          const format = s.format || 'unknown';
+          const ratio = s.aspectRatio || '4:5';
+          if (!staticsByFormat[format]) staticsByFormat[format] = {};
+          staticsByFormat[format][ratio] = s;
+        });
+        const formatGroups = Object.entries(staticsByFormat);
+        const campaignId = c.id;
+        // Get the primary format from statics for regeneration
+        const primaryFormat = statics[0]?.format || c.recommended_formats?.[0] || 'product_hero';
+
         return `
-          <div class="campaign-card" style="background:var(--bg-card);border:1px solid var(--border-primary);border-radius:12px;overflow:hidden;">
+          <div class="campaign-card" style="background:var(--bg-card);border:1px solid var(--border-primary);border-radius:12px;overflow:hidden;" data-campaign-id="${campaignId}">
             <div style="display:flex;gap:12px;">
-              <!-- Statics thumbnails -->
-              <div style="display:flex;gap:4px;padding:12px;background:var(--bg-card-alt);flex-shrink:0;">
-                ${statics.slice(0, 3).map(s => `
-                  <img src="${esc(s.imageUrl)}" style="width:80px;height:100px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="openImageLightbox('${esc(s.imageUrl)}', '${esc(s.format || '')}')">
-                `).join('')}
-                ${statics.length === 0 ? '<div style="width:80px;height:100px;background:#1a1a1a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px;">No statics</div>' : ''}
+              <!-- Statics thumbnails with aspect ratio toggle -->
+              <div style="padding:12px;background:var(--bg-card-alt);flex-shrink:0;">
+                <!-- Aspect Ratio Toggle -->
+                <div style="display:flex;gap:4px;margin-bottom:8px;justify-content:center;">
+                  <button class="aspect-toggle active" data-ratio="4:5" data-campaign="${campaignId}" onclick="toggleCampaignAspect(${campaignId}, '4:5')" style="padding:3px 8px;font-size:9px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:white;cursor:pointer;font-weight:600;">4:5</button>
+                  <button class="aspect-toggle" data-ratio="9:16" data-campaign="${campaignId}" onclick="toggleCampaignAspect(${campaignId}, '9:16')" style="padding:3px 8px;font-size:9px;border-radius:4px;border:1px solid var(--border-secondary);background:transparent;color:var(--text-muted);cursor:pointer;font-weight:600;">9:16</button>
+                </div>
+                <!-- Thumbnails -->
+                <div style="display:flex;gap:4px;">
+                  ${formatGroups.map(([format, ratios]) => {
+                    const img45 = ratios['4:5'];
+                    const img916 = ratios['9:16'];
+                    const url45 = img45 ? img45.imageUrl : '';
+                    const url916 = img916 ? img916.imageUrl : '';
+                    return `
+                      <div style="position:relative;" class="format-thumb" data-format="${esc(format)}">
+                        ${img45 ? `<img class="ratio-img ratio-4-5" src="${esc(img45.imageUrl)}" style="width:64px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;display:block;" onclick="openImageLightbox('${esc(url45)}', '${esc(format)} (4:5)', '${esc(url916)}', '9:16')">` : ''}
+                        ${img916 ? `<img class="ratio-img ratio-9-16" src="${esc(img916.imageUrl)}" style="width:45px;height:80px;object-fit:cover;border-radius:4px;cursor:pointer;display:none;" onclick="openImageLightbox('${esc(url916)}', '${esc(format)} (9:16)', '${esc(url45)}', '4:5')">` : ''}
+                        <div style="font-size:7px;color:var(--text-faint);text-align:center;margin-top:2px;text-transform:uppercase;">${esc(format.replace(/_/g, ' ').substring(0, 10))}</div>
+                      </div>
+                    `;
+                  }).join('')}
+                  ${statics.length === 0 ? '<div style="width:64px;height:80px;background:#1a1a1a;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:9px;">No statics</div>' : ''}
+                </div>
               </div>
 
               <!-- Campaign info -->
@@ -2515,14 +2745,16 @@
                 </div>
 
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                  <select onchange="updateCampaignStatus(${c.id}, this.value)" style="padding:4px 8px;font-size:11px;border-radius:4px;border:1px solid var(--border-primary);background:var(--bg-card);">
+                  <select onchange="updateCampaignStatus(${c.id}, this.value)" style="padding:6px 10px;font-size:11px;border-radius:6px;border:1px solid var(--border-secondary);background:var(--bg-input);color:var(--text-primary);cursor:pointer;">
                     <option value="draft" ${c.status === 'draft' ? 'selected' : ''}>Draft</option>
                     <option value="ready" ${c.status === 'ready' ? 'selected' : ''}>Ready to Launch</option>
                     <option value="launched" ${c.status === 'launched' ? 'selected' : ''}>Launched</option>
                     <option value="completed" ${c.status === 'completed' ? 'selected' : ''}>Completed</option>
                   </select>
-                  <button onclick="deleteCampaign(${c.id})" style="padding:4px 8px;font-size:11px;border-radius:4px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;">Delete</button>
+                  <button onclick="showCampaignRegenerateOptions(${c.id}, '${esc(c.hook || '')}', '${esc(c.title || '')}', '${esc(c.angle || '')}', '${esc(primaryFormat)}')" style="padding:6px 12px;font-size:11px;border-radius:6px;border:1px solid rgba(245,158,11,0.5);background:rgba(245,158,11,0.15);color:#fbbf24;cursor:pointer;font-weight:500;">🔄 Redo</button>
+                  <button onclick="deleteCampaign(${c.id})" style="padding:6px 12px;font-size:11px;border-radius:6px;border:1px solid rgba(239,68,68,0.5);background:rgba(239,68,68,0.15);color:#f87171;cursor:pointer;font-weight:500;">Delete</button>
                 </div>
+                <div id="campaign-regen-${c.id}" style="display:none;"></div>
 
                 <div style="font-size:10px;color:var(--text-faint);margin-top:4px;">
                   Created: ${new Date(c.created_at).toLocaleDateString()}
@@ -2565,6 +2797,147 @@
       } catch (err) {
         toast('Failed to delete campaign', 'error');
       }
+    }
+
+    // Show regenerate options for a campaign
+    function showCampaignRegenerateOptions(campaignId, hook, title, angle, format) {
+      const container = document.getElementById(`campaign-regen-${campaignId}`);
+      if (!container) return;
+
+      // Toggle off if already showing
+      if (container.style.display === 'block') {
+        container.style.display = 'none';
+        return;
+      }
+
+      const fmt = format || 'product_hero';
+      container.innerHTML = `
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:600;color:#f59e0b;">What's wrong? (Format: ${fmt})</span>
+            <button onclick="document.getElementById('campaign-regen-${campaignId}').style.display='none'" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 6px;">✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Text is blocked or covered by character/face - ensure ALL text is fully visible and readable')" style="padding:5px 8px;font-size:9px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:4px;cursor:pointer;">🚫 Text Blocked</button>
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Text is hard to read - make text larger, bolder, higher contrast')" style="padding:5px 8px;font-size:9px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);border-radius:4px;cursor:pointer;">👁️ Text Illegible</button>
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Logo is missing or not visible - MUST include the brand logo prominently')" style="padding:5px 8px;font-size:9px;background:rgba(139,92,246,0.15);color:#a855f7;border:1px solid rgba(139,92,246,0.25);border-radius:4px;cursor:pointer;">🏷️ No Logo</button>
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Product looks wrong - match the EXACT product from reference')" style="padding:5px 8px;font-size:9px;background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);border-radius:4px;cursor:pointer;">📦 Wrong Product</button>
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Style/aesthetic is wrong - match reference style more closely')" style="padding:5px 8px;font-size:9px;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.25);border-radius:4px;cursor:pointer;">🎨 Wrong Style</button>
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', 'Layout/composition is off - better balance between elements')" style="padding:5px 8px;font-size:9px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:4px;cursor:pointer;">📐 Bad Layout</button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="campaign-fix-${campaignId}" placeholder="Or describe the issue..." style="flex:1;padding:6px 8px;font-size:9px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-secondary);border-radius:4px;" onkeypress="if(event.key==='Enter')regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', this.value)">
+            <button onclick="regenerateCampaignWithFix(${campaignId}, '${esc(hook)}', '${esc(title)}', '${esc(angle)}', '${fmt}', document.getElementById('campaign-fix-${campaignId}').value)" style="padding:6px 10px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;">Fix</button>
+          </div>
+        </div>
+      `;
+      container.style.display = 'block';
+    }
+
+    // Regenerate campaign statics with fix instruction
+    async function regenerateCampaignWithFix(campaignId, hook, title, angle, format, fixInstruction) {
+      if (!fixInstruction || !fixInstruction.trim()) {
+        toast('Please describe what needs to be fixed', 'error');
+        return;
+      }
+
+      const container = document.getElementById(`campaign-regen-${campaignId}`);
+      if (container) {
+        container.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;margin-top:8px;">
+            <div style="width:16px;height:16px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:#f59e0b;">Regenerating ${format}...</div>
+              <div style="font-size:9px;color:var(--text-muted);">${fixInstruction.substring(0, 40)}${fixInstruction.length > 40 ? '...' : ''}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      try {
+        const response = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            test: {
+              title: title,
+              hook: hook,
+              angle: angle,
+              formats: [format],
+            },
+            aspectRatios: ['4:5', '9:16'],
+            variants: 1,
+            singleFormat: true,
+            fixInstruction: fixInstruction,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.statics?.length > 0) {
+          const successfulStatics = result.statics.filter(s => s.imageUrl);
+          if (successfulStatics.length > 0) {
+            // Update the campaign with new statics
+            await fetch(`/api/facebook/campaigns/${currentBrandId}/${campaignId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                statics: successfulStatics.map(s => ({
+                  imageUrl: s.imageUrl,
+                  format: s.format || format,
+                  aspectRatio: s.aspectRatio,
+                })),
+              }),
+            });
+
+            toast('Campaign regenerated!', 'success');
+            loadCampaigns(); // Refresh to show new images
+          } else {
+            if (container) container.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;margin-top:8px;">❌ Regeneration failed</div>`;
+            toast('Regeneration failed', 'error');
+          }
+        } else {
+          if (container) container.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;margin-top:8px;">❌ ${result.error || 'Regeneration failed'}</div>`;
+          toast('Regeneration failed', 'error');
+        }
+      } catch (err) {
+        console.error('Campaign regenerate error:', err);
+        if (container) container.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;margin-top:8px;">❌ Error: ${err.message}</div>`;
+        toast('Regeneration error', 'error');
+      }
+    }
+
+    function toggleCampaignAspect(campaignId, ratio) {
+      const card = document.querySelector(`.campaign-card[data-campaign-id="${campaignId}"]`);
+      if (!card) return;
+
+      // Update toggle buttons
+      card.querySelectorAll('.aspect-toggle').forEach(btn => {
+        if (btn.dataset.ratio === ratio) {
+          btn.style.background = 'var(--accent)';
+          btn.style.borderColor = 'var(--accent)';
+          btn.style.color = 'white';
+          btn.classList.add('active');
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.borderColor = 'var(--border-secondary)';
+          btn.style.color = 'var(--text-muted)';
+          btn.classList.remove('active');
+        }
+      });
+
+      // Show/hide images based on ratio
+      card.querySelectorAll('.format-thumb').forEach(thumb => {
+        const img45 = thumb.querySelector('.ratio-4-5');
+        const img916 = thumb.querySelector('.ratio-9-16');
+        if (ratio === '4:5') {
+          if (img45) img45.style.display = 'block';
+          if (img916) img916.style.display = 'none';
+        } else {
+          if (img45) img45.style.display = 'none';
+          if (img916) img916.style.display = img916 ? 'block' : 'none';
+        }
+      });
     }
 
     async function loadCachedTestSuggestions() {
@@ -2776,14 +3149,355 @@
       await loadTestSuggestions(true);
     }
 
+    // Generate double-down tests for a specific winning format
+    async function generateDoubleDownTests(format, formatIndex) {
+      if (!currentBrandId) return;
+
+      // Get the winning format data including top ads
+      const formatData = window._winningFormatsData?.[formatIndex];
+
+      // Show loading state
+      const btn = event.target;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Generating...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/facebook/analysis/double-down/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format,
+            topAds: formatData?.topAds || [],
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success && data.tests) {
+          // Show the double-down tests in a modal with the inspiration ad
+          showDoubleDownModal(format, data.tests, formatData);
+          toast(`Generated ${data.tests.length} "${format}" variations!`, 'success');
+        } else {
+          toast(data.message || 'Failed to generate tests', 'error');
+        }
+      } catch (err) {
+        console.error('Double down error:', err);
+        toast('Error generating tests: ' + err.message, 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Show modal with double-down test variations and inspiration ad
+    function showDoubleDownModal(format, tests, formatData) {
+      const modal = document.createElement('div');
+      modal.id = 'doubleDownModal';
+      modal.className = 'video-lightbox';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+      const topAd = formatData?.topAds?.[0];
+      const thumbnail = topAd?.thumbnail;
+
+      modal.innerHTML = `
+        <div style="background:var(--bg-card);border-radius:16px;max-width:1000px;max-height:90vh;overflow-y:auto;padding:24px;margin:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <div>
+              <h2 style="margin:0;font-size:20px;">🔥 Double Down: ${format.replace(/_/g, ' ').toUpperCase()}</h2>
+              <p style="margin:4px 0 0;color:var(--text-muted);font-size:13px;">4 variations using the winning format with different angles</p>
+            </div>
+            <button onclick="document.getElementById('doubleDownModal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;">&times;</button>
+          </div>
+
+          <!-- Inspiration Ad Section -->
+          ${topAd ? `
+          <div style="background:linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.15));border:1px solid rgba(245,158,11,0.4);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:16px;align-items:center;">
+            ${thumbnail ? `<img src="${esc(thumbnail)}" style="width:100px;height:125px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ''}
+            <div style="flex:1;">
+              <div style="font-size:10px;font-weight:700;color:#fbbf24;margin-bottom:4px;">🏆 INSPIRATION — THIS IS WHAT'S WINNING</div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:4px;">${esc(topAd.name || 'Top Performing Ad')}</div>
+              <div style="font-size:12px;color:var(--text-muted);">$${topAd.spend?.toLocaleString() || '0'} spend · ${topAd.roas || '0'}x ROAS</div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;line-height:1.5;">The tests below use this same <strong>${format.replace(/_/g, ' ')}</strong> visual format but test different angles to find what else works.</div>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- Generated Tests Grid -->
+          <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">
+            ${tests.map((test, i) => `
+              <div style="background:var(--bg-card-alt);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;">
+                <div style="display:flex;gap:6px;margin-bottom:10px;">
+                  <span style="background:rgba(245,158,11,0.2);color:#fbbf24;font-size:10px;font-weight:600;padding:3px 8px;border-radius:12px;">DOUBLE DOWN</span>
+                  <span style="background:var(--bg-input);color:var(--text-muted);font-size:10px;font-weight:600;padding:3px 8px;border-radius:12px;">${format.replace(/_/g, ' ')}</span>
+                </div>
+                <div style="font-size:16px;font-weight:700;margin-bottom:6px;">"${esc(test.hook)}"</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${esc(test.title)}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">${esc(test.hypothesis?.learning || '')}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+                  ${(test.recommended_formats || [format]).slice(0, 3).map(f => `
+                    <span style="background:var(--bg-input);color:var(--text-secondary);font-size:10px;padding:4px 8px;border-radius:4px;">${f.replace(/_/g, ' ')}</span>
+                  `).join('')}
+                </div>
+                <button onclick="addDoubleDownToQueue(${i})" style="width:100%;padding:10px;background:linear-gradient(135deg, #f59e0b, #ef4444);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+                  + Generate Statics for This
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Store tests for adding to queue
+      window._doubleDownTests = tests;
+      document.body.appendChild(modal);
+    }
+
+    // Add a double-down test to the main queue
+    function addDoubleDownToQueue(index) {
+      const test = window._doubleDownTests?.[index];
+      if (!test) return;
+
+      // Add to cached test suggestions so it appears in the grid
+      if (cachedTestSuggestions && cachedTestSuggestions.tests) {
+        cachedTestSuggestions.tests.unshift(test);
+        renderTestSuggestions(cachedTestSuggestions);
+      }
+
+      toast('Added to test queue!', 'success');
+      document.getElementById('doubleDownModal')?.remove();
+    }
+
     function renderTestSuggestions(suggestions) {
       const grid = document.getElementById('testSuggestionsGrid');
       const tests = suggestions.tests || [];
       const batchAnalysis = suggestions.batch_analysis;
 
-      if (tests.length === 0) {
+      // NEW: Use specific winning ads with replication guidance
+      const doubleDowns = suggestions.doubleDowns || [];
+      // Legacy fallback
+      const winningAngles = suggestions.winningAngles || [];
+      const winningFormats = suggestions.winningFormats || [];
+      // Stats for saved/dismissed
+      const stats = suggestions.stats || { saved_today: 0, dismissed_today: 0, pending: 0 };
+
+      if (tests.length === 0 && doubleDowns.length === 0 && winningAngles.length === 0) {
         grid.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No test suggestions available. Run "Analyze with AI" first, then generate test ideas.</p>';
         return;
+      }
+
+      // Store data globally for generate functions
+      window._doubleDownsData = doubleDowns;
+      window._winningAnglesData = winningAngles;
+      window._winningFormatsData = winningFormats;
+
+      // Show stats bar if any activity
+      let statsHtml = '';
+      if (stats.saved_today > 0 || stats.dismissed_today > 0) {
+        statsHtml = `
+          <div style="grid-column: 1 / -1; display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:10px 14px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;">
+            ${stats.saved_today > 0 ? `<span style="font-size:12px;color:#22c55e;font-weight:500;">✓ ${stats.saved_today} saved today</span>` : ''}
+            ${stats.dismissed_today > 0 ? `<span style="font-size:12px;color:var(--text-muted);">✕ ${stats.dismissed_today} dismissed</span>` : ''}
+          </div>
+        `;
+      }
+
+      // Build DOUBLE DOWNS section - shows specific winners with replication guidance
+      let doubleDownsHtml = '';
+      if (doubleDowns.length > 0) {
+        doubleDownsHtml = `
+          <div style="grid-column: 1 / -1; margin-bottom:24px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <span style="font-size:18px;">🔥</span>
+              <span style="font-weight:700;font-size:15px;color:#fbbf24;">DOUBLE DOWNS</span>
+              <span style="font-size:12px;color:var(--text-muted);">— Winners to replicate</span>
+            </div>
+
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+              ${doubleDowns.map((winner, idx) => {
+                const hasPreview = winner.imageUrl || winner.thumbnail;
+                const previewUrl = hasPreview ? '/api/facebook/analysis/image-proxy?url=' + encodeURIComponent(winner.imageUrl || winner.thumbnail) : null;
+                const hasVideo = winner.videoId && !winner.isStatic;
+                const angleEmojis = {
+                  competitor: '⚔️',
+                  muscle: '💪',
+                  founder: '👤',
+                  durability: '🛡️',
+                  health: '🌿',
+                  gift: '🎁',
+                  general: '🔥',
+                };
+                const emoji = angleEmojis[winner.angle?.key] || '🔥';
+
+                return `
+                <div id="double-down-card-${idx}" style="flex:1;min-width:300px;max-width:400px;background:var(--bg-card);border:1px solid rgba(245,158,11,0.3);border-radius:12px;overflow:hidden;position:relative;">
+                  <button onclick="dismissDoubleDown(${idx}, '${esc(winner.title || '')}')" style="position:absolute;top:8px;right:8px;z-index:10;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;" title="Dismiss this winner">×</button>
+                  <div style="height:4px;background:linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+
+                  <!-- PREVIEW THUMBNAIL at top of card -->
+                  ${hasPreview ? `
+                  <div style="position:relative;background:#000;cursor:pointer;" onclick="${hasVideo ? `playDoubleDownVideo(${idx})` : `showDoubleDownPreview(${idx})`}">
+                    <img src="${previewUrl}" style="width:100%;height:140px;object-fit:cover;opacity:0.9;" onerror="this.style.display='none'">
+                    ${hasVideo ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                      <div style="width:48px;height:48px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:20px;margin-left:3px;">▶</span>
+                      </div>
+                    </div>` : `<div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);padding:4px 8px;border-radius:4px;font-size:10px;color:white;">Static</div>`}
+                  </div>
+                  ` : hasVideo ? `
+                  <!-- Video without thumbnail - show play placeholder -->
+                  <div style="position:relative;background:linear-gradient(135deg, #1e293b, #0f172a);height:100px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick="playDoubleDownVideo(${idx})">
+                    <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);">
+                      <span style="font-size:24px;color:white;margin-left:4px;">▶</span>
+                    </div>
+                    <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:4px;font-size:10px;color:white;">Video</div>
+                  </div>
+                  ` : ''}
+
+                  <div style="padding:14px;">
+                    <!-- Header with emoji and title -->
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+                      <span style="font-size:24px;line-height:1;">${emoji}</span>
+                      <div style="flex:1;">
+                        <div style="font-weight:600;font-size:13px;color:var(--text-primary);line-height:1.3;margin-bottom:4px;">${winner.title}</div>
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                          <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:4px;background:${
+                            winner.format?.key === 'founder' || winner.format?.key === 'video' ? 'linear-gradient(135deg, #8b5cf6, #6366f1)' :
+                            winner.format?.key === 'illustrated' ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
+                            winner.format?.key === 'comparison' ? 'linear-gradient(135deg, #ef4444, #b91c1c)' :
+                            winner.format?.key === 'ugc' ? 'linear-gradient(135deg, #06b6d4, #0891b2)' :
+                            'linear-gradient(135deg, #22c55e, #16a34a)'
+                          };color:white;">${winner.format?.label || 'Video'}</span>
+                          <span style="font-size:10px;color:var(--text-muted);">${winner.angle?.label || 'General'}</span>
+                        </div>
+                        ${winner.staticCopy?.headline ? `<div style="margin-top:4px;font-size:10px;color:#60a5fa;display:flex;align-items:center;gap:4px;" title="Extracted from image with AI vision"><span style="opacity:0.7;">👁️</span> Vision AI analyzed</div>` : ''}
+                      </div>
+                    </div>
+                    ${winner.staticCopy?.subheadline ? `<div style="font-size:11px;color:var(--text-secondary);font-style:italic;margin-bottom:8px;padding:6px 8px;background:rgba(96,165,250,0.1);border-radius:4px;line-height:1.4;">"${winner.staticCopy.subheadline}"</div>` : ''}
+
+                    <!-- Performance stats -->
+                    <div style="font-size:12px;color:#22c55e;font-weight:600;margin-bottom:8px;">$${winner.spend?.toLocaleString()} · ${winner.roas}x ROAS</div>
+
+                    <!-- How to replicate (main focus) -->
+                    <div style="font-size:11px;color:var(--text-secondary);background:rgba(251,191,36,0.08);padding:8px 10px;border-radius:6px;margin-bottom:10px;line-height:1.5;">
+                      <strong style="color:#fbbf24;">Replicate:</strong> ${winner.howToReplicate || 'Create similar content with different hooks.'}
+                    </div>
+
+                    <!-- Pre-generated variations (if available) -->
+                    ${winner.variations && winner.variations.length > 0 ? `
+                    <div data-variations-container style="margin-bottom:10px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="font-size:10px;color:var(--text-muted);">Hook variations ready:</span>
+                        <button onclick="showRegenerateOptions(${idx})" style="font-size:9px;padding:3px 8px;background:transparent;color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:4px;cursor:pointer;" title="Generate fresh hook ideas">🔄 Regenerate</button>
+                      </div>
+                      ${winner.variations.map((v, vIdx) => {
+                        // Determine format-specific buttons based on the winner's format
+                        const formatKey = winner.format?.key || 'product_hero';
+                        let buttonsHtml = '';
+
+                        // "More" dropdown with all format options
+                        const moreDropdown = `
+                          <div style="position:relative;display:inline-block;">
+                            <button onclick="toggleFormatDropdown(${idx}, ${vIdx}, event)" style="padding:4px 8px;font-size:9px;font-weight:600;background:rgba(100,100,100,0.3);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:4px;cursor:pointer;" title="More format options">More ▾</button>
+                            <div id="format-dropdown-${idx}-${vIdx}" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg-card);border:1px solid var(--border-secondary);border-radius:6px;padding:6px;z-index:100;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                              <div style="font-size:8px;color:var(--text-muted);margin-bottom:4px;padding:0 4px;">All formats:</div>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'product_hero')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎯 Product Hero</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'stat_stack_hero')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📊 Stats Hero</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'comparison')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">⚔️ Comparison</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'illustrated')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎨 Illustrated</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'meme')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">😂 Meme</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'quote_card')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 Quote Card</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'newspaper')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📰 Newspaper</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'ugc')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📱 UGC Style</button>
+                              <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'testimonial')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">⭐ Testimonial</button>
+                            </div>
+                          </div>
+                        `;
+
+                        if (formatKey === 'founder' || formatKey === 'video') {
+                          // Founder videos → founder styles (quote card, newspaper, etc.)
+                          buttonsHtml = `
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'quote_card')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:4px;cursor:pointer;" title="Quote Card with founder photo">Quote Card</button>
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'newspaper')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;border:none;border-radius:4px;cursor:pointer;" title="Newspaper headline style">News</button>
+                            ${moreDropdown}
+                          `;
+                        } else if (formatKey === 'illustrated') {
+                          // Illustrated → illustrated primary, then meme, comparison
+                          buttonsHtml = `
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'illustrated')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;" title="Illustrated cartoon style">Illustrated</button>
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'meme')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #ec4899, #be185d);color:white;border:none;border-radius:4px;cursor:pointer;" title="Meme format">Meme</button>
+                            ${moreDropdown}
+                          `;
+                        } else if (formatKey === 'comparison') {
+                          // Comparison → comparison primary, then illustrated, product hero
+                          buttonsHtml = `
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'comparison')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #ef4444, #b91c1c);color:white;border:none;border-radius:4px;cursor:pointer;" title="Before/after comparison">Compare</button>
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'illustrated')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;" title="Illustrated cartoon style">Illustrated</button>
+                            ${moreDropdown}
+                          `;
+                        } else if (formatKey === 'ugc') {
+                          // UGC → UGC primary, then testimonial, lifestyle
+                          buttonsHtml = `
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'ugc')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #06b6d4, #0891b2);color:white;border:none;border-radius:4px;cursor:pointer;" title="UGC selfie style">UGC</button>
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'testimonial')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:4px;cursor:pointer;" title="Customer testimonial">Review</button>
+                            ${moreDropdown}
+                          `;
+                        } else {
+                          // Product Hero (default) → product hero primary, then stat stack, comparison
+                          buttonsHtml = `
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'product_hero')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:4px;cursor:pointer;" title="Product hero shot">Hero</button>
+                            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'stat_stack_hero')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;border:none;border-radius:4px;cursor:pointer;" title="Stats with product">Stats</button>
+                            ${moreDropdown}
+                          `;
+                        }
+
+                        return `
+                        <div id="dd-variation-${idx}-${vIdx}" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.15);border-radius:6px;padding:8px;margin-bottom:6px;">
+                          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+                            <div style="flex:1;">
+                              <div style="font-size:11px;font-weight:500;color:var(--text-primary);line-height:1.3;">"${esc(v.hook || '')}"</div>
+                              <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Auto-saves on generate</div>
+                            </div>
+                            <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                              ${buttonsHtml}
+                              <button onclick="dismissVariation(${idx}, ${vIdx}, '${esc(v.hook || '')}')" style="padding:4px 6px;font-size:8px;background:transparent;color:var(--text-dim);border:1px solid var(--border-secondary);border-radius:4px;cursor:pointer;" title="Dismiss">✕</button>
+                            </div>
+                          </div>
+                          <div id="variation-result-${idx}-${vIdx}" style="margin-top:6px;display:none;"></div>
+                        </div>
+                        `;
+                      }).join('')}
+                      <!-- Regenerate button at bottom of variations -->
+                      <button onclick="showRegenerateOptions(${idx})" style="width:100%;margin-top:8px;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:6px;cursor:pointer;">
+                        🔄 Regenerate Hook Ideas
+                      </button>
+                    </div>
+                    ` : `
+                    <!-- Actions (no pre-generated variations) -->
+                    <div data-variations-container style="margin-bottom:10px;">
+                      <button id="gen-hooks-btn-${idx}" onclick="generateInitialHooks(${idx}, this)" style="width:100%;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:6px;cursor:pointer;">
+                        🔄 Generate Hook Ideas
+                      </button>
+                    </div>
+                    `}
+                  </div>
+                </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // NEW ANGLES section header - will wrap around test cards
+      let newAnglesHeaderHtml = '';
+      if (tests.length > 0) {
+        newAnglesHeaderHtml = `
+          <div style="grid-column: 1 / -1; display:flex;align-items:center;gap:8px;margin:24px 0 16px 0;padding-top:16px;border-top:1px solid var(--border-secondary);">
+            <span style="font-size:18px;">💡</span>
+            <span style="font-weight:700;font-size:15px;color:#a78bfa;">NEW ANGLES</span>
+            <span style="font-size:12px;color:var(--text-muted);">— Fresh directions to test</span>
+          </div>
+        `;
       }
 
       // Limit to top 6 priority tests
@@ -2791,6 +3505,8 @@
 
       grid.innerHTML = topTests.map((test, i) => {
         const isNew = test.type === 'new_territory';
+        const isDoubleDown = test.type === 'double_down';
+        const isIteration = test.type === 'iteration';
         const sourceObj = test.source || {};
         const sourceType = typeof sourceObj === 'string' ? sourceObj : sourceObj.type;
 
@@ -2805,19 +3521,33 @@
         const spendDots = spendLikelihood === 'high' ? '●●●' : spendLikelihood === 'low' ? '●○○' : '●●○';
         const learnDots = learningValue === 'high' ? '●●●' : learningValue === 'low' ? '●○○' : '●●○';
 
+        // Determine badge type and text
+        let badgeClass = 'badge-iter';
+        let badgeText = 'ITERATION';
+        if (isNew) {
+          badgeClass = 'badge-new';
+          badgeText = 'NEW ANGLE';
+        } else if (isDoubleDown) {
+          badgeClass = 'badge-double';
+          badgeText = 'DOUBLE DOWN';
+        }
+
         return `
-        <div class="test-card-v2" id="test-card-${i}" onclick="selectTest(${i})" data-formats='${JSON.stringify(formats)}' data-source="${sourceType || 'facebook_data'}">
+        <div class="test-card-v2" id="test-card-${i}" onclick="selectTest(${i})" data-formats='${JSON.stringify(formats)}' data-source="${sourceType || 'facebook_data'}" data-type="${test.type || 'new_angle'}">
           <!-- Gradient accent bar -->
-          <div class="test-card-accent ${isNew ? 'new' : 'iter'}"></div>
+          <div class="test-card-accent ${isNew ? 'new' : isDoubleDown ? 'double' : 'iter'}"></div>
 
           <!-- Main content -->
           <div class="test-card-body">
-            <!-- Top badges row -->
-            <div class="test-card-badges">
-              <span class="test-badge ${isNew ? 'badge-new' : 'badge-iter'}">${isNew ? 'NEW ANGLE' : 'ITERATION'}</span>
-              ${sourceType === 'reddit' ? '<span class="test-badge badge-reddit">Reddit</span>' : ''}
-              ${sourceType === 'trend' ? '<span class="test-badge badge-trend">Trend</span>' : ''}
-              ${sourceType === 'facebook_data' ? '<span class="test-badge badge-fb">FB Data</span>' : ''}
+            <!-- Top badges row with dismiss button -->
+            <div class="test-card-badges" style="justify-content:space-between;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="test-badge ${badgeClass}">${badgeText}</span>
+                ${sourceType === 'reddit' ? '<span class="test-badge badge-reddit">Reddit</span>' : ''}
+                ${sourceType === 'trend' ? '<span class="test-badge badge-trend">Trend</span>' : ''}
+                ${sourceType === 'facebook_data' ? '<span class="test-badge badge-fb">FB Data</span>' : ''}
+              </div>
+              <button onclick="event.stopPropagation(); dismissTestSuggestion(${i}, '${esc(test.hook).replace(/'/g, "\\'")}');" style="padding:4px 8px;font-size:10px;background:transparent;color:var(--text-dim);border:1px solid var(--border-secondary);border-radius:4px;cursor:pointer;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="Dismiss this suggestion">✕</button>
             </div>
 
             <!-- Hook (the star) -->
@@ -2843,15 +3573,58 @@
               </div>
             </div>
 
-            <!-- Format pills -->
-            <div class="test-card-formats">
-              ${formats.slice(0, 3).map(f => `<span class="format-pill">${esc(f.replace('_', ' '))}</span>`).join('')}
+            <!-- Format pills (2 auto-selected + 1 user choice) -->
+            ${test.title?.toLowerCase().includes('founder') ? `
+            <div class="test-card-formats" style="flex-wrap:wrap;gap:6px;">
+              <span style="font-size:10px;color:var(--text-dim);width:100%;margin-bottom:4px;">Founder Styles:</span>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-quote_card" checked onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                Quote Card
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-newspaper" checked onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                Newspaper
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-product_hero" checked onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                Product Hero
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-instagram_story" onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                IG Story
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-magazine" onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                Magazine
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;">
+                <input type="checkbox" id="founderStyle-${i}-text_confession" onclick="event.stopPropagation();" style="width:12px;height:12px;">
+                Text Confession
+              </label>
             </div>
+            ` : `
+            <div class="test-card-formats">
+              ${formats.slice(0, 2).map(f => `<span class="format-pill">${esc(f.replace(/_/g, ' '))}</span>`).join('')}
+              <select class="format-selector" id="formatSelect-${i}" onclick="event.stopPropagation();" onchange="updateThirdFormat(${i}, this.value)">
+                <option value="${formats[2] || 'product_hero'}">${(formats[2] || 'product_hero').replace(/_/g, ' ')}</option>
+                <option value="product_hero">Product Hero</option>
+                <option value="meme">Meme</option>
+                <option value="comparison">Comparison</option>
+                <option value="before_after">Before/After</option>
+                <option value="stat_stack_hero">Stat Stack</option>
+                <option value="news_editorial">News Editorial</option>
+                <option value="testimonial">Testimonial</option>
+                <option value="ugc">UGC Style</option>
+                <option value="illustrated">Illustrated</option>
+                <option value="aesthetic">Aesthetic</option>
+              </select>
+            </div>
+            `}
 
             <!-- Generate button -->
-            <button class="test-card-btn" id="genBtn-${i}" onclick="event.stopPropagation(); generateStaticsForTest(${i})">
+            <button class="test-card-btn generate-test-btn" id="genBtn-${i}" onclick="event.stopPropagation(); generateStaticsForTest(${i})">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              Generate 3 Formats
+              Generate Statics for This Test
             </button>
 
             <!-- Progress area (hidden by default) -->
@@ -2893,6 +3666,1354 @@
           </button>
         </div>
       `}).join('');
+
+      // Build final layout: Stats bar, Double Downs, then New Angles header + test cards
+      grid.innerHTML = statsHtml + doubleDownsHtml + newAnglesHeaderHtml + grid.innerHTML;
+    }
+
+    // Show direction picker for regenerating hooks
+    function showRegenerateOptions(winnerIdx) {
+      const card = document.getElementById(`double-down-card-${winnerIdx}`);
+      if (!card) return;
+
+      // Toggle off if picker already showing
+      const existingPicker = card.querySelector('.regen-direction-picker');
+      if (existingPicker) {
+        existingPicker.remove();
+        // Show the main button again
+        const mainBtn = card.querySelector('.regen-main-btn');
+        if (mainBtn) mainBtn.style.display = 'block';
+        return;
+      }
+
+      // Find the MAIN Regenerate Hook Ideas button (the full-width one at the bottom, not the small one)
+      const allRegenBtns = card.querySelectorAll('button[onclick*="showRegenerateOptions"]');
+      // Main button is the one with width:100% style (full width)
+      let mainRegenBtn = null;
+      for (const btn of allRegenBtns) {
+        if (btn.style.width === '100%') {
+          mainRegenBtn = btn;
+          break;
+        }
+      }
+      if (!mainRegenBtn && allRegenBtns.length > 0) {
+        mainRegenBtn = allRegenBtns[allRegenBtns.length - 1]; // fallback to last one
+      }
+      if (!mainRegenBtn) return;
+
+      // Hide the main button
+      mainRegenBtn.classList.add('regen-main-btn');
+      mainRegenBtn.style.display = 'none';
+
+      const pickerHtml = `
+        <div class="regen-direction-picker" style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:8px;padding:10px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:600;color:#8b5cf6;">What direction for new hooks?</span>
+            <button onclick="document.querySelector('#double-down-card-${winnerIdx} .regen-direction-picker').remove(); document.querySelector('#double-down-card-${winnerIdx} .regen-main-btn').style.display='block';" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 6px;">✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+            <button onclick="regenerateVariations(${winnerIdx}, 'more aggressive and bold')" style="padding:5px 8px;font-size:9px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:4px;cursor:pointer;">🔥 Aggressive</button>
+            <button onclick="regenerateVariations(${winnerIdx}, 'more emotional and personal')" style="padding:5px 8px;font-size:9px;background:rgba(236,72,153,0.15);color:#ec4899;border:1px solid rgba(236,72,153,0.25);border-radius:4px;cursor:pointer;">💔 Emotional</button>
+            <button onclick="regenerateVariations(${winnerIdx}, 'focus on health and safety concerns')" style="padding:5px 8px;font-size:9px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:4px;cursor:pointer;">🏥 Health</button>
+            <button onclick="regenerateVariations(${winnerIdx}, 'shorter and punchier, max 6 words')" style="padding:5px 8px;font-size:9px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);border-radius:4px;cursor:pointer;">⚡ Punchy</button>
+            <button onclick="regenerateVariations(${winnerIdx}, 'question-based hooks that create curiosity')" style="padding:5px 8px;font-size:9px;background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);border-radius:4px;cursor:pointer;">❓ Questions</button>
+            <button onclick="regenerateVariations(${winnerIdx}, 'focus on value, price, and savings')" style="padding:5px 8px;font-size:9px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.25);border-radius:4px;cursor:pointer;">💰 Value</button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="custom-direction-${winnerIdx}" placeholder="Or type custom direction..." style="flex:1;padding:6px 8px;font-size:9px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-secondary);border-radius:4px;" onkeypress="if(event.key==='Enter')regenerateVariations(${winnerIdx}, this.value)">
+            <button onclick="regenerateVariations(${winnerIdx}, document.getElementById('custom-direction-${winnerIdx}').value || null)" style="padding:6px 10px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:4px;cursor:pointer;">Go</button>
+          </div>
+        </div>
+      `;
+
+      // Insert picker after the main button (at bottom)
+      mainRegenBtn.insertAdjacentHTML('afterend', pickerHtml);
+    }
+
+    // Regenerate hook variations for a winner
+    async function regenerateVariations(winnerIdx, direction = null) {
+      const winner = window._doubleDownsData?.[winnerIdx];
+      if (!winner || !currentBrandId) {
+        toast('Winner data not found', 'error');
+        return;
+      }
+
+      // Find the variations container
+      const card = document.getElementById(`double-down-card-${winnerIdx}`);
+      if (!card) return;
+
+      // Remove direction picker if showing
+      const picker = card.querySelector('.regen-direction-picker');
+      if (picker) picker.remove();
+
+      // Restore main button if hidden
+      const mainBtn = card.querySelector('.regen-main-btn');
+      if (mainBtn) mainBtn.style.display = 'none';
+
+      // Show loading state - use data attribute for reliable lookup
+      const variationsContainer = card.querySelector('[data-variations-container]');
+      if (variationsContainer) {
+        variationsContainer.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:16px;background:rgba(139,92,246,0.1);border-radius:6px;">
+            <div style="width:20px;height:20px;border:2px solid #8b5cf6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#8b5cf6;">Generating fresh hooks...</div>
+              <div style="font-size:9px;color:var(--text-muted);">${direction ? `Direction: ${direction}` : 'Analyzing the winning ad'}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      try {
+        // Get ALL hooks to exclude: existing + saved + dismissed
+        const existingHooks = (winner.variations || []).map(v => v.hook).filter(Boolean);
+        const savedHooks = window._savedHooks?.[winnerIdx] || [];
+        const dismissedHooks = window._excludedHooks?.[winnerIdx] || [];
+        const allExcludedHooks = [...new Set([...existingHooks, ...savedHooks, ...dismissedHooks])];
+
+        // Call API to regenerate variations for this specific winner
+        const response = await fetch(`/api/facebook/analysis/regenerate-variations/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ winner, excludeHooks: allExcludedHooks, direction }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.variations?.length > 0) {
+          // Update BOTH the window data AND the cached suggestions
+          if (window._doubleDownsData?.[winnerIdx]) {
+            window._doubleDownsData[winnerIdx].variations = result.variations;
+          }
+          if (cachedTestSuggestions?.doubleDowns?.[winnerIdx]) {
+            cachedTestSuggestions.doubleDowns[winnerIdx].variations = result.variations;
+          }
+
+          toast(`Generated ${result.variations.length} new hook ideas!`, 'success');
+
+          // Only update THIS card's variations section, not the entire grid
+          updateWinnerVariationsUI(winnerIdx, result.variations);
+        } else {
+          toast('Could not generate new variations', 'error');
+          // Restore just this card
+          if (window._doubleDownsData?.[winnerIdx]?.variations) {
+            updateWinnerVariationsUI(winnerIdx, window._doubleDownsData[winnerIdx].variations);
+          }
+        }
+      } catch (err) {
+        console.error('Regenerate error:', err);
+        toast('Failed to regenerate: ' + err.message, 'error');
+        // Restore just this card
+        if (window._doubleDownsData?.[winnerIdx]?.variations) {
+          updateWinnerVariationsUI(winnerIdx, window._doubleDownsData[winnerIdx].variations);
+        }
+      }
+    }
+
+    // Generate initial hook ideas for a card that doesn't have any
+    async function generateInitialHooks(winnerIdx, btn) {
+      const winner = window._doubleDownsData?.[winnerIdx];
+      if (!winner || !currentBrandId) {
+        toast('Winner data not found', 'error');
+        return;
+      }
+
+      // Show loading state
+      if (btn) {
+        btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border:2px solid white;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></span> Generating hooks...</span>';
+        btn.disabled = true;
+      }
+
+      try {
+        // Exclude any previously saved or dismissed hooks
+        const savedHooks = window._savedHooks?.[winnerIdx] || [];
+        const dismissedHooks = window._excludedHooks?.[winnerIdx] || [];
+        const excludeHooks = [...new Set([...savedHooks, ...dismissedHooks])];
+
+        const response = await fetch(`/api/facebook/analysis/regenerate-variations/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ winner, excludeHooks, direction: null }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.variations?.length > 0) {
+          // Update the data
+          if (window._doubleDownsData?.[winnerIdx]) {
+            window._doubleDownsData[winnerIdx].variations = result.variations;
+          }
+          if (cachedTestSuggestions?.doubleDowns?.[winnerIdx]) {
+            cachedTestSuggestions.doubleDowns[winnerIdx].variations = result.variations;
+          }
+
+          toast(`Generated ${result.variations.length} hook ideas!`, 'success');
+          updateWinnerVariationsUI(winnerIdx, result.variations);
+        } else {
+          toast('Could not generate hook ideas', 'error');
+          if (btn) {
+            btn.innerHTML = '🔄 Generate Hook Ideas';
+            btn.disabled = false;
+          }
+        }
+      } catch (err) {
+        console.error('Generate hooks error:', err);
+        toast('Failed to generate: ' + err.message, 'error');
+        if (btn) {
+          btn.innerHTML = '🔄 Generate Hook Ideas';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Update just the variations section of a specific winner card (without re-rendering entire grid)
+    function updateWinnerVariationsUI(winnerIdx, variations) {
+      const winner = window._doubleDownsData?.[winnerIdx];
+      if (!winner) return;
+
+      const card = document.getElementById(`double-down-card-${winnerIdx}`);
+      if (!card) return;
+
+      // Find or create the variations container
+      let variationsContainer = card.querySelector('[data-variations-container]');
+      if (!variationsContainer) {
+        // Find the container by looking for the variations section
+        const containers = card.querySelectorAll('div[style*="margin-bottom:10px"]');
+        variationsContainer = containers[containers.length - 1];
+      }
+
+      if (!variationsContainer) return;
+
+      const formatKey = winner.format?.key || 'product_hero';
+
+      // Build the "More" dropdown HTML
+      const buildMoreDropdown = (idx, vIdx) => `
+        <div style="position:relative;display:inline-block;">
+          <button onclick="toggleFormatDropdown(${idx}, ${vIdx}, event)" style="padding:4px 8px;font-size:9px;font-weight:600;background:rgba(100,100,100,0.3);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:4px;cursor:pointer;" title="More format options">More ▾</button>
+          <div id="format-dropdown-${idx}-${vIdx}" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg-card);border:1px solid var(--border-secondary);border-radius:6px;padding:6px;z-index:100;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+            <div style="font-size:8px;color:var(--text-muted);margin-bottom:4px;padding:0 4px;">All formats:</div>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'product_hero')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎯 Product Hero</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'illustrated')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎨 Illustrated</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'comparison')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">⚔️ Comparison</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'quote_card')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;margin-bottom:2px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 Quote Card</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'newspaper')" style="display:block;width:100%;text-align:left;padding:6px 8px;font-size:9px;background:transparent;color:var(--text-primary);border:none;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📰 Newspaper</button>
+          </div>
+        </div>
+      `;
+
+      // Build format buttons based on winner type
+      const buildButtons = (idx, vIdx) => {
+        const moreDropdown = buildMoreDropdown(idx, vIdx);
+        if (formatKey === 'founder' || formatKey === 'video') {
+          return `
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'quote_card')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:4px;cursor:pointer;">Quote Card</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'newspaper')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;border:none;border-radius:4px;cursor:pointer;">News</button>
+            ${moreDropdown}
+          `;
+        } else if (formatKey === 'illustrated') {
+          return `
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'illustrated')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;">Illustrated</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'meme')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #ec4899, #be185d);color:white;border:none;border-radius:4px;cursor:pointer;">Meme</button>
+            ${moreDropdown}
+          `;
+        } else {
+          return `
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'product_hero')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:4px;cursor:pointer;">Hero</button>
+            <button onclick="generateVariationStatic(${idx}, ${vIdx}, this, 'stat_stack_hero')" style="padding:4px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;border:none;border-radius:4px;cursor:pointer;">Stats</button>
+            ${moreDropdown}
+          `;
+        }
+      };
+
+      // Build HTML for all variations
+      const variationsHtml = variations.map((v, vIdx) => `
+        <div id="dd-variation-${winnerIdx}-${vIdx}" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.15);border-radius:6px;padding:8px;margin-bottom:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:500;color:var(--text-primary);line-height:1.3;">"${v.hook || ''}"</div>
+              <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Auto-saves on generate</div>
+            </div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;">
+              ${buildButtons(winnerIdx, vIdx)}
+              <button onclick="dismissVariation(${winnerIdx}, ${vIdx}, '${(v.hook || '').replace(/'/g, "\\'")}')" style="padding:4px 6px;font-size:8px;background:transparent;color:var(--text-dim);border:1px solid var(--border-secondary);border-radius:4px;cursor:pointer;" title="Dismiss">✕</button>
+            </div>
+          </div>
+          <div id="variation-result-${winnerIdx}-${vIdx}" style="margin-top:6px;display:none;"></div>
+        </div>
+      `).join('');
+
+      // Update the container with new variations
+      variationsContainer.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:10px;color:var(--text-muted);">Hook variations ready:</span>
+          <button onclick="showRegenerateOptions(${winnerIdx})" style="font-size:9px;padding:3px 8px;background:transparent;color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:4px;cursor:pointer;" title="Generate fresh hook ideas">🔄 Regenerate</button>
+        </div>
+        ${variationsHtml}
+        <button onclick="showRegenerateOptions(${winnerIdx})" style="width:100%;margin-top:8px;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:6px;cursor:pointer;">
+          🔄 Regenerate Hook Ideas
+        </button>
+      `;
+    }
+
+    // Dismiss an entire double-down winner card
+    async function dismissDoubleDown(winnerIdx, title) {
+      const card = document.getElementById(`double-down-card-${winnerIdx}`);
+      if (!card) return;
+
+      // Fade out animation
+      card.style.transition = 'opacity 0.3s, transform 0.3s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+
+      try {
+        // Mark as dismissed in backend (use the title as identifier)
+        await fetch(`/api/facebook/analysis/suggestions/${currentBrandId}/dismiss`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hook: title, type: 'double_down' }),
+        });
+      } catch (e) {
+        console.log('Could not persist dismissal:', e);
+      }
+
+      // Remove from DOM after animation
+      setTimeout(() => {
+        card.remove();
+      }, 300);
+    }
+
+    // Toggle the "More" format dropdown menu
+    function toggleFormatDropdown(winnerIdx, variationIdx, event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById(`format-dropdown-${winnerIdx}-${variationIdx}`);
+      if (!dropdown) return;
+
+      // Close all other dropdowns first
+      document.querySelectorAll('[id^="format-dropdown-"]').forEach(d => {
+        if (d !== dropdown) d.style.display = 'none';
+      });
+
+      // Toggle this dropdown
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+
+      // Close dropdown when clicking outside
+      if (dropdown.style.display === 'block') {
+        const closeHandler = (e) => {
+          if (!dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+            document.removeEventListener('click', closeHandler);
+          }
+        };
+        setTimeout(() => document.addEventListener('click', closeHandler), 10);
+      }
+    }
+
+    // Dismiss a variation (removes from UI and marks as dismissed in DB)
+    async function dismissVariation(winnerIdx, variationIdx, hook) {
+      const card = document.getElementById(`dd-variation-${winnerIdx}-${variationIdx}`);
+      if (!card) return;
+
+      // Fade out the card
+      card.style.opacity = '0.5';
+      card.style.pointerEvents = 'none';
+
+      try {
+        await fetch(`/api/facebook/analysis/suggestions/${currentBrandId}/dismiss`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hook }),
+        });
+
+        // Remove from UI
+        card.style.transition = 'all 0.3s ease';
+        card.style.height = card.offsetHeight + 'px';
+        requestAnimationFrame(() => {
+          card.style.height = '0';
+          card.style.padding = '0';
+          card.style.margin = '0';
+          card.style.opacity = '0';
+        });
+        setTimeout(() => card.remove(), 300);
+
+        toast('Suggestion dismissed', 'success');
+      } catch (err) {
+        card.style.opacity = '1';
+        card.style.pointerEvents = 'auto';
+        console.error('Dismiss error:', err);
+      }
+    }
+
+    // Dismiss a test suggestion (new angle)
+    async function dismissTestSuggestion(testIndex, hook) {
+      const card = document.getElementById(`test-card-${testIndex}`);
+      if (!card) return;
+
+      card.style.opacity = '0.5';
+      card.style.pointerEvents = 'none';
+
+      try {
+        await fetch(`/api/facebook/analysis/suggestions/${currentBrandId}/dismiss`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hook }),
+        });
+
+        card.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+          card.style.height = '0';
+          card.style.opacity = '0';
+          card.style.overflow = 'hidden';
+        }, 10);
+        setTimeout(() => card.remove(), 300);
+
+        toast('Suggestion dismissed', 'success');
+      } catch (err) {
+        card.style.opacity = '1';
+        card.style.pointerEvents = 'auto';
+        console.error('Dismiss error:', err);
+      }
+    }
+
+    // Show inspiration image preview in a lightbox
+    function showInspirationPreview(angleKey, angleIndex) {
+      // Try angles first, fall back to formats for backwards compat
+      const angleData = window._winningAnglesData?.[angleIndex] || window._winningFormatsData?.[angleIndex];
+      const topAd = angleData?.topAds?.[0];
+      const imageUrl = topAd?.imageUrl || topAd?.thumbnail;
+
+      if (!imageUrl) {
+        toast('No preview available for this ad', 'error');
+        return;
+      }
+
+      // Use proxy to load image
+      const proxyUrl = '/api/facebook/analysis/image-proxy?url=' + encodeURIComponent(imageUrl);
+      const angleName = angleData?.angleName || angleKey.replace(/_/g, ' ');
+
+      const modal = document.createElement('div');
+      modal.className = 'video-lightbox';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+      modal.innerHTML = `
+        <div style="background:var(--bg-card);border-radius:16px;max-width:600px;max-height:90vh;overflow:hidden;padding:20px;margin:20px;position:relative;">
+          <button onclick="this.closest('.video-lightbox').remove()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.5);border:none;color:white;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;">&times;</button>
+
+          <div style="text-align:center;margin-bottom:16px;">
+            <span style="font-size:12px;font-weight:700;color:#fbbf24;text-transform:uppercase;">🏆 ${angleName.toUpperCase()} - WINNING AD</span>
+          </div>
+
+          <div style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:300px;">
+            <img src="${proxyUrl}" style="max-width:100%;max-height:70vh;object-fit:contain;" onerror="this.parentElement.innerHTML='<div style=\\'padding:40px;text-align:center;color:var(--text-muted);\\'>Image could not be loaded.<br><br><a href=\\'${imageUrl}\\' target=\\'_blank\\' style=\\'color:#60a5fa;\\'>Try opening directly →</a></div>'">
+          </div>
+
+          <div style="margin-top:16px;padding:12px;background:var(--bg-card-alt);border-radius:8px;">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${esc(topAd?.name || 'Winning Ad')}</div>
+            <div style="font-size:11px;color:var(--text-muted);">$${topAd?.spend?.toLocaleString() || '0'} spend · ${topAd?.roas || '0'}x ROAS · ${topAd?.formatLabel || (topAd?.isStatic ? 'Static' : 'Video')}</div>
+          </div>
+
+          <div style="margin-top:12px;font-size:11px;color:var(--text-faint);text-align:center;">
+            Double down on this winning angle with fresh variations
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+    }
+
+    // NEW: Show preview for specific winning ad
+    function showDoubleDownPreview(idx) {
+      const winner = window._doubleDownsData?.[idx];
+      if (!winner) {
+        toast('No preview data available', 'error');
+        return;
+      }
+
+      const imageUrl = winner.imageUrl || winner.thumbnail;
+      if (!imageUrl) {
+        toast('No preview image available for this ad', 'error');
+        return;
+      }
+
+      const proxyUrl = '/api/facebook/analysis/image-proxy?url=' + encodeURIComponent(imageUrl);
+
+      const modal = document.createElement('div');
+      modal.className = 'video-lightbox';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+      modal.innerHTML = `
+        <div style="background:var(--bg-card);border-radius:16px;max-width:700px;max-height:90vh;overflow:hidden;padding:20px;margin:20px;position:relative;">
+          <button onclick="this.closest('.video-lightbox').remove()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.5);border:none;color:white;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;">&times;</button>
+
+          <div style="text-align:center;margin-bottom:16px;">
+            <span style="font-size:12px;font-weight:700;color:#22c55e;text-transform:uppercase;">🏆 WINNING AD</span>
+          </div>
+
+          <div style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:300px;">
+            <img src="${proxyUrl}" style="max-width:100%;max-height:60vh;object-fit:contain;" onerror="this.parentElement.innerHTML='<div style=\\'padding:40px;text-align:center;color:var(--text-muted);\\'>Image could not be loaded.</div>'">
+          </div>
+
+          <div style="margin-top:16px;padding:12px;background:var(--bg-card-alt);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${esc(winner.title)}</div>
+            <div style="font-size:12px;color:#22c55e;font-weight:600;margin-bottom:6px;">$${winner.spend?.toLocaleString()} spent · ${winner.roas}x ROAS</div>
+            <div style="font-size:11px;color:var(--text-muted);">${winner.format?.label || 'Video'} · ${winner.angle?.label || 'General'}</div>
+          </div>
+
+          <div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.1);border-radius:8px;">
+            <div style="font-size:11px;color:#fbbf24;font-weight:600;margin-bottom:4px;">How to replicate:</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">${winner.howToReplicate || 'Create similar content with different hooks.'}</div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+    }
+
+    // Show generated static in a lightbox (for double-downs)
+    function showGeneratedStaticLightbox(imageUrl, hookText, aspectRatio) {
+      const modal = document.createElement('div');
+      modal.className = 'video-lightbox';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+      modal.innerHTML = `
+        <div style="background:var(--bg-card);border-radius:16px;max-width:${aspectRatio === '9:16' ? '450px' : '600px'};max-height:90vh;overflow:hidden;padding:20px;margin:20px;position:relative;">
+          <button onclick="this.closest('.video-lightbox').remove()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.5);border:none;color:white;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;">&times;</button>
+
+          <div style="text-align:center;margin-bottom:16px;">
+            <span style="font-size:12px;font-weight:700;color:#8b5cf6;text-transform:uppercase;">🔥 GENERATED STATIC</span>
+          </div>
+
+          <div style="background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <img src="${imageUrl}" style="max-width:100%;max-height:65vh;object-fit:contain;" onerror="this.parentElement.innerHTML='<div style=\\'padding:40px;text-align:center;color:var(--text-muted);\\'>Image could not be loaded.</div>'">
+          </div>
+
+          <div style="margin-top:16px;padding:12px;background:var(--bg-card-alt);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">"${esc(hookText)}"</div>
+            <div style="font-size:11px;color:var(--text-muted);">${aspectRatio} aspect ratio</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <a href="${imageUrl}" download style="flex:1;padding:10px;font-size:12px;font-weight:600;color:white;background:#22c55e;border-radius:8px;text-decoration:none;text-align:center;">⬇ Download</a>
+            <button onclick="window.open('${imageUrl}', '_blank')" style="flex:1;padding:10px;font-size:12px;font-weight:600;color:white;background:#3b82f6;border:none;border-radius:8px;cursor:pointer;">↗ Open Original</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+    }
+
+    // NEW: Play video for a double down winner
+    function playDoubleDownVideo(idx) {
+      const winner = window._doubleDownsData?.[idx];
+      if (!winner || !winner.videoId) {
+        toast('No video available for this ad', 'error');
+        return;
+      }
+
+      // Create fullscreen video lightbox (same as playAdVideo)
+      const lightbox = document.createElement('div');
+      lightbox.id = 'videoLightbox';
+      lightbox.className = 'video-lightbox';
+      lightbox.onclick = (e) => { if (e.target === lightbox) closeVideoLightbox(); };
+
+      // Facebook plugin with 9:16 dimensions
+      const embedUrl = `https://www.facebook.com/plugins/video.php?height=700&href=https://www.facebook.com/reel/${winner.videoId}&show_text=false&width=394&autoplay=true`;
+
+      lightbox.innerHTML = `
+        <button class="video-lightbox-close" onclick="closeVideoLightbox()">×</button>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <iframe
+            src="${embedUrl}"
+            class="video-lightbox-iframe"
+            allowfullscreen="true"
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+          </iframe>
+          <div style="background:var(--bg-card);border-radius:12px;padding:16px;max-width:394px;width:100%;">
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${esc(winner.title)}</div>
+            <div style="font-size:12px;color:#22c55e;font-weight:600;margin-bottom:8px;">$${winner.spend?.toLocaleString()} · ${winner.roas}x ROAS</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.4;">${winner.howToReplicate || ''}</div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(lightbox);
+      document.body.style.overflow = 'hidden';
+    }
+
+    // NEW: Generate similar ads from a specific winner
+    async function generateDoubleDownFromWinner(idx, btn) {
+      if (!currentBrandId) return;
+
+      const winner = window._doubleDownsData?.[idx];
+      if (!winner) {
+        toast('No winner data available', 'error');
+        return;
+      }
+
+      const testsContainer = document.getElementById(`dd-tests-${idx}`);
+
+      // Show loading state
+      const originalText = btn?.innerHTML || '🔥 Generate Similar';
+      if (btn) {
+        btn.innerHTML = '⏳ Generating...';
+        btn.disabled = true;
+      }
+
+      try {
+        // Call the double-down endpoint with winner context
+        const response = await fetch(`/api/facebook/analysis/double-down/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            winnerContext: {
+              title: winner.title,
+              format: winner.format,
+              angle: winner.angle,
+              spend: winner.spend,
+              roas: winner.roas,
+              headline: winner.headline,
+              bodySnippet: winner.bodySnippet,
+              transcriptSnippet: winner.transcriptSnippet,
+              transcript: winner.transcript || null, // Full transcript for founder videos
+              howToReplicate: winner.howToReplicate,
+              // Include vision AI data for deeper narrative understanding
+              staticCopy: winner.staticCopy || null,
+            }
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.tests?.length > 0) {
+          // Store the tests data for generation
+          window._ddVariations = window._ddVariations || {};
+          window._ddVariations[idx] = { tests: data.tests, winner };
+
+          // Check if this is a video format that needs static format options
+          const isVideoFormat = ['founder', 'video'].includes(winner.format?.key);
+
+          testsContainer.innerHTML = data.tests.map((test, i) => `
+            <div style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px;margin-top:${i > 0 ? '8px' : '0'};">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">"${esc(test.hook || '')}"</div>
+                  <div style="font-size:10px;color:var(--text-muted);">${winner.format?.label || 'Static'} → Auto-saves when done</div>
+                </div>
+                ${isVideoFormat ? `
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button onclick="generateVariationStatic(${idx}, ${i}, this, 'quote_card')" style="padding:5px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;" title="Founder photo + quote overlay">
+                      💬 Quote
+                    </button>
+                    <button onclick="generateVariationStatic(${idx}, ${i}, this, 'newspaper')" style="padding:5px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;" title="Editorial/newspaper style">
+                      📰 News
+                    </button>
+                    <button onclick="generateVariationStatic(${idx}, ${i}, this, 'product_hero')" style="padding:5px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;" title="Clean product + headline">
+                      🎯 Hero
+                    </button>
+                    <button onclick="generateVariationStatic(${idx}, ${i}, this, 'instagram_story')" style="padding:5px 8px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #ec4899, #db2777);color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;" title="IG Story native style">
+                      📱 Story
+                    </button>
+                  </div>
+                ` : `
+                  <button onclick="generateVariationStatic(${idx}, ${i}, this)" style="padding:6px 12px;font-size:10px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">
+                    Generate & Save
+                  </button>
+                `}
+              </div>
+              <div id="variation-result-${idx}-${i}" style="margin-top:8px;display:none;"></div>
+            </div>
+          `).join('');
+          testsContainer.style.display = 'block';
+        } else {
+          testsContainer.innerHTML = '<div style="font-size:11px;color:var(--text-muted);padding:8px;">No tests generated. Try again.</div>';
+          testsContainer.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Generate error:', err);
+        testsContainer.innerHTML = '<div style="font-size:11px;color:#ef4444;padding:8px;">Error generating tests.</div>';
+        testsContainer.style.display = 'block';
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Generate a single variation static image (uses same flow as generateStaticsForTest)
+    // Optional overrideFormat parameter allows choosing specific static format
+    async function generateVariationStatic(winnerIdx, variationIdx, btn, overrideFormat = null) {
+      if (!currentBrandId) return;
+
+      // IMMEDIATELY close any open dropdowns
+      document.querySelectorAll('[id^="format-dropdown-"]').forEach(d => d.style.display = 'none');
+
+      // Check for data in two places:
+      // 1. _ddVariations (populated when user clicks "Generate Similar")
+      // 2. _doubleDownsData[idx].variations (pre-generated when Test Ideas loads)
+      let data = window._ddVariations?.[winnerIdx];
+      let winner, variation;
+
+      if (data) {
+        winner = data.winner;
+        variation = data.tests[variationIdx];
+      } else {
+        // Try pre-generated variations
+        winner = window._doubleDownsData?.[winnerIdx];
+        variation = winner?.variations?.[variationIdx];
+      }
+
+      if (!winner || !variation) {
+        toast('Variation data not found', 'error');
+        return;
+      }
+
+      const resultContainer = document.getElementById(`variation-result-${winnerIdx}-${variationIdx}`);
+      const variationCard = document.getElementById(`dd-variation-${winnerIdx}-${variationIdx}`);
+      const originalText = btn.innerHTML;
+
+      // Show clear loading state in the entire variation card
+      if (variationCard) {
+        variationCard.style.background = 'rgba(139, 92, 246, 0.15)';
+        variationCard.style.border = '1px solid rgba(139, 92, 246, 0.4)';
+      }
+
+      // Show loading indicator in result area
+      if (resultContainer) {
+        resultContainer.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(139,92,246,0.1);border-radius:6px;margin-top:8px;">
+            <div style="width:20px;height:20px;border:2px solid #8b5cf6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#8b5cf6;">Generating ${overrideFormat || 'static'}...</div>
+              <div style="font-size:9px;color:var(--text-muted);">This takes 15-30 seconds</div>
+            </div>
+          </div>
+        `;
+        resultContainer.style.display = 'block';
+      }
+
+      btn.innerHTML = '⏳';
+      btn.disabled = true;
+
+      // Use override format if provided, otherwise map winner's format to a STATIC format
+      let formatKey;
+      if (overrideFormat) {
+        formatKey = overrideFormat;
+      } else {
+        const videoToStaticMap = {
+          'founder': 'stat_stack_hero',     // Founder stories → Stat stack with founder photo + quote/stats
+          'video': 'product_hero',          // Generic video → Product hero
+          'ugc': 'ugc',                      // UGC stays UGC
+          'comparison': 'comparison',        // Comparison stays comparison
+        };
+        formatKey = winner.format?.key || 'product_hero';
+        // If it's a video format, convert to appropriate static format
+        if (videoToStaticMap[formatKey]) {
+          formatKey = videoToStaticMap[formatKey];
+        }
+      }
+      // Ensure we have a valid static format (includes founder-specific styles)
+      const validStaticFormats = [
+        'product_hero', 'meme', 'aesthetic', 'illustrated', 'vintage', 'ugc',
+        'comparison', 'news_editorial', 'testimonial', 'stat_stack_hero',
+        // Founder-specific styles
+        'quote_card', 'newspaper', 'instagram_story', 'magazine', 'text_confession'
+      ];
+      if (!validStaticFormats.includes(formatKey)) {
+        formatKey = 'product_hero'; // Default fallback
+      }
+
+      try {
+        // Build request matching generateStaticsForTest format
+        // IMPORTANT: Pass the winning ad's image as reference so it generates in the same style
+        // For double-downs, pass the visual description from Gemini so the AI matches the exact style
+        // Detect if this is a founder video (for founder-specific prompt generation)
+        const isFounderVideo = winner.format?.key === 'founder' || winner.format?.key === 'video';
+
+        // For founder videos: use brand's product image (not video thumbnail)
+        // The backend will use brand.product_image_url and brand.founder_image_url
+        const referenceUrl = isFounderVideo ? null : (winner.imageUrl || winner.thumbnail);
+
+        const requestData = {
+          test: {
+            title: variation.title || variation.hook,
+            hook: variation.hook,
+            angle: winner.title || winner.angle?.label || 'General', // Use full title which has the real angle
+            copyDirection: winner.howToReplicate || '',
+            visualDirection: `Same style as winning ${winner.format?.label || 'static'}`,
+            persona: 'general',
+            formats: [formatKey], // Just the one format matching the winner
+          },
+          aspectRatios: ['4:5', '9:16'], // Both ratios like new angles
+          variants: 1,
+          singleFormat: true, // Don't pad to 3 formats - use exactly what we pass
+          referenceImageUrl: referenceUrl, // For founder videos, let backend use brand's product image
+          // Pass the visual description for double-down style matching
+          winningAdVisualDescription: isFounderVideo ? null : (winner.staticCopy?.visualDescription || null),
+          winningAdHeadline: winner.staticCopy?.headline || winner.headline || null,
+          // Pass founder flag for founder-specific prompt generation
+          isFounderVideo: isFounderVideo,
+          // Pass video transcript if available (for founder videos)
+          videoTranscript: winner.transcript || null,
+        };
+
+        console.log('Generating variation:', requestData);
+
+        const response = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData),
+        });
+
+        const result = await response.json();
+        console.log('Generation result:', result);
+
+        if (result.success && result.statics?.length > 0) {
+          const successfulStatics = result.statics.filter(s => s.status === 'complete' && s.imageUrl);
+          if (successfulStatics.length > 0) {
+            // Store the statics data
+            window._generatedDoubleDowns = window._generatedDoubleDowns || {};
+            window._generatedDoubleDowns[`${winnerIdx}-${variationIdx}`] = {
+              statics: successfulStatics,
+              variation,
+              winner,
+              formatKey,
+            };
+
+            // Show generated images with Save, Regenerate, and Dismiss options
+            resultContainer.innerHTML = `
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                ${successfulStatics.map((s, idx) => `
+                  <div style="flex:1;text-align:center;">
+                    <img src="${s.imageUrl}" style="width:100%;border-radius:6px;cursor:pointer;" onclick="showGeneratedStaticLightbox('${s.imageUrl}', '${esc(variation.hook)}', '${s.aspectRatio || '4:5'}')" />
+                    <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">${s.aspectRatio || '4:5'}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="display:flex;gap:6px;margin-top:10px;">
+                <button onclick="saveDoubleDownAsTest(${winnerIdx}, ${variationIdx}, this)" style="flex:1;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:6px;cursor:pointer;">
+                  ✓ Save
+                </button>
+                <button onclick="showRegenerateImageOptions(${winnerIdx}, ${variationIdx}, '${formatKey}')" style="flex:1;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:6px;cursor:pointer;">
+                  🔄 Redo
+                </button>
+                <button onclick="dismissGeneratedStatic(${winnerIdx}, ${variationIdx})" style="padding:10px 14px;font-size:11px;font-weight:600;background:rgba(100,100,100,0.3);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;">
+                  ✕
+                </button>
+              </div>
+            `;
+            resultContainer.style.display = 'block';
+            btn.innerHTML = '✓ Generated';
+            btn.style.background = '#3b82f6';
+            btn.disabled = true;
+
+            // Reset card styling
+            if (variationCard) {
+              variationCard.style.background = 'rgba(34,197,94,0.1)';
+              variationCard.style.border = '1px solid rgba(34,197,94,0.3)';
+            }
+          } else {
+            const errorMsg = result.statics[0]?.error || 'Generation failed';
+            resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;">${errorMsg}</div>`;
+            resultContainer.style.display = 'block';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        } else {
+          resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;background:rgba(239,68,68,0.1);border-radius:4px;">❌ ${result.error || result.message || 'Generation failed'}</div>`;
+          resultContainer.style.display = 'block';
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          // Reset card styling
+          if (variationCard) {
+            variationCard.style.background = 'rgba(251,191,36,0.05)';
+            variationCard.style.border = '1px solid rgba(251,191,36,0.15)';
+          }
+          toast('Generation failed - try again', 'error');
+        }
+      } catch (err) {
+        console.error('Generation error:', err);
+        resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;background:rgba(239,68,68,0.1);border-radius:4px;">❌ Error: ${err.message}</div>`;
+        resultContainer.style.display = 'block';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        // Reset card styling
+        if (variationCard) {
+          variationCard.style.background = 'rgba(251,191,36,0.05)';
+          variationCard.style.border = '1px solid rgba(251,191,36,0.15)';
+        }
+        toast('Generation error: ' + err.message, 'error');
+      }
+    }
+
+    // Dismiss a generated static without saving - excludes hook and offers regenerate
+    function dismissGeneratedStatic(winnerIdx, variationIdx) {
+      // Preserve scroll position to prevent visual jump
+      const scrollY = window.scrollY;
+
+      const variationCard = document.getElementById(`dd-variation-${winnerIdx}-${variationIdx}`);
+      const resultContainer = document.getElementById(`variation-result-${winnerIdx}-${variationIdx}`);
+      const winner = window._doubleDownsData?.[winnerIdx];
+      const variation = winner?.variations?.[variationIdx];
+
+      // Track excluded hooks for this winner
+      window._excludedHooks = window._excludedHooks || {};
+      window._excludedHooks[winnerIdx] = window._excludedHooks[winnerIdx] || [];
+      if (variation?.hook) {
+        window._excludedHooks[winnerIdx].push(variation.hook);
+      }
+
+      // Show regenerate option instead of the original variation
+      if (variationCard) {
+        variationCard.innerHTML = `
+          <div style="padding:12px;text-align:center;">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Hook discarded</div>
+            <button onclick="regenerateSingleVariation(${winnerIdx}, ${variationIdx})" style="padding:8px 16px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:white;border:none;border-radius:6px;cursor:pointer;">
+              🔄 Generate New Hook
+            </button>
+          </div>
+        `;
+        variationCard.style.background = 'rgba(100,100,100,0.1)';
+        variationCard.style.border = '1px dashed var(--border-secondary)';
+      }
+
+      // Restore scroll position after DOM update
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollY);
+      });
+
+      toast('Hook discarded - click to generate a new one', 'info');
+    }
+
+    // Show regenerate image options with issue feedback
+    function showRegenerateImageOptions(winnerIdx, variationIdx, formatKey) {
+      const resultContainer = document.getElementById(`variation-result-${winnerIdx}-${variationIdx}`);
+      if (!resultContainer) return;
+
+      // Check if picker already showing
+      const existingPicker = resultContainer.querySelector('.regen-image-picker');
+      if (existingPicker) {
+        existingPicker.remove();
+        return;
+      }
+
+      const pickerHtml = `
+        <div class="regen-image-picker" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px;margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:600;color:#f59e0b;">What's wrong with the image?</span>
+            <button onclick="this.closest('.regen-image-picker').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 6px;">✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Text is blocked or covered by character/face - ensure ALL text is fully visible and readable, positioned in clear areas away from faces and bodies')" style="padding:5px 8px;font-size:9px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:4px;cursor:pointer;">🚫 Text Blocked</button>
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Text is hard to read or illegible - make text larger, bolder, and higher contrast against background')" style="padding:5px 8px;font-size:9px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);border-radius:4px;cursor:pointer;">👁️ Text Illegible</button>
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Logo is missing or not visible - MUST include the brand logo prominently in the image')" style="padding:5px 8px;font-size:9px;background:rgba(139,92,246,0.15);color:#a855f7;border:1px solid rgba(139,92,246,0.25);border-radius:4px;cursor:pointer;">🏷️ No Logo</button>
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Product looks wrong or different from reference - match the EXACT product from the reference image precisely')" style="padding:5px 8px;font-size:9px;background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);border-radius:4px;cursor:pointer;">📦 Wrong Product</button>
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Style/aesthetic is wrong - match the reference image style more closely')" style="padding:5px 8px;font-size:9px;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.25);border-radius:4px;cursor:pointer;">🎨 Wrong Style</button>
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', 'Layout/composition is off - better balance between text, product, and any characters')" style="padding:5px 8px;font-size:9px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:4px;cursor:pointer;">📐 Bad Layout</button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="custom-fix-${winnerIdx}-${variationIdx}" placeholder="Or describe the issue..." style="flex:1;padding:6px 8px;font-size:9px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-secondary);border-radius:4px;" onkeypress="if(event.key==='Enter')regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', this.value)">
+            <button onclick="regenerateImageWithFix(${winnerIdx}, ${variationIdx}, '${formatKey}', document.getElementById('custom-fix-${winnerIdx}-${variationIdx}').value)" style="padding:6px 10px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;">Fix</button>
+          </div>
+        </div>
+      `;
+
+      resultContainer.insertAdjacentHTML('beforeend', pickerHtml);
+    }
+
+    // Regenerate image with specific fix instruction
+    async function regenerateImageWithFix(winnerIdx, variationIdx, formatKey, fixInstruction) {
+      if (!fixInstruction || !fixInstruction.trim()) {
+        toast('Please describe what needs to be fixed', 'error');
+        return;
+      }
+
+      const resultContainer = document.getElementById(`variation-result-${winnerIdx}-${variationIdx}`);
+      const winner = window._doubleDownsData?.[winnerIdx];
+      const variation = winner?.variations?.[variationIdx];
+
+      if (!winner || !variation || !currentBrandId) {
+        toast('Data not found', 'error');
+        return;
+      }
+
+      // Remove the picker
+      const picker = resultContainer?.querySelector('.regen-image-picker');
+      if (picker) picker.remove();
+
+      // Show loading in result container
+      if (resultContainer) {
+        resultContainer.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;margin-top:8px;">
+            <div style="width:16px;height:16px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:#f59e0b;">Regenerating with fix...</div>
+              <div style="font-size:9px;color:var(--text-muted);">${fixInstruction.substring(0, 50)}${fixInstruction.length > 50 ? '...' : ''}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      try {
+        const isFounderVideo = winner.format?.key === 'founder' || winner.format?.key === 'video';
+        const referenceUrl = isFounderVideo ? null : (winner.imageUrl || winner.thumbnail);
+
+        const response = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            test: {
+              title: variation.title || variation.hook,
+              hook: variation.hook,
+              angle: winner.title || winner.angle?.label || 'General',
+              copyDirection: winner.howToReplicate || '',
+              visualDirection: `Same style as winning ${winner.format?.label || 'static'}`,
+              formats: [formatKey],
+            },
+            aspectRatios: ['4:5', '9:16'],
+            variants: 1,
+            singleFormat: true,
+            referenceImageUrl: referenceUrl,
+            winningAdVisualDescription: isFounderVideo ? null : (winner.staticCopy?.visualDescription || null),
+            winningAdHeadline: winner.staticCopy?.headline || winner.headline || null,
+            isFounderVideo: isFounderVideo,
+            videoTranscript: winner.transcript || null,
+            // Pass the fix instruction for regeneration
+            fixInstruction: fixInstruction,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.statics?.length > 0) {
+          const successfulStatics = result.statics.filter(s => s.imageUrl);
+          if (successfulStatics.length > 0) {
+            // Store for saving
+            window._generatedStatics = window._generatedStatics || {};
+            window._generatedStatics[`${winnerIdx}-${variationIdx}`] = {
+              statics: successfulStatics,
+              variation,
+              winner,
+              formatKey,
+            };
+
+            // Show regenerated images
+            resultContainer.innerHTML = `
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                ${successfulStatics.map((s, idx) => `
+                  <div style="flex:1;text-align:center;">
+                    <img src="${s.imageUrl}" style="width:100%;border-radius:6px;cursor:pointer;" onclick="showGeneratedStaticLightbox('${s.imageUrl}', '${esc(variation.hook)}', '${s.aspectRatio || '4:5'}')" />
+                    <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">${s.aspectRatio || '4:5'}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="display:flex;gap:6px;margin-top:10px;">
+                <button onclick="saveDoubleDownAsTest(${winnerIdx}, ${variationIdx}, this)" style="flex:1;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:6px;cursor:pointer;">
+                  ✓ Save
+                </button>
+                <button onclick="showRegenerateImageOptions(${winnerIdx}, ${variationIdx}, '${formatKey}')" style="flex:1;padding:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:6px;cursor:pointer;">
+                  🔄 Redo
+                </button>
+                <button onclick="dismissGeneratedStatic(${winnerIdx}, ${variationIdx})" style="padding:10px 14px;font-size:11px;font-weight:600;background:rgba(100,100,100,0.3);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;">
+                  ✕
+                </button>
+              </div>
+            `;
+            toast('Image regenerated!', 'success');
+          } else {
+            resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;background:rgba(239,68,68,0.1);border-radius:4px;">❌ Regeneration failed</div>`;
+            toast('Regeneration failed', 'error');
+          }
+        } else {
+          resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;background:rgba(239,68,68,0.1);border-radius:4px;">❌ ${result.error || 'Regeneration failed'}</div>`;
+          toast('Regeneration failed', 'error');
+        }
+      } catch (err) {
+        console.error('Regenerate error:', err);
+        resultContainer.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;background:rgba(239,68,68,0.1);border-radius:4px;">❌ Error: ${err.message}</div>`;
+        toast('Regeneration error', 'error');
+      }
+    }
+
+    // Regenerate a single variation slot with a new hook
+    async function regenerateSingleVariation(winnerIdx, variationIdx) {
+      const winner = window._doubleDownsData?.[winnerIdx];
+      if (!winner || !currentBrandId) {
+        toast('Winner data not found', 'error');
+        return;
+      }
+
+      const variationCard = document.getElementById(`dd-variation-${winnerIdx}-${variationIdx}`);
+      if (variationCard) {
+        variationCard.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;">
+            <div style="width:16px;height:16px;border:2px solid #8b5cf6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <span style="font-size:11px;color:#8b5cf6;">Generating new hook...</span>
+          </div>
+        `;
+      }
+
+      try {
+        // Get all excluded hooks for this winner (dismissed + already used)
+        const existingHooks = (winner.variations || []).map(v => v.hook).filter(Boolean);
+        const excludedHooks = [...existingHooks, ...(window._excludedHooks?.[winnerIdx] || [])];
+
+        const response = await fetch(`/api/facebook/analysis/regenerate-variations/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ winner, excludeHooks: excludedHooks, count: 1 }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.variations?.length > 0) {
+          const newVariation = result.variations[0];
+
+          // Update the winner's variations
+          if (window._doubleDownsData[winnerIdx].variations[variationIdx]) {
+            window._doubleDownsData[winnerIdx].variations[variationIdx] = newVariation;
+          }
+
+          // Refresh to show new variation
+          loadTestSuggestions();
+          toast('New hook generated!', 'success');
+        } else {
+          toast('Could not generate new hook', 'error');
+          loadTestSuggestions();
+        }
+      } catch (err) {
+        console.error('Regenerate single error:', err);
+        toast('Error: ' + err.message, 'error');
+        loadTestSuggestions();
+      }
+    }
+
+    // Save a generated double-down as a test campaign
+    async function saveDoubleDownAsTest(winnerIdx, variationIdx, btn) {
+      if (!currentBrandId) return;
+
+      const key = `${winnerIdx}-${variationIdx}`;
+      const data = window._generatedDoubleDowns?.[key];
+      if (!data) {
+        toast('No generated static data found', 'error');
+        return;
+      }
+
+      const { statics, variation, winner, formatKey } = data;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Saving...';
+      btn.disabled = true;
+
+      try {
+        // Build the campaign data
+        const campaignData = {
+          title: `Double Down: ${variation.hook}`,
+          hook: variation.hook,
+          angle: winner.title || winner.angle?.label || 'General',
+          hypothesis: `Double down on winning ${winner.format?.label || 'static'} with new hook variation`,
+          copyDirection: winner.howToReplicate || '',
+          visualDirection: `Match winning ${winner.format?.label || 'static'} style exactly`,
+          priority: 'high',
+          rationale: `Based on winner with $${winner.spend?.toLocaleString() || '0'} spend at ${winner.roas || '0'}x ROAS`,
+          basedOn: winner.adName || winner.title || 'Winning Ad',
+          recommendedFormats: [formatKey],
+          statics: statics.map(s => ({
+            imageUrl: s.imageUrl,
+            aspectRatio: s.aspectRatio || '4:5',
+            format: s.format || formatKey,
+            type: 'double_down',
+            generatedAt: new Date().toISOString(),
+          })),
+          status: 'ready',
+          notes: `Double-down from: ${winner.title}\nOriginal ROAS: ${winner.roas}x\nOriginal Spend: $${winner.spend?.toLocaleString() || '0'}`,
+        };
+
+        const response = await fetch(`/api/facebook/campaigns/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(campaignData),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Track saved hooks so we don't regenerate them
+          window._savedHooks = window._savedHooks || {};
+          window._savedHooks[winnerIdx] = window._savedHooks[winnerIdx] || [];
+          if (variation?.hook) {
+            window._savedHooks[winnerIdx].push(variation.hook);
+          }
+
+          toast('Saved to Tests!', 'success');
+
+          // Collapse the variation card to show it's been saved
+          const variationCard = document.getElementById(`dd-variation-${winnerIdx}-${variationIdx}`);
+          if (variationCard) {
+            variationCard.innerHTML = `
+              <div style="padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="color:#22c55e;font-size:14px;">✓</span>
+                  <span style="font-size:10px;color:#22c55e;font-weight:600;">Saved</span>
+                  <span style="font-size:10px;color:var(--text-muted);">"${variation.hook.substring(0, 30)}${variation.hook.length > 30 ? '...' : ''}"</span>
+                </div>
+                <a href="${statics[0]?.imageUrl || '#'}" target="_blank" style="font-size:9px;color:#60a5fa;text-decoration:none;">View →</a>
+              </div>
+            `;
+            variationCard.style.background = 'rgba(34,197,94,0.08)';
+            variationCard.style.border = '1px solid rgba(34,197,94,0.2)';
+          }
+        } else {
+          throw new Error(result.error || 'Save failed');
+        }
+      } catch (err) {
+        console.error('Save error:', err);
+        toast('Error saving: ' + err.message, 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // LEGACY: Generate double-down tests and show inline (not in modal)
+    async function generateDoubleDownTestsInline(angleKey, angleIndex, btn) {
+      if (!currentBrandId) return;
+
+      // Try angles first, fall back to formats
+      const angleData = window._winningAnglesData?.[angleIndex] || window._winningFormatsData?.[angleIndex];
+      const testsContainer = document.getElementById(`dd-tests-${angleIndex}`);
+
+      // Find button if not passed
+      if (!btn) {
+        btn = event?.target?.closest('button');
+      }
+
+      // Show loading state
+      const originalText = btn?.innerHTML || '🔥 Generate';
+      if (btn) {
+        btn.innerHTML = '⏳ Generating...';
+        btn.disabled = true;
+      }
+
+      try {
+        const res = await fetch(`/api/facebook/analysis/double-down/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            angleKey: angleKey,
+            angleName: angleData?.angleName || angleKey,
+            format: angleData?.format || 'product_hero',
+            topAds: angleData?.topAds || [],
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success && data.tests) {
+          // Show tests inside the card
+          testsContainer.style.display = 'block';
+          testsContainer.innerHTML = `
+            <div style="border-top:1px solid var(--border-secondary);padding-top:12px;">
+              <div style="font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:10px;">${data.tests.length} Variation Ideas:</div>
+              ${data.tests.map((test, i) => `
+                <div style="background:var(--bg-input);border-radius:8px;padding:12px;margin-bottom:8px;">
+                  <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">"${esc(test.hook || test.title || 'Test Idea')}"</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">${esc(test.angle || '')}</div>
+                  <div style="font-size:10px;color:var(--text-muted);line-height:1.4;margin-bottom:8px;">
+                    <strong>Wins:</strong> ${esc(test.hypothesis?.if_wins || test.ifWins || 'Validates approach')}
+                  </div>
+                  <button onclick="generateStaticsForDoubleDown(${angleIndex}, ${i})" style="width:100%;padding:8px;font-size:11px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #ef4444);color:white;border:none;border-radius:6px;cursor:pointer;">
+                    + Generate Statics for This
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+          // Store the tests for later use
+          window._doubleDownTests = window._doubleDownTests || {};
+          window._doubleDownTests[angleIndex] = data.tests;
+
+          // Update button
+          if (btn) {
+            btn.innerHTML = '🔄 Regenerate';
+            btn.disabled = false;
+          }
+
+          toast(`Generated ${data.tests.length} "${angleData?.angleName || angleKey}" variations!`, 'success');
+        } else {
+          toast(data.message || 'Failed to generate tests', 'error');
+          if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        }
+      } catch (err) {
+        console.error('Double down error:', err);
+        toast('Error generating tests: ' + err.message, 'error');
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Generate statics for a specific double-down test
+    async function generateStaticsForDoubleDown(formatIndex, testIndex) {
+      const tests = window._doubleDownTests?.[formatIndex];
+      if (!tests || !tests[testIndex]) {
+        toast('Test data not found', 'error');
+        return;
+      }
+
+      const test = tests[testIndex];
+
+      // Add this test to the cached suggestions so generateStaticsForTest can find it
+      // Use a high index to avoid conflicts
+      const virtualIndex = 1000 + (formatIndex * 10) + testIndex;
+      if (!cachedTestSuggestions) cachedTestSuggestions = { tests: [] };
+      cachedTestSuggestions.tests[virtualIndex] = test;
+
+      // Create a virtual test card for this double-down test
+      const cardHtml = `
+        <div class="test-card-v2" id="test-card-${virtualIndex}" style="margin-top:12px;">
+          <div class="test-card-accent double"></div>
+          <div class="test-card-body">
+            <div class="test-card-badges">
+              <span class="test-badge badge-double">DOUBLE DOWN</span>
+            </div>
+            <h4 class="test-card-hook">"${esc(test.hook || test.title)}"</h4>
+            <p class="test-card-angle">${esc(test.angle || '')}</p>
+            <div class="test-card-formats" style="margin-top:12px;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                ${(test.recommended_formats || ['stat_stack_hero', 'comparison']).slice(0, 2).map(fmt => `
+                  <span style="background:var(--bg-input);color:var(--text-secondary);font-size:11px;padding:4px 8px;border-radius:6px;">${fmt.replace(/_/g, ' ')}</span>
+                `).join('')}
+                <select id="formatSelect-${virtualIndex}" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-secondary);font-size:11px;padding:4px 8px;border-radius:6px;">
+                  <option value="stat_stack_hero">Stat Stack</option>
+                  <option value="news_editorial">News Editorial</option>
+                  <option value="before_after">Before/After</option>
+                  <option value="illustrated">Illustrated</option>
+                  <option value="comparison">Comparison</option>
+                </select>
+              </div>
+              <button id="genBtn-${virtualIndex}" onclick="generateStaticsForTest(${virtualIndex})" class="gen-statics-btn" style="width:100%;padding:12px;font-size:13px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #ef4444);color:white;border:none;border-radius:8px;cursor:pointer;">
+                + Generate Statics for This
+              </button>
+              <div id="genProgress-${virtualIndex}" class="gen-progress" style="display:none;margin-top:12px;">
+                <div id="genProgressItems-${virtualIndex}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Find the double-down test card and replace the button with a full card
+      const testCard = event.target.closest('.dd-test-card');
+      if (testCard) {
+        testCard.outerHTML = cardHtml;
+        // Auto-click the generate button
+        setTimeout(() => {
+          const genBtn = document.getElementById(`genBtn-${virtualIndex}`);
+          if (genBtn) genBtn.click();
+        }, 100);
+      }
     }
 
     function toggleTestDetails(index) {
@@ -2934,6 +5055,15 @@
           return;
         }
 
+        // Special handling for double_down filter - check type instead of source
+        if (source === 'double_down') {
+          const cardType = card.getAttribute('data-type') || '';
+          const matches = cardType === 'double_down';
+          card.style.display = matches ? '' : 'none';
+          if (matches) visibleCount++;
+          return;
+        }
+
         // Get the source from data attribute
         const cardSource = card.getAttribute('data-source') || '';
         const matches = cardSource === source;
@@ -2945,6 +5075,7 @@
       // Show message if no results
       if (visibleCount === 0) {
         const sourceLabels = {
+          'double_down': 'Double Downs',
           'facebook_data': 'Facebook Ad Data',
           'reddit': 'Reddit',
           'tiktok': 'TikTok',
@@ -3081,6 +5212,16 @@
       return testRatios[testIndex] || ['4:5'];
     }
 
+    // Update the third format when user selects from dropdown
+    function updateThirdFormat(testIndex, newFormat) {
+      // Store the user's selection (optional - we read it directly when generating)
+      const card = document.getElementById(`test-card-${testIndex}`);
+      if (card) {
+        card.dataset.userSelectedFormat = newFormat;
+      }
+      console.log(`[Test ${testIndex}] Third format changed to: ${newFormat}`);
+    }
+
     async function generateStaticsForTest(testIndex) {
       const test = cachedTestSuggestions?.tests?.[testIndex];
       if (!test) {
@@ -3097,23 +5238,58 @@
         'product_hero': { name: 'Product Hero', icon: '🖼️' },
         'meme': { name: 'Meme', icon: '😂' },
         'ugc': { name: 'UGC Style', icon: '📱' },
+        'ugc_style': { name: 'UGC Style', icon: '📱' },
         'aesthetic': { name: 'Aesthetic', icon: '✨' },
         'illustrated': { name: 'Illustrated', icon: '🎨' },
         'vintage': { name: 'Vintage', icon: '📰' },
         'news_editorial': { name: 'News Editorial', icon: '📰' },
         'comparison': { name: 'Comparison', icon: '⚖️' },
         'testimonial': { name: 'Testimonial', icon: '💬' },
+        'before_after': { name: 'Before/After', icon: '🔄' },
+        'stat_stack_hero': { name: 'Stat Stack', icon: '📊' },
+        'stat_stack': { name: 'Stat Stack', icon: '📊' },
+        'proof_story': { name: 'Proof Story', icon: '📊' },
         'social_proof': { name: 'Social Proof', icon: '⭐' },
         'lifestyle': { name: 'Lifestyle', icon: '🌿' },
         'benefit_focused': { name: 'Benefits', icon: '✅' },
         'problem_solution': { name: 'Problem/Solution', icon: '💡' },
         'authority': { name: 'Authority', icon: '🏆' },
         'urgency': { name: 'Urgency', icon: '⏰' },
+        // Founder styles
+        'quote_card': { name: 'Quote Card', icon: '💬' },
+        'newspaper': { name: 'Newspaper', icon: '📰' },
+        'instagram_story': { name: 'IG Story', icon: '📱' },
+        'magazine': { name: 'Magazine', icon: '📖' },
+        'text_confession': { name: 'Text Confession', icon: '📝' },
       };
 
-      // Use test's recommended formats, or fall back to defaults
-      const testFormats = test.recommended_formats || test.formats || ['product_hero', 'meme', 'ugc'];
-      const formats = testFormats.slice(0, 3).map(id => ({
+      // Check if this is a founder test - use different format selection
+      const isFounderTest = test.title?.toLowerCase().includes('founder') ||
+                            test.source?.key === 'founder' ||
+                            test.format?.key === 'founder';
+
+      let finalFormats;
+
+      if (isFounderTest) {
+        // Read selected founder styles from checkboxes
+        const founderStyleIds = ['quote_card', 'newspaper', 'product_hero', 'instagram_story', 'magazine', 'text_confession'];
+        finalFormats = founderStyleIds.filter(styleId => {
+          const checkbox = document.getElementById(`founderStyle-${testIndex}-${styleId}`);
+          return checkbox && checkbox.checked;
+        });
+
+        // Default to quote_card if nothing selected
+        if (finalFormats.length === 0) {
+          finalFormats = ['quote_card'];
+        }
+        console.log(`[Founder Test] Selected styles: ${finalFormats.join(', ')}`);
+      } else {
+        // Use test's recommended formats (first 2) + user-selected 3rd format
+        const testFormats = test.recommended_formats || test.formats || ['product_hero', 'meme', 'ugc'];
+        const selectedThirdFormat = document.getElementById(`formatSelect-${testIndex}`)?.value || testFormats[2] || 'product_hero';
+        finalFormats = [...testFormats.slice(0, 2), selectedThirdFormat];
+      }
+      const formats = finalFormats.map(id => ({
         id,
         name: formatInfo[id]?.name || id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
         icon: formatInfo[id]?.icon || '📷',
@@ -3172,10 +5348,11 @@
             copyDirection: test.hypothesis?.copy_direction || test.copy_direction || '',
             visualDirection: test.hypothesis?.visual_direction || test.visual_direction || '',
             persona: test.persona?.id || test.persona || 'general',
-            formats: test.recommended_formats || ['product_hero', 'meme', 'ugc'],
+            formats: finalFormats, // Founder: selected styles, Regular: 2 auto + 1 user
           },
           aspectRatios: outputRatios, // Always both 4:5 and 9:16
-          variants: 2,
+          variants: isFounderTest ? 1 : 2, // Founder tests: 1 variant per style (more styles)
+          isFounderVideo: isFounderTest, // For founder-specific prompt generation
         };
 
         const res = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
@@ -3240,15 +5417,101 @@
               card._testData = test;
               card._campaignCode = data.campaignCode;
 
-              // Add view all button if not already there
-              let viewBtn = card.querySelector('.view-all-btn');
-              if (!viewBtn) {
-                viewBtn = document.createElement('button');
+              // Add action buttons container if not already there
+              let actionBtns = card.querySelector('.static-action-btns');
+              if (!actionBtns) {
+                actionBtns = document.createElement('div');
+                actionBtns.className = 'static-action-btns';
+                actionBtns.style.cssText = 'display:flex;gap:8px;margin-top:10px;';
+
+                // View All button
+                const viewBtn = document.createElement('button');
                 viewBtn.className = 'view-all-btn';
-                viewBtn.style.cssText = 'width:100%;padding:10px;background:var(--bg-input);border:1px solid var(--border-hover);border-radius:8px;color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;';
-                viewBtn.innerHTML = '🖼 View All &amp; Download';
+                viewBtn.style.cssText = 'flex:1;padding:10px;background:var(--bg-input);border:1px solid var(--border-hover);border-radius:8px;color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;';
+                viewBtn.innerHTML = '🖼 View All';
                 viewBtn.onclick = () => showGeneratedStatics(card._generatedStatics, card._testData.title, card._testData, card._campaignCode);
-                btn.parentNode.appendChild(viewBtn);
+                actionBtns.appendChild(viewBtn);
+
+                // Save to Campaigns button
+                const saveBtn = document.createElement('button');
+                saveBtn.className = 'save-campaign-btn';
+                saveBtn.style.cssText = 'flex:1;padding:10px;background:#28a745;border:none;border-radius:8px;color:white;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;';
+                saveBtn.innerHTML = '💾 Save';
+                saveBtn.onclick = async () => {
+                  saveBtn.disabled = true;
+                  saveBtn.innerHTML = '💾 Saving...';
+                  try {
+                    const res = await fetch(`/api/facebook/campaigns/${currentBrandId}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        title: card._testData.title,
+                        hook: card._testData.hook,
+                        angle: card._testData.angle,
+                        hypothesis: card._testData.hypothesis?.angle || card._testData.angle,
+                        copyDirection: card._testData.hypothesis?.copy_direction || card._testData.copy_direction,
+                        visualDirection: card._testData.hypothesis?.visual_direction || card._testData.visual_direction,
+                        priority: card._testData.priority,
+                        rationale: card._testData.rationale,
+                        basedOn: card._testData.based_on,
+                        recommendedFormats: card._testData.recommended_formats,
+                        statics: card._generatedStatics.filter(s => s.imageUrl).map(s => ({
+                          type: s.type,
+                          format: s.format,
+                          aspectRatio: s.aspectRatio || '4:5',
+                          imageUrl: s.imageUrl,
+                          description: s.description,
+                        })),
+                        status: 'ready',
+                      }),
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                      saveBtn.innerHTML = '✅ Saved!';
+                      saveBtn.style.background = '#218838';
+                      toast('Saved to campaigns!', 'success');
+                      loadCampaigns();
+                      loadCampaignStats();
+                      // Switch to campaigns tab
+                      setTimeout(() => switchTab('campaigns'), 500);
+                    } else {
+                      throw new Error(result.error || 'Save failed');
+                    }
+                  } catch (err) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '💾 Save';
+                    toast('Failed to save: ' + err.message, 'error');
+                  }
+                };
+                actionBtns.appendChild(saveBtn);
+
+                // Regenerate button
+                const regenBtn = document.createElement('button');
+                regenBtn.className = 'regen-btn';
+                regenBtn.style.cssText = 'padding:10px 14px;background:var(--bg-input);border:1px solid var(--border-hover);border-radius:8px;color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+                regenBtn.innerHTML = '🔄';
+                regenBtn.title = 'Regenerate from scratch';
+                regenBtn.onclick = () => {
+                  // Clear existing results
+                  card._generatedStatics = null;
+                  card._campaignCode = null;
+                  actionBtns.remove();
+                  // Reset progress items
+                  const progressItems = card.querySelectorAll('.progress-item');
+                  progressItems.forEach(item => {
+                    item.classList.remove('done', 'error');
+                    const icon = item.querySelector('.progress-icon');
+                    const status = item.querySelector('.progress-status');
+                    if (icon) icon.innerHTML = '<div style="width:12px;height:12px;border:2px solid #444;border-radius:50%;"></div>';
+                    if (status) status.textContent = '';
+                  });
+                  // Re-trigger generation
+                  const genBtn = card.querySelector('.generate-test-btn');
+                  if (genBtn) genBtn.click();
+                };
+                actionBtns.appendChild(regenBtn);
+
+                btn.parentNode.appendChild(actionBtns);
               }
             }
           }
@@ -3334,7 +5597,7 @@
         if (!s) return '';
 
         return `
-          <div style="background:var(--bg-card-alt);border:1px solid var(--border-primary);border-radius:12px;overflow:hidden;max-width:320px;flex-shrink:0;">
+          <div style="background:var(--bg-card-alt);border:1px solid var(--border-primary);border-radius:12px;overflow:hidden;max-width:320px;flex-shrink:0;" data-format="${esc(formatId)}">
             ${s.imageUrl
               ? `<div onclick="openImageLightbox('${esc(s.imageUrl)}', '${esc(formatData.type || formatId)}')" style="display:block;cursor:pointer;">
                   <img src="${esc(s.imageUrl)}" style="width:100%;height:auto;display:block;" title="Click to view full size">
@@ -3347,7 +5610,10 @@
                   <div style="font-size:12px;font-weight:600;margin-bottom:4px;">${esc(formatData.type || formatId)}</div>
                   <div style="font-size:11px;color:var(--text-muted);">${esc(formatData.description || '')}</div>
                 </div>
-                ${s.imageUrl ? `<a href="${esc(s.imageUrl)}" download="${s.adName ? esc(s.adName) + '.png' : ''}" style="background:#333;color:white;padding:6px 10px;border-radius:6px;font-size:11px;text-decoration:none;">⬇</a>` : ''}
+                <div style="display:flex;gap:6px;">
+                  <button onclick="regenerateSingleFormat('${esc(formatId)}')" style="background:#555;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Regenerate this format">🔄</button>
+                  ${s.imageUrl ? `<a href="${esc(s.imageUrl)}" download="${s.adName ? esc(s.adName) + '.png' : ''}" style="background:#333;color:white;padding:6px 10px;border-radius:6px;font-size:11px;text-decoration:none;">⬇</a>` : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -3387,6 +5653,80 @@
 
       // Update gallery
       document.getElementById('staticsGalleryGrid').innerHTML = renderGalleryForRatio(ratio, data.byFormat, data.formats);
+    }
+
+    // Regenerate a single format
+    async function regenerateSingleFormat(formatId) {
+      const testData = window._currentTestData;
+      if (!testData) {
+        toast('No test data found', 'error');
+        return;
+      }
+
+      // Find the format card and show loading
+      const formatCard = document.querySelector(`[data-format="${formatId}"]`);
+      if (formatCard) {
+        formatCard.style.opacity = '0.5';
+        formatCard.querySelector('button')?.setAttribute('disabled', 'true');
+      }
+
+      toast(`Regenerating ${formatId}...`, 'info');
+
+      try {
+        const res = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandId: currentBrandId,
+            test: {
+              title: testData.title,
+              hook: testData.hook,
+              angle: testData.hypothesis?.angle || testData.angle || testData.title,
+              copyDirection: testData.hypothesis?.copy_direction || testData.copy_direction || '',
+              visualDirection: testData.hypothesis?.visual_direction || testData.visual_direction || '',
+              persona: testData.persona?.id || testData.persona || 'general',
+              formats: [formatId], // Only regenerate this one format
+            },
+            aspectRatios: ['4:5', '9:16'],
+            variants: 1,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.statics) {
+          // Update the statics in our gallery data
+          const galleryData = window._staticsGalleryData;
+          if (galleryData) {
+            // Replace the format data
+            galleryData.byFormat[formatId] = {};
+            data.statics.forEach(s => {
+              galleryData.byFormat[formatId][s.aspectRatio || '4:5'] = s;
+              galleryData.byFormat[formatId].type = s.type;
+              galleryData.byFormat[formatId].description = s.description;
+            });
+
+            // Also update window._generatedStatics
+            const existingStatics = window._generatedStatics || [];
+            const otherStatics = existingStatics.filter(s => s.format !== formatId);
+            window._generatedStatics = [...otherStatics, ...data.statics];
+
+            // Re-render gallery
+            document.getElementById('staticsGalleryGrid').innerHTML = renderGalleryForRatio(galleryData.currentRatio, galleryData.byFormat, galleryData.formats);
+          }
+
+          toast(`${formatId} regenerated!`, 'success');
+        } else {
+          throw new Error(data.error || 'Regeneration failed');
+        }
+      } catch (err) {
+        console.error('Regenerate error:', err);
+        toast('Failed to regenerate: ' + err.message, 'error');
+        if (formatCard) {
+          formatCard.style.opacity = '1';
+          formatCard.querySelector('button')?.removeAttribute('disabled');
+        }
+      }
     }
 
     async function saveToCampaign() {
@@ -3433,8 +5773,17 @@
           btn.innerHTML = '✅ Saved!';
           btn.style.background = '#218838';
           toast('Saved to campaigns!', 'success');
-          // Refresh campaigns count if visible
+
+          // Close the modal
+          const modal = document.getElementById('staticsModal');
+          if (modal) modal.remove();
+
+          // Refresh campaigns list and switch to campaigns tab
+          loadCampaigns();
           loadCampaignStats();
+
+          // Switch to campaigns tab so user can see the saved test
+          switchTab('campaigns');
         } else {
           throw new Error(data.error || 'Save failed');
         }

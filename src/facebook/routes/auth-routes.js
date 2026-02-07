@@ -256,7 +256,7 @@ router.get('/brands', (req, res) => {
   try {
     const db = getDb();
     const brands = db.prepare(`
-      SELECT b.id, b.name, b.website_url, b.logo_url, b.product_image_url, b.category, b.target_roas, b.target_cpa, b.created_at,
+      SELECT b.id, b.name, b.website_url, b.logo_url, b.product_image_url, b.founder_image_url, b.founder_description, b.category, b.target_roas, b.target_cpa, b.created_at,
              fc.status as fb_status, fc.ad_account_name, fc.fb_user_name, fc.last_sync_at
       FROM brands b
       LEFT JOIN fb_connections fc ON fc.brand_id = b.id
@@ -300,12 +300,12 @@ router.post('/brands', (req, res) => {
 /**
  * PATCH /api/auth/facebook/brands/:brandId
  * Update brand details
- * Body: { name, websiteUrl, logoUrl, productImageUrl, category }
+ * Body: { name, websiteUrl, logoUrl, productImageUrl, founderImageUrl, category }
  */
 router.patch('/brands/:brandId', (req, res) => {
   try {
     const brandId = parseInt(req.params.brandId);
-    const { name, websiteUrl, logoUrl, productImageUrl, category, targetRoas, targetCpa } = req.body;
+    const { name, websiteUrl, logoUrl, productImageUrl, founderImageUrl, founderDescription, category, targetRoas, targetCpa } = req.body;
     const db = getDb();
 
     const brand = db.prepare('SELECT * FROM brands WHERE id = ?').get(brandId);
@@ -317,13 +317,15 @@ router.patch('/brands/:brandId', (req, res) => {
       website_url: websiteUrl !== undefined ? websiteUrl : brand.website_url,
       logo_url: logoUrl !== undefined ? logoUrl : brand.logo_url,
       product_image_url: productImageUrl !== undefined ? productImageUrl : brand.product_image_url,
+      founder_image_url: founderImageUrl !== undefined ? founderImageUrl : brand.founder_image_url,
+      founder_description: founderDescription !== undefined ? founderDescription : brand.founder_description,
       category: validCategories.includes(category) ? category : brand.category,
       target_roas: targetRoas !== undefined ? (parseFloat(targetRoas) || 0) : brand.target_roas,
       target_cpa: targetCpa !== undefined ? (parseFloat(targetCpa) || 0) : brand.target_cpa,
     };
 
-    db.prepare('UPDATE brands SET name = ?, website_url = ?, logo_url = ?, product_image_url = ?, category = ?, target_roas = ?, target_cpa = ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(updates.name, updates.website_url, updates.logo_url, updates.product_image_url, updates.category, updates.target_roas, updates.target_cpa, brandId);
+    db.prepare('UPDATE brands SET name = ?, website_url = ?, logo_url = ?, product_image_url = ?, founder_image_url = ?, founder_description = ?, category = ?, target_roas = ?, target_cpa = ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(updates.name, updates.website_url, updates.logo_url, updates.product_image_url, updates.founder_image_url, updates.founder_description, updates.category, updates.target_roas, updates.target_cpa, brandId);
 
     res.json({ id: brandId, ...updates });
   } catch (err) {

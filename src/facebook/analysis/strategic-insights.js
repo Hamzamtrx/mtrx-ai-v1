@@ -129,7 +129,7 @@ async function generateStrategicInsights(brandId) {
   console.log(`[Strategic Insights] Calling Claude for brand ${brandId}, prompt length: ${prompt.length} chars`);
   const client = new Anthropic();
   const response = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 8000,
     messages: [{ role: 'user', content: prompt }],
   });

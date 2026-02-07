@@ -47,6 +47,36 @@ router.get('/:brandId', (req, res) => {
 });
 
 /**
+ * GET /api/facebook/campaigns/:brandId/stats
+ * Get campaign statistics for a brand
+ * NOTE: This route MUST come before /:brandId/:campaignId to avoid "stats" being parsed as campaignId
+ */
+router.get('/:brandId/stats', (req, res) => {
+  try {
+    const brandId = parseInt(req.params.brandId);
+    const db = getDb();
+
+    const stats = db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+        SUM(CASE WHEN status = 'ready' THEN 1 ELSE 0 END) as ready,
+        SUM(CASE WHEN status = 'launched' THEN 1 ELSE 0 END) as launched,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        SUM(total_spend) as totalSpend,
+        SUM(total_purchases) as totalPurchases
+      FROM test_campaigns
+      WHERE brand_id = ?
+    `).get(brandId);
+
+    res.json({ success: true, stats });
+  } catch (err) {
+    console.error('[Campaigns] Stats error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * GET /api/facebook/campaigns/:brandId/:campaignId
  * Get single campaign details
  */
@@ -129,9 +159,22 @@ router.post('/:brandId', (req, res) => {
       notes || null
     );
 
+    const campaignId = result.lastInsertRowid;
+
+    // Mark the suggestion as saved (if it exists)
+    if (hook) {
+      try {
+        const { markSuggestionSaved } = require('../analysis/test-suggestions');
+        markSuggestionSaved(brandId, hook, campaignId);
+      } catch (e) {
+        // Non-critical - continue even if marking fails
+        console.log('[Campaigns] Could not mark suggestion as saved:', e.message);
+      }
+    }
+
     res.json({
       success: true,
-      campaignId: result.lastInsertRowid,
+      campaignId,
       message: 'Campaign saved successfully',
     });
   } catch (err) {
@@ -213,35 +256,6 @@ router.delete('/:brandId/:campaignId', (req, res) => {
     res.json({ success: true, message: 'Campaign deleted' });
   } catch (err) {
     console.error('[Campaigns] Delete error:', err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-/**
- * GET /api/facebook/campaigns/:brandId/stats
- * Get campaign statistics for a brand
- */
-router.get('/:brandId/stats', (req, res) => {
-  try {
-    const brandId = parseInt(req.params.brandId);
-    const db = getDb();
-
-    const stats = db.prepare(`
-      SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
-        SUM(CASE WHEN status = 'ready' THEN 1 ELSE 0 END) as ready,
-        SUM(CASE WHEN status = 'launched' THEN 1 ELSE 0 END) as launched,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(total_spend) as totalSpend,
-        SUM(total_purchases) as totalPurchases
-      FROM test_campaigns
-      WHERE brand_id = ?
-    `).get(brandId);
-
-    res.json({ success: true, stats });
-  } catch (err) {
-    console.error('[Campaigns] Stats error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });

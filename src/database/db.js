@@ -37,6 +37,7 @@ function initSchema(db) {
       website_url TEXT,
       logo_url TEXT,
       product_image_url TEXT,
+      founder_image_url TEXT,
       category TEXT DEFAULT 'apparel' CHECK(category IN ('apparel', 'supplements', 'perfume', 'other')),
       target_roas REAL DEFAULT 0,
       target_cpa REAL DEFAULT 0,
@@ -175,6 +176,35 @@ function initSchema(db) {
       FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
     );
 
+    -- Test suggestions: tracks individual suggestions and their state
+    CREATE TABLE IF NOT EXISTS test_suggestions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      brand_id INTEGER NOT NULL,
+      -- Unique identifier for this suggestion (hash of type + hook + source)
+      suggestion_hash TEXT NOT NULL,
+      -- Suggestion data
+      type TEXT NOT NULL CHECK(type IN ('new_angle', 'double_down', 'iteration')),
+      hook TEXT NOT NULL,
+      title TEXT,
+      source_ad_id TEXT,
+      source_ad_name TEXT,
+      format_key TEXT,
+      angle_key TEXT,
+      -- Full suggestion data as JSON
+      data TEXT,
+      -- State tracking
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'saved', 'dismissed')),
+      -- Timestamps
+      created_at TEXT DEFAULT (datetime('now')),
+      saved_at TEXT,
+      dismissed_at TEXT,
+      -- Campaign ID if saved
+      campaign_id INTEGER,
+      FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE,
+      FOREIGN KEY (campaign_id) REFERENCES test_campaigns(id) ON DELETE SET NULL,
+      UNIQUE(brand_id, suggestion_hash)
+    );
+
     -- Indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_fb_ads_brand ON fb_ads(brand_id);
     CREATE INDEX IF NOT EXISTS idx_fb_ads_classification ON fb_ads(brand_id, classification);
@@ -182,6 +212,8 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_fb_analysis_type ON fb_analysis_cache(brand_id, analysis_type);
     CREATE INDEX IF NOT EXISTS idx_test_campaigns_brand ON test_campaigns(brand_id);
     CREATE INDEX IF NOT EXISTS idx_test_campaigns_status ON test_campaigns(brand_id, status);
+    CREATE INDEX IF NOT EXISTS idx_test_suggestions_brand ON test_suggestions(brand_id, status);
+    CREATE INDEX IF NOT EXISTS idx_test_suggestions_hash ON test_suggestions(brand_id, suggestion_hash);
   `);
 
   // Migrations for existing databases
@@ -202,6 +234,42 @@ function migrate(db) {
   }
   if (!brandCols.includes('product_image_url')) {
     db.exec("ALTER TABLE brands ADD COLUMN product_image_url TEXT");
+  }
+  if (!brandCols.includes('founder_image_url')) {
+    db.exec("ALTER TABLE brands ADD COLUMN founder_image_url TEXT");
+  }
+  if (!brandCols.includes('founder_description')) {
+    db.exec("ALTER TABLE brands ADD COLUMN founder_description TEXT");
+  }
+
+  // --- test_suggestions table migration ---
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='test_suggestions'").all();
+  if (tables.length === 0) {
+    db.exec(`
+      CREATE TABLE test_suggestions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        brand_id INTEGER NOT NULL,
+        suggestion_hash TEXT NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('new_angle', 'double_down', 'iteration')),
+        hook TEXT NOT NULL,
+        title TEXT,
+        source_ad_id TEXT,
+        source_ad_name TEXT,
+        format_key TEXT,
+        angle_key TEXT,
+        data TEXT,
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'saved', 'dismissed')),
+        created_at TEXT DEFAULT (datetime('now')),
+        saved_at TEXT,
+        dismissed_at TEXT,
+        campaign_id INTEGER,
+        FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE,
+        FOREIGN KEY (campaign_id) REFERENCES test_campaigns(id) ON DELETE SET NULL,
+        UNIQUE(brand_id, suggestion_hash)
+      );
+      CREATE INDEX idx_test_suggestions_brand ON test_suggestions(brand_id, status);
+      CREATE INDEX idx_test_suggestions_hash ON test_suggestions(brand_id, suggestion_hash);
+    `);
   }
 
   // --- fb_ads table migrations ---

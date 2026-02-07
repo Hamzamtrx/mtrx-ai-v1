@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 const { generateAICopy } = require('./copy-generator');
+const { getStylePromptForBrand } = require('./static-style-analysis');
+const { getDb } = require('../../database/db');
 
 // Paths to skill files
 const SKILLS_BASE = path.join(__dirname, '../../../skills/mtrx-ai-v2/skills/apparel');
@@ -145,14 +147,183 @@ function generateCopy(test, format, config) {
       };
 
     case 'ugc':
+    case 'ugc_style':
       return {
+        headline: generateUGCStoryHeadline(test),
+        subheadline: hook,
         caption: hook,
         hashtag: '#' + (test.brandName || 'brand').replace(/\s+/g, ''),
       };
 
+    case 'testimonial':
+      return {
+        testimonialStory: generateTestimonialStory(test),
+        headline: generateUGCStoryHeadline(test),
+        photoSetting: 'Cozy home environment — living room with natural light.',
+        personDescription: test.persona?.description || 'Real-looking person, genuine smile, casual clothes.',
+        productInteraction: 'Naturally holding or wearing the product.',
+      };
+
+    case 'news_editorial':
+      return {
+        headline: test.hook || 'The Man Who Refused To Sell A Shirt He Wouldn\'t Wear',
+        subheadline: test.angle || 'If I won\'t wear it myself, I\'ve got no business selling it to you',
+        newspaperName: 'The American Textile Record',
+        newspaperDate: 'Thursday, March 12, 1931',
+        photoCaption: 'A craftsman inspects his work',
+        photoSubject: 'Weathered 1930s American craftsman, late 50s, grey stubble, work-worn hands',
+        photoAction: 'Sitting at wooden workbench, looking down at fabric he is hand-inspecting',
+        photoSetting: 'Small textile workshop, warm natural window light from left',
+        photoEmotion: 'quiet private moment of craftsmanship and pride',
+        ctaLine: 'THEY STOPPED MAKING THEM. WE DIDN\'T.',
+      };
+
+    case 'stat_stack':
+    case 'stat_stack_hero':
+    case 'stat_hero':
+    case 'proof_story':
+      return generateStatStackCopy(test);
+
     default:
       return { headline: hook };
   }
+}
+
+/**
+ * Generate copy for Stat Stack Hero format
+ * Stats + badges + social proof for proof story ads
+ */
+function generateStatStackCopy(test) {
+  const hook = test.hook || '';
+  const angle = test.hypothesis?.angle || test.angle || '';
+  const persona = test.persona?.id || '';
+  const personaDesc = test.persona?.description || '';
+
+  // Determine hero subject based on persona/angle
+  const brandName = test.brandName || 'the brand';
+  let heroSubject = 'rugged professional, mid 40s, confident stance';
+  let heroAction = 'in their natural work environment';
+  let heroClothing = `the EXACT ${brandName} shirt from reference image, work pants`;
+  let setting = 'authentic workplace, natural lighting, real environment';
+  let socialProofName = 'Real Customer';
+  let socialProofCredential = 'Wears it every single day';
+
+  // Customize based on persona
+  if (persona.includes('blue_collar') || angle.toLowerCase().includes('work') || angle.toLowerCase().includes('job')) {
+    heroSubject = 'rugged construction worker, mid 30s, tanned weathered skin';
+    heroAction = 'carrying lumber on an active construction site';
+    setting = 'busy job site, sawdust in air, bright midday sun';
+    socialProofName = 'Jake, 34';
+    socialProofCredential = 'General contractor — same shirt, 14 job sites, 3 years';
+  } else if (angle.toLowerCase().includes('paycheck') || angle.toLowerCase().includes('professional') || angle.toLowerCase().includes('meeting')) {
+    heroSubject = 'confident business professional, early 40s, sharp but approachable';
+    heroAction = 'walking into a modern office building';
+    heroClothing = `the EXACT ${brandName} shirt from reference under open blazer, dress pants`;
+    setting = 'glass office building entrance, morning light';
+    socialProofName = 'Marcus, 41';
+    socialProofCredential = 'VP of Sales — 47 client meetings, same shirt';
+  } else if (angle.toLowerCase().includes('ranch') || angle.toLowerCase().includes('farm')) {
+    heroSubject = 'rugged cattle rancher, mid 40s, sun-weathered face';
+    heroAction = 'standing in a cattle field at golden hour, hand resting on fence post';
+    setting = 'open range, cattle blurred in background, warm golden sunlight';
+    socialProofName = 'Tom, 44';
+    socialProofCredential = 'Cattle rancher — same shirt, 600 acres, every day';
+  } else if (angle.toLowerCase().includes('mechanic') || angle.toLowerCase().includes('garage')) {
+    heroSubject = 'auto mechanic, late 30s, grease-stained hands';
+    heroAction = 'leaning into an engine bay';
+    setting = 'garage interior, tool chest visible, fluorescent mixed with window light';
+    socialProofName = 'Mike, 38';
+    socialProofCredential = 'Auto mechanic — same shirt through 2,200 oil changes';
+  }
+
+  // Generate badges based on brand (Undrdog defaults)
+  const badges = [
+    '4x stronger than cotton',
+    'Zero microplastics',
+    'Hemp + bamboo blend',
+    'Lifetime guarantee',
+  ];
+
+  return {
+    stats: null, // Will be generated by generateProofStats
+    badges,
+    heroSubject,
+    heroAction,
+    heroClothing,
+    setting,
+    socialProof: {
+      name: socialProofName,
+      credential: socialProofCredential,
+    },
+  };
+}
+
+/**
+ * Generate a story-driven UGC headline that sounds personal and authentic
+ * Based on examples like: "This best-selling Korean brand gave me maximum fullness"
+ */
+function generateUGCStoryHeadline(test) {
+  const hook = test.hook || '';
+  const angle = test.hypothesis?.angle || test.angle || '';
+  const brandName = test.brandName || 'this brand';
+  const benefit = test.keyBenefit || 'changed everything';
+
+  // Story-driven headline templates that sound personal
+  const templates = [
+    `${brandName} ${benefit.toLowerCase().includes('my') ? benefit : 'gave me ' + benefit}`,
+    `I was honestly skeptical, but after a month with ${brandName}...`,
+    `Finally found ${angle.toLowerCase() || 'what I was looking for'}`,
+    `${hook.replace(/\.$/, '')} — and I'm obsessed`,
+    `After trying everything, ${brandName} actually worked`,
+  ];
+
+  // If the hook already sounds personal (starts with "I", "My", "After", "Finally"), use it
+  if (/^(I |My |After |Finally |This |When )/i.test(hook)) {
+    return hook;
+  }
+
+  // Otherwise pick a template and make it sound authentic
+  const template = templates[Math.floor(Math.random() * templates.length)];
+  return template;
+}
+
+/**
+ * Generate a longer personal testimonial story
+ * Based on examples with longer narrative text
+ */
+function generateTestimonialStory(test) {
+  const hook = test.hook || '';
+  const angle = test.hypothesis?.angle || test.angle || '';
+  const brandName = test.brandName || 'this';
+  const benefit = test.keyBenefit || '';
+  const persona = test.persona?.description || '';
+
+  // Build a personal story based on the test data
+  const starters = [
+    `I was honestly skeptical at first, but after using ${brandName} for a month`,
+    `After years of trying different options, I finally found ${brandName}`,
+    `My ${persona.includes('husband') || persona.includes('wife') ? 'partner' : 'friend'} kept recommending ${brandName}`,
+    `I almost didn't buy it, but I'm so glad I did`,
+  ];
+
+  const middles = [
+    benefit ? `and the ${benefit.toLowerCase()} is incredible` : 'I can\'t believe the difference',
+    `now I can\'t imagine going back`,
+    `and it\'s been a game changer`,
+  ];
+
+  const endings = [
+    `I\'m obsessed 🙌`,
+    `10/10 would recommend`,
+    `Why didn't I find this sooner?`,
+    `Finally! 😭`,
+  ];
+
+  const starter = starters[Math.floor(Math.random() * starters.length)];
+  const middle = middles[Math.floor(Math.random() * middles.length)];
+  const ending = endings[Math.floor(Math.random() * endings.length)];
+
+  return `${starter}, ${middle}. ${ending}`;
 }
 
 /**
@@ -254,8 +425,12 @@ ASPECT RATIO: 4:5
 - Do NOT add any text that isn't specified above
 - The ONLY text should be: brand name, headline, offer line (if provided), and CTA
 - NO extra descriptive labels or categories
+- NO dashboards, analytics screens, charts, or graphs
+- NO UI elements, app screenshots, or floating windows
+- NO overlaid graphics or data visualizations
+- JUST the product, headline, and CTA - KEEP IT CLEAN AND MINIMAL
 
-NOT: Busy backgrounds, multiple fonts, cluttered layout, low contrast, cheap looking.`;
+NOT: Busy backgrounds, multiple fonts, cluttered layout, low contrast, cheap looking, dashboard graphics, analytics UI, floating screens.`;
 }
 
 /**
@@ -309,31 +484,52 @@ NOT: Professional ad look, gradients, fancy typography, stock photos, corporate 
 
 /**
  * Build a Type 3 Aesthetic + Offer prompt
+ * Shows product in an environment that showcases its benefits
  */
 function buildType3Prompt({ test, copy, brandName, accentColor = 'orange' }) {
-  return `Static advertisement for premium apparel brand. Aesthetic product photography with text overlay.
+  // Map copy fields (copy generator uses headline/subheadline/offerText)
+  const productCode = copy.productCode || copy.subheadline || '001: SIGNATURE';
+  const announcement = copy.announcement || copy.headline || 'BUILT TO LAST';
+  const badge = copy.badge || copy.offerText || 'NOW AVAILABLE';
 
-PRODUCT PHOTOGRAPHY:
-Folded stack arrangement.
+  // Determine the best environment based on the angle/hook
+  const hook = (copy.visualDirection || test?.hook || '').toLowerCase();
+  let environment = '';
+  let environmentDesc = '';
 
-PRODUCT:
-Multiple garments stacked neatly.
-Premium fabric texture visible.
-Brand tag visible on top item.
-Natural shadows and depth.
-NOT floating — sitting ON a real surface.
+  if (hook.includes('heat') || hook.includes('sweat') || hook.includes('cool') || hook.includes('breathe')) {
+    environment = 'desert';
+    environmentDesc = 'Vast golden sand dunes at golden hour, heat waves visible in the air, completely dry arid landscape';
+  } else if (hook.includes('rain') || hook.includes('water') || hook.includes('wet')) {
+    environment = 'rain';
+    environmentDesc = 'Dramatic rainfall scene, water droplets in air, moody grey sky';
+  } else if (hook.includes('work') || hook.includes('tough') || hook.includes('durable')) {
+    environment = 'industrial';
+    environmentDesc = 'Rugged industrial setting, concrete and steel, worksite environment';
+  } else if (hook.includes('nature') || hook.includes('outdoor') || hook.includes('adventure')) {
+    environment = 'mountain';
+    environmentDesc = 'Epic mountain landscape at sunrise, misty valleys, adventure vibes';
+  } else {
+    environment = 'desert';
+    environmentDesc = 'Vast golden sand dunes at golden hour, completely dry arid landscape, showcasing breathability';
+  }
 
-SURFACE/BACKGROUND:
-Dark weathered wood grain texture.
-Real texture, NOT flat color.
-Moody, premium feel.
-Subtle vignette darkening at edges.
+  return `Static advertisement for premium apparel brand. Product showcased in dramatic environment.
 
-LIGHTING:
-Soft directional light from upper left.
-Natural shadows.
-Highlights on fabric folds.
-NOT flat lighting. NOT harsh.
+HERO SHOT:
+The ${brandName} product (shirt from reference image) displayed in a dramatic ${environment} environment.
+${environmentDesc}
+
+PRODUCT PLACEMENT:
+- Single product prominently displayed
+- Could be worn by a person OR artfully placed in the environment
+- The environment should CONTRAST with the product to highlight its benefits
+- Product must match the reference image EXACTLY
+
+COMPOSITION:
+- Dramatic wide shot showing both product and environment
+- Product is the clear focal point
+- Environment tells the story (e.g., desert = stays cool/breathable, rain = handles anything)
 
 TEXT OVERLAY:
 SMALL TEXT (top area): "${brandName}"
@@ -341,13 +537,13 @@ SMALL TEXT (top area): "${brandName}"
 - White
 
 PRODUCT CODE (above main headline):
-"${copy.productCode}"
+"${productCode}"
 - ${accentColor}
 - ALL CAPS
 - Medium size
 
 MAIN HEADLINE (center-bottom area):
-"${copy.announcement}"
+"${announcement}"
 - WHITE
 - BOLD
 - HUGE — dominant element
@@ -355,25 +551,32 @@ MAIN HEADLINE (center-bottom area):
 
 BADGE (below headline):
 Rectangular badge shape
-"${copy.badge}"
+"${badge}"
 - ${accentColor} background
 - Dark text
 - ALL CAPS
 
 TYPOGRAPHY:
 - Clean sans-serif (like Bebas Neue, Oswald)
-- High contrast against dark background
+- High contrast - text must be readable against environment
 - Clear hierarchy: small → medium → HUGE → badge
+- Add subtle text shadow if needed for readability
 
 OVERALL:
-Premium streetwear/DTC brand aesthetic.
-Moody but not dark.
-Texture-rich.
-Creates desire and urgency.
+Premium adventure/lifestyle brand aesthetic.
+Epic, cinematic feel.
+Environment tells the product story.
+Creates desire through context.
 
 ASPECT RATIO: 4:5
 
-NOT: Flat backgrounds, cheap lighting, stock photo style, cluttered, low contrast text.`;
+=== CRITICAL ===
+- The environment should SHOWCASE the product benefit (desert = breathable, rain = tough, etc.)
+- Product must be clearly visible and match reference image
+- This is NOT just product on a surface — it's product IN an environment
+- Cinematic, editorial quality photography
+
+NOT: Flat studio backgrounds, cheap lighting, stock photo style, product floating in space.`;
 }
 
 /**
@@ -566,6 +769,78 @@ NOT: Fake usernames, social media UI, placeholder text, stock photo look, overly
 }
 
 /**
+ * Build a Testimonial style prompt — personal story with product
+ * Based on examples: mom holding baby, woman in casual setting, authentic lifestyle shots
+ */
+function buildTestimonialPrompt({ test, copy, brandName }) {
+  // Create a personal, story-driven testimonial
+  const testimonialStory = copy.testimonialStory || copy.headline ||
+    `I was honestly skeptical at first, but after using it for a month I can\'t believe the difference.`;
+
+  return `Static advertisement in authentic customer testimonial style.
+
+STYLE:
+Real customer photo with their personal story overlaid.
+iPhone photo aesthetic — genuine, warm, relatable.
+Bold personal testimonial text as the main visual element.
+Feels like a real person sharing their experience.
+
+PHOTO SCENE:
+${copy.photoSetting || 'Casual home environment — living room, kitchen, or cozy indoor space.'}
+Natural lighting — soft daylight from windows.
+Warm, inviting atmosphere.
+${copy.photoContext || 'Person in their everyday life, feeling comfortable and happy.'}
+
+SUBJECT:
+${copy.personDescription || 'Real-looking person (woman or man, 25-45), genuine smile, approachable.'}
+Natural casual pose — not model-like.
+Looking at camera OR product OR candid moment.
+Should feel like a REAL customer, not a photoshoot.
+${copy.productInteraction || 'Holding or wearing the product naturally.'}
+
+PRODUCT:
+Product clearly visible and matches reference exactly.
+Held naturally or worn authentically.
+Product is secondary to the person — this is about their story.
+
+TEXT OVERLAY:
+Large white box/card overlaid on lower portion of image with personal testimonial:
+
+"${testimonialStory}"
+
+- Text should read like a real person writing (casual, emojis optional)
+- First-person narrative ("I was..." "My..." "After using...")
+- Include specific details that feel authentic
+- Can mention time period ("after a month", "for years")
+- End with genuine reaction ("I'm obsessed", "game changer", "can't believe")
+
+Small CTA at bottom:
+"Shop ${brandName}" or simple brand name
+
+LAYOUT:
+- Upper 60%: Photo of person with product
+- Lower 40%: White/cream card with testimonial text overlaid on photo
+- Text box can have slight transparency or drop shadow for readability
+
+TYPOGRAPHY:
+- Testimonial: Clean sans-serif, readable, dark gray or black text
+- Medium weight, not too thin
+- Line spacing for easy reading
+- CTA: Brand accent color, smaller font
+
+=== CRITICAL - DO NOT INCLUDE ===
+- Do NOT add fake social media handles
+- Do NOT add fake engagement metrics
+- Do NOT add star ratings
+- Do NOT add "Verified Buyer" or review UI elements
+- The testimonial should feel personal, not like a review site
+
+ASPECT RATIO: 4:5
+
+NOT: Stock photo aesthetic, overly polished, fake review UI, star ratings, verified badges.`;
+}
+
+/**
  * Build a Comparison (side-by-side) prompt
  * Modern minimal style like Huel ads - clean, bright, simple
  */
@@ -575,11 +850,11 @@ function buildComparisonPrompt({ test, copy, brandName, accentColor = 'orange' }
 
   return `Static advertisement. Modern minimal comparison format.
 
-STYLE REFERENCE: Clean, modern like Huel comparison ads. Bright, minimal, easy to read.
+STYLE REFERENCE: Clean, modern comparison ad. Minimal, easy to read.
 
 BACKGROUND:
-Solid bright color - bright yellow, coral orange, or vibrant teal.
-NOT white, NOT gray, NOT dark.
+Use dark charcoal/black background if brand uses dark aesthetics.
+Otherwise solid bright color.
 Single flat color, no gradients.
 
 LAYOUT (TOP TO BOTTOM):
@@ -590,7 +865,7 @@ LAYOUT (TOP TO BOTTOM):
 
 HEADLINE (TOP):
 "${copy.headline || 'No time for bad shirts? No problem.'}"
-- Bold black sans-serif text
+- Bold sans-serif text (white on dark, black on light)
 - Conversational, not shouty
 - Can be a question format
 
@@ -610,12 +885,12 @@ RIGHT SIDE:
 COMPARISON TABLE (BELOW PRODUCTS):
 Simple 2-column comparison with 3-4 rows:
 | ${leftLabel} | ${rightLabel} |
-| Lasts 15 washes | Lasts 200+ washes |
-| $1/wear | $0.20/wear |
-| Synthetic | Natural Hemp |
+| Falls apart | Lifetime Guarantee |
+| Shrinks & fades | Built to last |
+| Synthetic | Premium materials |
 
 Use simple text, no fancy icons.
-Green checkmarks or text for the winning side.
+Checkmarks or highlight for the winning side.
 
 BOTTOM:
 "${copy.ctaText || 'Try it'}" - simple text link or small button
@@ -624,22 +899,30 @@ Brand name: "${brandName}" in clean font
 TYPOGRAPHY:
 - Bold sans-serif for headline (like Poppins, Inter)
 - Clean readable font for comparison table
-- High contrast (black text on bright background)
+- High contrast
 
 OVERALL VIBE:
-- MODERN and MINIMAL - like a tech company ad
-- Bright and cheerful, not corporate
+- MODERN and MINIMAL
 - Easy to understand in 2 seconds
-- Looks like it belongs on Instagram in 2024
+- Clean professional aesthetic
 
 ASPECT RATIO: 4:5
 
 === CRITICAL ===
 - Use ONLY USD currency ($) - no euros, no pounds
 - Keep it SIMPLE - not cluttered
-- Bright solid background color is KEY
+- NO made-up statistics like "200 washes" or cost-per-wear numbers
+- Use only generic claims: "Lifetime Guarantee", "Built to last"
 - NO fake reviews, NO star ratings, NO customer quotes
-- NO chemical structures or scientific imagery`;
+- NO chemical structures or scientific imagery
+
+=== PRODUCT ON RIGHT SIDE — MANDATORY ===
+The RIGHT SIDE product MUST be an EXACT copy of the reference image:
+- SAME shirt design, SAME color, SAME fit
+- SAME label/tag placement if visible
+- SAME fabric texture and appearance
+- Do NOT invent a different shirt — use the reference EXACTLY
+- The reference image IS the ${brandName} product — copy it precisely`;
 }
 
 /**
@@ -672,16 +955,22 @@ Split into two columns with simple arrow or "→" between
 
 LEFT - "Before":
 - Small "Before" label in gray
-- Image: Messy pile of 5-6 different shirts, cluttered
-- Looks chaotic and overwhelming
+- Image: Person looking frustrated/uncomfortable in ill-fitting cheap shirt
+- OR: Messy pile of 5-6 different faded shirts, cluttered closet
+- Looks chaotic, uncomfortable, or overwhelming
 
 RIGHT - "After":
 - Small "After" label in gray
-- Image: Single clean premium shirt (from reference)
-- Clean, minimal, premium
-- Maybe on a simple hanger or folded neatly
+- Image: SAME PERSON (or similar) confidently wearing the ${brandName} shirt from reference
+- Person should look confident, comfortable, happy
+- The shirt must match the reference image EXACTLY
+- Clean, minimal background behind the person
+- Show the TRANSFORMATION - same person, better shirt, better confidence
 
 Arrow or "→" symbol between the two sides
+
+IMPORTANT: The "After" side should show a PERSON wearing the shirt, not just the shirt alone.
+This shows the real transformation and helps the viewer see themselves in the product.
 
 BENEFITS (BELOW COMPARISON):
 Simple one-line text:
@@ -711,7 +1000,193 @@ ASPECT RATIO: 4:5
 - Keep it EXTREMELY simple
 - Bright solid background is KEY
 - NO cluttered elements
-- NO fake timestamps or social media UI`;
+- NO fake timestamps or social media UI
+
+=== "AFTER" PRODUCT — MANDATORY ===
+The "AFTER" side MUST show an EXACT copy of the reference image product:
+- SAME shirt design, SAME color, SAME fit, SAME details
+- SAME label/tag placement if visible in reference
+- Do NOT create a generic black shirt — use the EXACT reference product
+- The reference image IS the ${brandName} product — replicate it precisely
+- This is the hero product — it must match the reference EXACTLY`;
+}
+
+/**
+ * Build vintage newspaper style prompt - 1930s newspaper clipping aesthetic
+ * Based on high-converting vintage newspaper ad skill
+ */
+function buildNewsEditorialPrompt({ test, copy, brandName, accentColor = 'orange' }) {
+  // Generate appropriate newspaper name based on category
+  const newspaperName = copy.newspaperName || 'The American Textile Record';
+  const newspaperDate = copy.newspaperDate || 'Thursday, March 12, 1931';
+
+  return `Scanned vintage newspaper clipping from the 1930s, aged yellowed newsprint paper with coffee stains and creases.
+
+NEWSPAPER MASTHEAD at top: "${newspaperName}"
+Small subtitle under masthead: "Established 1847 · The Voice of American Manufacturing"
+Date line: "${newspaperDate}"
+
+LARGE BOLD HEADLINE in black serif font (like Playfair Display or Old Standard):
+"${copy.headline || 'The Man Who Refused To Sell A Shirt He Wouldn\'t Wear'}"
+- This is the PRIMARY attention grabber
+- Values-level storytelling, NOT product features
+- Should read like a real 1930s newspaper article headline
+
+Below headline: Black and white photograph.
+${copy.photoSubject || 'Weathered 1930s American craftsman, late 50s, grey stubble, work-worn hands'}
+${copy.photoAction || 'Sitting at wooden workbench, looking down at fabric he is hand-inspecting with calloused hands'}
+${copy.photoSetting || 'Small textile workshop, warm natural window light from left, dust particles in air'}
+Caught in a ${copy.photoEmotion || 'quiet private moment of craftsmanship and pride'}.
+NOT looking at camera, NOT posing.
+Authentic 1920s silver gelatin photography style - heavy grain, soft contrast, sepia tone.
+Feels like a REAL discovered photograph, not a photoshoot.
+
+Small italic caption below photo: "${copy.photoCaption || 'Walter Briggs has worn the same hemp shirt for over a decade'}"
+
+SUBHEADLINE below caption in smaller bold text:
+"${copy.subheadline || 'Kentucky craftsman: If I won\'t wear it myself, I\'ve got no business selling it to you'}"
+
+Two columns of small newspaper body text below the subheadline:
+- Text should be BLURRED/OUT OF FOCUS so it's not readable
+- Do NOT write "Lorem ipsum" or any placeholder text
+- The blur effect makes it look like authentic small newspaper print that's too small to read
+- This is background texture only - the headline and subheadline are the readable text
+
+BLACK BAR at bottom spanning full width with white text:
+"${copy.ctaLine || 'THEY STOPPED MAKING THEM. WE DIDN\'T.'}" — ${brandName.toUpperCase()}.COM
+
+OVERALL AESTHETIC:
+- Aged yellowed newsprint paper
+- Coffee stains and fold marks
+- Worn edges, slight tears
+- Vintage newspaper scan look
+- Authentic 1930s American aesthetic
+- Sepia/warm aged tones
+
+ASPECT RATIO: 4:5
+
+=== CRITICAL ===
+- Photo subject must NOT look at camera - candid moment feel
+- Headline should tell a VALUES story, not product features
+- Paper aging must look authentic (stains, creases, yellowing)
+- Black CTA bar at bottom is essential
+- NO modern elements, NO color photos, NO digital feel
+- This should look like a REAL scanned newspaper clipping from the 1930s`;
+}
+
+/**
+ * Build a Stat Stack Hero prompt — editorial-style ad with proof story
+ * Based on Huel x Hardest Geezer format. Real person doing impressive thing + stat badges.
+ */
+function buildStatStackHeroPrompt({ test, copy, brandName }) {
+  // Generate stats based on the angle/hook
+  const stats = copy.stats || generateProofStats(test);
+  const badges = copy.badges || [
+    'Lifetime Guarantee',
+    'Premium materials',
+    'Built to last',
+    'Zero compromises',
+  ];
+
+  const heroSubject = copy.heroSubject || 'rugged working professional, mid 40s';
+  const heroAction = copy.heroAction || 'standing confidently in their work environment';
+  const heroClothing = copy.heroClothing || `the EXACT ${brandName} shirt from reference image, work pants`;
+  const setting = copy.setting || 'authentic workplace, natural lighting';
+  const socialProof = copy.socialProof || { name: 'Real Customer', credential: 'Wears it every single day' };
+
+  return `Modern performance marketing static ad, clean editorial style with stat overlays.
+
+HERO PHOTOGRAPH (full frame, edge to edge):
+Documentary photograph of ${heroSubject}, ${heroAction}. Wearing ${heroClothing}. ${setting}. Mid-action, NOT posing, NOT looking at camera. Natural light, candid energy. NOT a brand photoshoot.
+The photograph should fill the ENTIRE frame with no dark bars or crops at top/bottom.
+
+TOP LEFT (overlaid directly on photo):
+Bold white text with subtle drop shadow for readability:
+"${stats.stat1} | ${stats.stat2} | ${stats.stat3}"
+Larger text below: "${stats.punchline}"
+
+LEFT SIDE (overlaid on photo):
+White rounded rectangle badges stacked vertically:
+"${badges[0]}"
+"${badges[1]}"
+"${badges[2]}"
+"${badges[3]}"
+
+BOTTOM RIGHT (overlaid on photo):
+Small white text with arrow pointing to person:
+"${socialProof.name}"
+"${socialProof.credential}"
+
+BOTTOM CENTER (overlaid on photo):
+Bold white text: "${brandName.toUpperCase()}.COM"
+Use drop shadow or subtle dark gradient only behind text for readability, NOT a full-width dark bar.
+
+Clean modern ad layout. Professional typography. 4:5 vertical format.
+NO dark bars spanning the full width at top or bottom — photo extends edge to edge.
+
+=== CRITICAL ===
+- SINGLE PERSON ONLY — show exactly ONE person, NOT a group, NOT multiple people
+- Hero must be MID-ACTION, NOT posing, NOT looking at camera
+- Stats must be SPECIFIC numbers, not vague
+- Badges must be 4 words max each
+- This should look like EDITORIAL CONTENT, not advertising
+- Natural candid photography style, real environment
+- The social proof names ONE person (e.g. "Marcus, 31") so the image must show ONLY that one person
+
+=== PRODUCT/SHIRT — MANDATORY ===
+The person MUST be wearing the EXACT shirt from the reference image:
+- SAME shirt design, color, fit as reference
+- SAME label/tag if visible in reference
+- Do NOT invent a generic black t-shirt with random logo
+- The reference image shows the ${brandName} product — the person wears THIS EXACT shirt
+- NO made-up logos, NO random brand marks — only what's in the reference`;
+}
+
+/**
+ * Generate proof stats based on the test angle
+ */
+function generateProofStats(test) {
+  const angle = test.hypothesis?.angle || test.angle || '';
+  const hook = test.hook || '';
+  const persona = test.persona?.id || '';
+
+  // Default stats that work for most angles
+  const defaultStats = {
+    stat1: '365 days',
+    stat2: '12 hour shifts',
+    stat3: '1 shirt',
+    punchline: 'Still going strong',
+  };
+
+  // Persona-specific stats
+  if (persona.includes('durability') || angle.toLowerCase().includes('last')) {
+    return {
+      stat1: '3 years',
+      stat2: '500+ washes',
+      stat3: '0 replacements',
+      punchline: '1 shirt that actually lasts',
+    };
+  }
+
+  if (persona.includes('blue_collar') || angle.toLowerCase().includes('work')) {
+    return {
+      stat1: '14 job sites',
+      stat2: '3 years',
+      stat3: '1,460 days of sweat',
+      punchline: '1 shirt',
+    };
+  }
+
+  if (angle.toLowerCase().includes('paycheck') || angle.toLowerCase().includes('professional')) {
+    return {
+      stat1: '47 client meetings',
+      stat2: '12 presentations',
+      stat3: '1 shirt',
+      punchline: 'They noticed the confidence, not the brand',
+    };
+  }
+
+  return defaultStats;
 }
 
 /**
@@ -747,6 +1222,21 @@ function buildTestStaticPrompt({ test, format, brandName, accentColor = 'orange'
 
     case 'before_after':
       return buildBeforeAfterPrompt(params);
+
+    case 'news_editorial':
+      return buildNewsEditorialPrompt(params);
+
+    case 'testimonial':
+      return buildTestimonialPrompt(params);
+
+    case 'ugc_style':
+      return buildUGCPrompt(params);
+
+    case 'stat_stack':
+    case 'stat_stack_hero':
+    case 'stat_hero':
+    case 'proof_story':
+      return buildStatStackHeroPrompt(params);
 
     default:
       // Fallback to Type 1
@@ -800,6 +1290,30 @@ function getAvailableFormats() {
       description: 'Side-by-side comparison showing problem vs solution',
       aspectRatio: '4:5',
       bestFor: ['differentiation', 'competitor positioning', 'education'],
+    },
+    'news_editorial': {
+      name: 'News Editorial',
+      description: 'Vintage 1930s newspaper clipping style',
+      aspectRatio: '4:5',
+      bestFor: ['authority', 'founder story', 'credibility', 'values messaging'],
+    },
+    'testimonial': {
+      name: 'Testimonial',
+      description: 'Personal customer story with product photo',
+      aspectRatio: '4:5',
+      bestFor: ['social proof', 'authenticity', 'relatability', 'MOF/BOF'],
+    },
+    'before_after': {
+      name: 'Before/After',
+      description: 'Transformation comparison showing improvement',
+      aspectRatio: '4:5',
+      bestFor: ['transformation', 'problem-solution', 'visual proof'],
+    },
+    'stat_stack_hero': {
+      name: 'Stat Stack Hero',
+      description: 'Editorial proof story with real person + stat badges',
+      aspectRatio: '4:5',
+      bestFor: ['proof stories', 'credibility', 'durability claims', 'professional use cases'],
     },
   };
 }
@@ -912,13 +1426,51 @@ PRODUCT REFERENCE — CRITICAL:
  * Now supports dynamic format generation for unknown formats
  * Uses AI to generate copy based on test angle
  */
-async function buildTestStaticPromptAsync({ test, format, brandName, logoUrl, accentColor = 'orange' }) {
+async function buildTestStaticPromptAsync({ test, format, brandName, brandId, logoUrl, accentColor = 'orange' }) {
   const config = loadConfig();
-  const knownFormats = ['product_hero', 'meme', 'aesthetic', 'illustrated', 'vintage', 'ugc', 'comparison', 'before_after'];
+  const knownFormats = ['product_hero', 'meme', 'aesthetic', 'illustrated', 'vintage', 'ugc', 'comparison', 'before_after', 'news_editorial', 'testimonial', 'stat_stack_hero'];
+
+  // Fetch brand style analysis and brand facts if brandId is provided
+  let brandStyleDescription = '';
+  let brandFacts = '';
+  if (brandId) {
+    try {
+      brandStyleDescription = await getStylePromptForBrand(brandId);
+    } catch (err) {
+      console.log(`[TestStaticBuilder] Could not get brand style: ${err.message}`);
+    }
+
+    // Fetch verified brand facts from database
+    try {
+      const db = getDb();
+      const brand = db.prepare('SELECT brand_facts FROM brands WHERE id = ?').get(brandId);
+      if (brand && brand.brand_facts) {
+        brandFacts = brand.brand_facts;
+        console.log(`[TestStaticBuilder] Using brand facts: ${brandFacts}`);
+      }
+    } catch (err) {
+      console.log(`[TestStaticBuilder] Could not get brand facts: ${err.message}`);
+    }
+  }
 
   // Generate AI copy for known formats
   if (knownFormats.includes(format)) {
     try {
+      // Map formats to specific frameworks to ensure variety between formats
+      const formatVariationMap = {
+        'product_hero': 'problem_solution',
+        'meme': 'short_punchy',
+        'aesthetic': 'direct_command',
+        'illustrated': 'comparison',
+        'vintage': 'stat_implication',
+        'ugc': 'question',
+        'comparison': 'comparison',
+        'before_after': 'problem_solution',
+        'news_editorial': 'stat_implication',
+        'testimonial': 'short_punchy',       // Personal, authentic feel
+        'stat_stack_hero': 'stat_implication', // Stats and proof-focused
+      };
+
       // Use AI to generate copy based on test angle
       const aiCopy = await generateAICopy({
         format,
@@ -926,10 +1478,12 @@ async function buildTestStaticPromptAsync({ test, format, brandName, logoUrl, ac
         brandName,
         winningCopy: test.winningCopy || [],
         strategicContext: test.strategicContext || {},
+        variationHint: formatVariationMap[format] || null,
+        brandFacts,
       });
 
-      // Build prompt with AI-generated copy
-      return buildPromptWithCopy({ format, copy: aiCopy, brandName, logoUrl, accentColor });
+      // Build prompt with AI-generated copy and brand style
+      return buildPromptWithCopy({ format, copy: aiCopy, brandName, logoUrl, accentColor, brandStyleDescription });
     } catch (err) {
       console.error('[TestStaticBuilder] AI copy failed, using fallback:', err.message);
       return buildTestStaticPrompt({ test, format, brandName, accentColor });
@@ -944,8 +1498,9 @@ async function buildTestStaticPromptAsync({ test, format, brandName, logoUrl, ac
 /**
  * Build prompt with pre-generated copy (AI or fallback)
  * Now includes visual direction from AI to match test angle
+ * Also includes brand style description if available
  */
-function buildPromptWithCopy({ format, copy, brandName, logoUrl, accentColor }) {
+function buildPromptWithCopy({ format, copy, brandName, logoUrl, accentColor, brandStyleDescription = '' }) {
   const params = { copy, brandName, accentColor };
 
   // Get the base prompt
@@ -975,6 +1530,15 @@ function buildPromptWithCopy({ format, copy, brandName, logoUrl, accentColor }) 
     case 'before_after':
       basePrompt = buildBeforeAfterPrompt({ ...params, test: {} });
       break;
+    case 'news_editorial':
+      basePrompt = buildNewsEditorialPrompt({ ...params, test: {} });
+      break;
+    case 'testimonial':
+      basePrompt = buildTestimonialPrompt({ ...params, test: {} });
+      break;
+    case 'stat_stack_hero':
+      basePrompt = buildStatStackHeroPrompt({ ...params, test: {} });
+      break;
     default:
       basePrompt = buildType1Prompt({ ...params, test: {} });
   }
@@ -992,17 +1556,35 @@ The visual direction above tells you EXACTLY what to show.`;
   }
 
   // Add strong product reference instruction
-  basePrompt += `\n\nPRODUCT REFERENCE — CRITICAL:\n• The product in the image MUST match the reference image EXACTLY\n• Same product design, colors, labels, and details\n• Do NOT substitute with a different product`;
+  basePrompt += `\n\n=== PRODUCT REFERENCE — CRITICAL — READ THIS ===
+• The reference image shows the EXACT ${brandName} product
+• You MUST replicate this product EXACTLY in the generated image
+• SAME shirt design, SAME color, SAME fit, SAME neckline
+• SAME label/tag placement and appearance
+• SAME fabric texture and finish
+• Do NOT create a generic black t-shirt
+• Do NOT invent a different product design
+• Do NOT add random logos or brand marks that aren't in the reference
+• The reference IS the product — copy it PRECISELY
+• If showing the product, it must be IDENTICAL to the reference image`;
 
   // Add brand name instruction - use text styling, not logo graphics
-  basePrompt += `\n\n=== BRAND NAME — CRITICAL ===
+  basePrompt += `\n\n=== BRAND NAME & LOGO — CRITICAL ===
 • Brand name is "${brandName}" - spell EXACTLY as shown: ${brandName.split('').join('-')}
-• Render brand name as CLEAN TEXT only - stylized script font or bold sans-serif
-• Do NOT attempt to create a logo graphic or icon
-• Do NOT add any symbol, emblem, or graphic next to the brand name
-• Just clean, well-styled text that reads "${brandName}"
-• Position: Top center of image (above headline) in white or brand-appropriate color
-• If the AI cannot render the brand name perfectly, LEAVE THAT SPACE BLANK - do not attempt to render it badly`;
+• A logo reference image has been provided - use THIS EXACT LOGO on the product
+• The logo reference shows the ACTUAL ${brandName} logo - copy it PRECISELY
+• Do NOT invent a different logo, symbol, or icon
+• Do NOT create a generic "U" or abstract mark - use the EXACT logo from reference
+• The product should show the SAME logo/tag as seen in the reference images
+• For brand text in the ad: use clean text that reads "${brandName}" in white or brand color
+• Position brand text: Top center or bottom of image
+• If showing the product, the logo/tag on the product MUST match the reference EXACTLY`;
+
+
+  // Add brand style description if available
+  if (brandStyleDescription) {
+    basePrompt += brandStyleDescription;
+  }
 
   return basePrompt;
 }

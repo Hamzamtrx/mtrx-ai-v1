@@ -19,12 +19,13 @@ class NanoBananaAPI {
    * Generate an image from a prompt
    * @param {Object} options
    * @param {string} options.prompt - The generation prompt
-   * @param {string} options.referenceImageUrl - Public URL to reference image
+   * @param {string} options.referenceImageUrl - Public URL to reference image (product)
+   * @param {string} options.founderImageUrl - Public URL to founder image (optional, for founder statics)
    * @param {string} options.logoUrl - Public URL to logo image (optional)
    * @param {string} options.aspectRatio - Aspect ratio (1:1, 9:16, 16:9, 4:3, etc.)
    * @returns {Promise<Object>} - Generated image data
    */
-  async generateImage({ prompt, referenceImageUrl, logoUrl = null, aspectRatio = '1:1' }) {
+  async generateImage({ prompt, referenceImageUrl, founderImageUrl = null, logoUrl = null, aspectRatio = '1:1' }) {
     // Build input payload
     const input = {
       prompt,
@@ -35,10 +36,12 @@ class NanoBananaAPI {
       creativity: 0.15       // Minimal deviation from reference
     };
 
-    // Add reference image URLs if provided (product + optional logo)
+    // Add reference image URLs if provided (product + optional founder + optional logo)
+    // For founder statics, the founder image is CRITICAL - put it first so the AI prioritizes matching the person
     const imageInputs = [];
-    if (referenceImageUrl) imageInputs.push(referenceImageUrl);
-    if (logoUrl) imageInputs.push(logoUrl);
+    if (founderImageUrl) imageInputs.push(founderImageUrl); // Founder first (highest priority for face/person)
+    if (referenceImageUrl) imageInputs.push(referenceImageUrl); // Product second
+    if (logoUrl) imageInputs.push(logoUrl); // Logo last
 
     if (imageInputs.length > 0) {
       input.image_input = imageInputs;
@@ -52,6 +55,7 @@ class NanoBananaAPI {
 
     try {
       console.log('    Sending to Kie.ai Nano Banana Pro API...');
+      console.log(`    Reference images: ${imageInputs.length} (${founderImageUrl ? 'FOUNDER + ' : ''}${referenceImageUrl ? 'PRODUCT' : ''}${logoUrl ? ' + LOGO' : ''})`);
       const response = await fetch(`${KIE_API_URL}/jobs/createTask`, {
         method: 'POST',
         headers: this.headers,
