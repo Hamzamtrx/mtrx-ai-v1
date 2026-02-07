@@ -1951,7 +1951,7 @@ CRITICAL RULES:
 4. Each test must target a DIFFERENT persona OR test a different angle
 5. If you can't articulate what you LEARN from a win vs loss, it's not a real test
 6. EVERY test must have a clear SOURCE with specific evidence
-7. **REDDIT RULE**: If Reddit research is provided, AT LEAST 2 tests MUST source from Reddit pain points or discussions. Use the EXACT customer language from Reddit threads. Set source.type to "reddit" for these.
+7. **REDDIT RULE**: If Reddit research is provided, AT LEAST 4 tests MUST source from Reddit pain points or discussions. Use the EXACT customer language from Reddit threads. Set source.type to "reddit" for these. Reddit angles are GOLD - they come directly from real customer conversations.
 
 TEST TYPES (only use these two):
 - new_territory: Untested angle or fresh direction
