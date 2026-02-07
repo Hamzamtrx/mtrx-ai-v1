@@ -1,74 +1,11 @@
 /**
  * Reddit Research Service
  *
- * Scrapes Reddit for customer discussions, pain points, and desires
- * to find new advertising angles for the brand.
+ * Finds Reddit discussions via web search to discover customer pain points,
+ * desires, and new advertising angles.
  *
- * Uses Reddit OAuth API for reliable access.
- *
- * SETUP:
- * 1. Go to https://www.reddit.com/prefs/apps
- * 2. Click "create another app..." at bottom
- * 3. Select "script" type
- * 4. Name: "MTRX Research" (or anything)
- * 5. Redirect URI: http://localhost (not used for script apps)
- * 6. Copy the client_id (under app name) and client_secret
- * 7. Add to .env: REDDIT_CLIENT_ID=xxx and REDDIT_CLIENT_SECRET=xxx
+ * Uses DuckDuckGo web search with site:reddit.com filter (no API key needed)
  */
-
-require('dotenv').config();
-
-// Reddit OAuth token cache
-let redditAccessToken = null;
-let redditTokenExpiry = 0;
-
-/**
- * Get Reddit OAuth access token
- */
-async function getRedditAccessToken() {
-  // Return cached token if still valid
-  if (redditAccessToken && Date.now() < redditTokenExpiry) {
-    return redditAccessToken;
-  }
-
-  const clientId = process.env.REDDIT_CLIENT_ID;
-  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    console.log('[Reddit] No OAuth credentials found - will use fallback data');
-    return null;
-  }
-
-  try {
-    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-
-    const response = await fetch('https://www.reddit.com/api/v1/access_token', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'MTRX-Research/1.0'
-      },
-      body: 'grant_type=client_credentials'
-    });
-
-    if (!response.ok) {
-      console.log(`[Reddit] OAuth failed: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    redditAccessToken = data.access_token;
-    // Token expires in ~1 hour, refresh 5 min early
-    redditTokenExpiry = Date.now() + (data.expires_in - 300) * 1000;
-
-    console.log('[Reddit] OAuth token obtained successfully');
-    return redditAccessToken;
-  } catch (err) {
-    console.log('[Reddit] OAuth error:', err.message);
-    return null;
-  }
-}
 
 // Subreddit mapping by brand category
 const SUBREDDITS_BY_CATEGORY = {
@@ -191,63 +128,89 @@ const DESIRE_PATTERNS = [
  * @param {number} limit - Max results per subreddit
  * @returns {Promise<Array>} - Array of relevant posts
  */
-async function searchReddit(query, subreddits, limit = 10) {
+/**
+ * Search for Reddit discussions using DuckDuckGo web search
+ * @param {string} query - Search query
+ * @param {string[]} subreddits - Subreddits to prioritize (used in search)
+ * @param {number} limit - Max results
+ * @returns {Promise<Array>} - Array of Reddit posts found
+ */
+async function searchRedditViaWeb(query, subreddits, limit = 15) {
   const results = [];
 
-  // Try to get OAuth token first
-  const accessToken = await getRedditAccessToken();
+  // Build search queries - combine main query with subreddit targets
+  const searchQueries = [
+    `site:reddit.com ${query}`,
+    ...subreddits.slice(0, 3).map(sub => `site:reddit.com/r/${sub} ${query}`)
+  ];
 
-  for (const subreddit of subreddits.slice(0, 8)) { // Search up to 8 subreddits
+  for (const searchQuery of searchQueries) {
     try {
-      let searchUrl, headers;
+      console.log(`[Reddit Web Search] "${searchQuery}"`);
 
-      if (accessToken) {
-        // Use OAuth API (oauth.reddit.com)
-        searchUrl = `https://oauth.reddit.com/r/${subreddit}/search?q=${encodeURIComponent(query)}&restrict_sr=1&limit=${limit}&sort=relevance&t=year`;
-        headers = {
-          'Authorization': `Bearer ${accessToken}`,
-          'User-Agent': 'MTRX-Research/1.0'
-        };
-      } else {
-        // Fallback to public API (may fail)
-        searchUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&limit=${limit}&sort=relevance&t=year`;
-        headers = {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-        };
-      }
+      // Use DuckDuckGo HTML search
+      const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`;
 
-      const response = await fetch(searchUrl, { headers });
+      const response = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Accept-Language': 'en-US,en;q=0.9',
+        }
+      });
 
       if (!response.ok) {
-        console.log(`[Reddit] Search failed for r/${subreddit}: ${response.status}`);
+        console.log(`[Reddit Web Search] Failed: ${response.status}`);
         continue;
       }
 
-      const data = await response.json();
-      const posts = data?.data?.children || [];
+      const html = await response.text();
 
-      for (const post of posts) {
-        const p = post.data;
-        if (p.removed_by_category || p.selftext === '[removed]') continue;
+      // Extract Reddit links and snippets from DuckDuckGo results
+      // Pattern: <a class="result__a" href="...reddit.com...">Title</a>
+      // And: <a class="result__snippet">Snippet text</a>
+      const resultPattern = /<a[^>]+class="result__a"[^>]+href="([^"]*reddit\.com[^"]*)"[^>]*>([^<]+)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([^<]*)</g;
+
+      let match;
+      while ((match = resultPattern.exec(html)) !== null && results.length < limit) {
+        const [, url, title, snippet] = match;
+
+        // Skip non-discussion URLs (media, user profiles, etc)
+        if (url.includes('/user/') || url.includes('/media') || url.includes('.jpg') || url.includes('.png')) {
+          continue;
+        }
+
+        // Extract subreddit from URL
+        const subredditMatch = url.match(/reddit\.com\/r\/([^\/]+)/);
+        const subreddit = subredditMatch ? subredditMatch[1] : 'unknown';
+
+        // Decode HTML entities
+        const cleanTitle = title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
+        const cleanSnippet = snippet.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
+
+        // Avoid duplicates
+        if (results.some(r => r.url === url)) continue;
 
         results.push({
-          subreddit: p.subreddit,
-          title: p.title,
-          selftext: (p.selftext || '').substring(0, 800),
-          score: p.score,
-          num_comments: p.num_comments,
-          url: `https://reddit.com${p.permalink}`,
-          created: new Date(p.created_utc * 1000).toISOString()
+          subreddit,
+          title: cleanTitle,
+          selftext: cleanSnippet,
+          score: 0, // Not available from web search
+          num_comments: 0,
+          url: url.startsWith('//') ? 'https:' + url : url,
+          created: null
         });
       }
 
-      // Delay between requests (OAuth has higher limits)
-      await new Promise(r => setTimeout(r, accessToken ? 200 : 500));
+      // Delay between searches
+      await new Promise(r => setTimeout(r, 800));
+
     } catch (err) {
-      console.log(`[Reddit] Error searching r/${subreddit}:`, err.message);
+      console.log(`[Reddit Web Search] Error:`, err.message);
     }
   }
 
+  console.log(`[Reddit Web Search] Found ${results.length} results`);
   return results;
 }
 
@@ -257,41 +220,74 @@ async function searchReddit(query, subreddits, limit = 10) {
  * @param {number} limit - Max comments to fetch
  * @returns {Promise<Array>} - Array of top comments
  */
-async function getPostComments(permalink, limit = 15) {
+/**
+ * Fetch Reddit post content and comments by scraping the page
+ * @param {string} url - Full Reddit URL
+ * @param {number} limit - Max comments to extract
+ * @returns {Promise<Object>} - Post content and comments
+ */
+async function fetchRedditPost(url, limit = 10) {
   try {
-    const accessToken = await getRedditAccessToken();
+    // Try old.reddit.com which has simpler HTML
+    const oldUrl = url.replace('www.reddit.com', 'old.reddit.com').replace('reddit.com', 'old.reddit.com');
 
-    let url, headers;
-    if (accessToken) {
-      url = `https://oauth.reddit.com${permalink}?limit=${limit}&depth=2&sort=top`;
-      headers = {
-        'Authorization': `Bearer ${accessToken}`,
-        'User-Agent': 'MTRX-Research/1.0'
-      };
-    } else {
-      url = `https://www.reddit.com${permalink}.json?limit=${limit}&depth=1&sort=top`;
-      headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-      };
+    const response = await fetch(oldUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html',
+      }
+    });
+
+    if (!response.ok) {
+      console.log(`[Reddit Fetch] Failed for ${url}: ${response.status}`);
+      return { selftext: '', comments: [] };
     }
 
-    const response = await fetch(url, { headers });
+    const html = await response.text();
 
-    if (!response.ok) return [];
+    // Extract post body (selftext)
+    let selftext = '';
+    const selftextMatch = html.match(/<div class="[^"]*md[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+    if (selftextMatch) {
+      selftext = selftextMatch[1]
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#x27;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 1000);
+    }
 
-    const data = await response.json();
-    const comments = data[1]?.data?.children || [];
+    // Extract comments
+    const comments = [];
+    const commentPattern = /<div class="[^"]*usertext-body[^"]*"[^>]*>[\s\S]*?<div class="[^"]*md[^"]*"[^>]*>([\s\S]*?)<\/div>/g;
 
-    return comments
-      .filter(c => c.kind === 't1' && c.data.body && c.data.body !== '[removed]')
-      .slice(0, limit)
-      .map(c => ({
-        body: c.data.body.substring(0, 600),
-        score: c.data.score
-      }));
+    let match;
+    while ((match = commentPattern.exec(html)) !== null && comments.length < limit) {
+      const commentText = match[1]
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#x27;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (commentText.length > 20 && commentText.length < 800) {
+        comments.push({ body: commentText, score: 0 });
+      }
+    }
+
+    console.log(`[Reddit Fetch] Got ${selftext.length} chars selftext, ${comments.length} comments from ${url}`);
+    return { selftext, comments };
+
   } catch (err) {
-    console.log(`[Reddit] Error fetching comments:`, err.message);
-    return [];
+    console.log(`[Reddit Fetch] Error:`, err.message);
+    return { selftext: '', comments: [] };
   }
 }
 
@@ -359,26 +355,30 @@ async function researchReddit(brand, options = {}) {
     productKeywords.push('skincare routine', 'best moisturizer', 'anti-aging', 'skin products');
   }
 
-  // Add custom queries if provided
+  // Build diverse search queries for better coverage
   const queries = [
     ...searchQueries,
-    ...productKeywords.slice(0, 3),
-    brand.name,
-    // Add angle-specific queries
-    'polyester vs natural',
-    'best quality shirts',
-    'shirts that last',
-    'why are my clothes',
-    'clothing recommendations'
+    ...productKeywords.slice(0, 4),
+    // Pain point queries
+    'hate my shirts',
+    'tired of cheap clothes',
+    'shirt recommendations',
+    'why do shirts shrink',
+    'best quality t-shirt',
+    'clothes that last',
+    'polyester problems',
+    'sustainable clothing'
   ].filter(Boolean);
 
-  // Search Reddit
-  const allPosts = [];
-  for (const query of queries.slice(0, 5)) { // Limit to 5 queries
-    console.log(`[Reddit Research] Searching: "${query}"`);
-    const posts = await searchReddit(query, subreddits, 5);
-    allPosts.push(...posts);
-    await new Promise(r => setTimeout(r, 300)); // Rate limit
+  // Search Reddit via web search
+  console.log(`[Reddit Research] Searching with ${queries.length} queries...`);
+  const allPosts = await searchRedditViaWeb(queries[0], subreddits, 20);
+
+  // Do additional searches with other queries
+  for (const query of queries.slice(1, 4)) {
+    const morePosts = await searchRedditViaWeb(query, subreddits, 10);
+    allPosts.push(...morePosts);
+    await new Promise(r => setTimeout(r, 500));
   }
 
   // Deduplicate posts by URL
@@ -394,22 +394,26 @@ async function researchReddit(brand, options = {}) {
   // Sort by engagement (score + comments)
   uniquePosts.sort((a, b) => (b.score + b.num_comments) - (a.score + a.num_comments));
 
-  // Take top posts and fetch their comments
+  // Take top posts and fetch their full content + comments
   const topPosts = uniquePosts.slice(0, maxThreads);
   const threads = [];
   const allPainPoints = [];
   const allDesires = [];
 
+  console.log(`[Reddit Research] Fetching content from ${topPosts.length} threads...`);
+
   for (const post of topPosts) {
+    // Fetch full post content and comments
+    const { selftext: fullText, comments } = await fetchRedditPost(post.url, maxCommentsPerThread);
+
+    // Use fetched content or fall back to snippet from search
+    const postContent = fullText || post.selftext || '';
+
     // Extract insights from post title and text
-    const postText = `${post.title} ${post.selftext}`;
+    const postText = `${post.title} ${postContent}`;
     const postInsights = extractInsights(postText);
     allPainPoints.push(...postInsights.painPoints);
     allDesires.push(...postInsights.desires);
-
-    // Get top comments
-    const permalink = post.url.replace('https://reddit.com', '');
-    const comments = await getPostComments(permalink, maxCommentsPerThread);
 
     // Extract insights from comments
     for (const comment of comments) {
@@ -421,14 +425,15 @@ async function researchReddit(brand, options = {}) {
     threads.push({
       subreddit: post.subreddit,
       title: post.title,
-      snippet: post.selftext.substring(0, 200),
+      snippet: postContent.substring(0, 300) || post.selftext,
       score: post.score,
-      num_comments: post.num_comments,
+      num_comments: comments.length,
       url: post.url,
-      top_comments: comments.slice(0, 5).map(c => c.body.substring(0, 200))
+      top_comments: comments.slice(0, 5).map(c => c.body.substring(0, 250))
     });
 
-    await new Promise(r => setTimeout(r, 200)); // Rate limit
+    // Rate limit between fetches
+    await new Promise(r => setTimeout(r, 600));
   }
 
   // Deduplicate insights
@@ -492,7 +497,7 @@ function formatForPrompt(research) {
 module.exports = {
   researchReddit,
   formatForPrompt,
-  searchReddit,
-  getPostComments,
+  searchRedditViaWeb,
+  fetchRedditPost,
   SUBREDDITS_BY_CATEGORY
 };
