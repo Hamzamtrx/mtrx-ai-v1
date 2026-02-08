@@ -5665,10 +5665,11 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
                 </div>
                 <div style="display:flex;gap:6px;">
                   <button onclick="saveIndividualStatic('${esc(formatId)}', '${ratio}')" style="background:#28a745;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Save this static">💾</button>
-                  <button onclick="regenerateSingleFormat('${esc(formatId)}')" style="background:#555;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Regenerate this format">🔄</button>
+                  <button onclick="showTestRegenOptions('${esc(formatId)}', '${ratio}')" style="background:#555;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Regenerate this format">🔄</button>
                   ${s.imageUrl ? `<a href="${esc(s.imageUrl)}" download="${s.adName ? esc(s.adName) + '.png' : ''}" style="background:#333;color:white;padding:6px 10px;border-radius:6px;font-size:11px;text-decoration:none;">⬇</a>` : ''}
                 </div>
               </div>
+              <div id="test-regen-${esc(formatId)}" style="display:none;"></div>
             </div>
           </div>
         `;
@@ -5709,82 +5710,70 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
       document.getElementById('staticsGalleryGrid').innerHTML = renderGalleryForRatio(ratio, data.byFormat, data.formats);
     }
 
-    // Show prompt for regeneration reason
-    function showRegenPrompt(formatId) {
-      return new Promise((resolve) => {
-        const modal = document.createElement('div');
-        modal.className = 'video-lightbox';
-        modal.id = 'regenPromptModal';
-        modal.onclick = (e) => { if (e.target === modal) { modal.remove(); resolve(null); } };
+    // Show regenerate options for a test static (inline like double downs)
+    function showTestRegenOptions(formatId, ratio) {
+      const container = document.getElementById(`test-regen-${formatId}`);
+      if (!container) return;
 
-        modal.innerHTML = `
-          <div style="background:var(--bg-card);border-radius:12px;padding:24px;max-width:450px;width:90%;">
-            <h3 style="margin:0 0 16px;font-size:16px;">🔄 Regenerate: ${formatId}</h3>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
-              What would you like to change? (optional)
-            </p>
-            <textarea id="regenReasonInput" placeholder="e.g., Make it more premium, use darker colors, add more contrast, show the product bigger..."
-              style="width:100%;height:80px;padding:12px;border:1px solid var(--border-primary);border-radius:8px;background:var(--bg-input);color:var(--text-primary);font-size:13px;resize:none;box-sizing:border-box;"></textarea>
-            <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
-              <button onclick="document.getElementById('regenPromptModal').remove();"
-                style="padding:10px 16px;background:var(--bg-input);border:1px solid var(--border-primary);border-radius:8px;color:var(--text-primary);font-size:13px;cursor:pointer;">
-                Cancel
-              </button>
-              <button id="regenSubmitBtn"
-                style="padding:10px 16px;background:var(--accent);border:none;border-radius:8px;color:white;font-size:13px;font-weight:600;cursor:pointer;">
-                Regenerate
-              </button>
-            </div>
+      // Toggle off if already showing
+      if (container.style.display === 'block') {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:600;color:#f59e0b;">What's wrong?</span>
+            <button onclick="document.getElementById('test-regen-${formatId}').style.display='none'" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 6px;">✕</button>
           </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Focus the textarea
-        setTimeout(() => document.getElementById('regenReasonInput')?.focus(), 100);
-
-        // Handle submit
-        document.getElementById('regenSubmitBtn').onclick = () => {
-          const reason = document.getElementById('regenReasonInput').value.trim();
-          modal.remove();
-          resolve(reason); // Empty string is valid (no specific direction)
-        };
-
-        // Handle enter key
-        document.getElementById('regenReasonInput').onkeydown = (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            document.getElementById('regenSubmitBtn').click();
-          }
-        };
-      });
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Text is blocked or covered by character/face - ensure ALL text is fully visible and readable')" style="padding:5px 8px;font-size:9px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:4px;cursor:pointer;">🚫 Text Blocked</button>
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Text is hard to read - make text larger, bolder, higher contrast')" style="padding:5px 8px;font-size:9px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);border-radius:4px;cursor:pointer;">👁️ Text Illegible</button>
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Logo is missing or not visible - MUST include the brand logo prominently')" style="padding:5px 8px;font-size:9px;background:rgba(139,92,246,0.15);color:#a855f7;border:1px solid rgba(139,92,246,0.25);border-radius:4px;cursor:pointer;">🏷️ No Logo</button>
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Product looks wrong - match the EXACT product from reference')" style="padding:5px 8px;font-size:9px;background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);border-radius:4px;cursor:pointer;">📦 Wrong Product</button>
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Style/aesthetic is wrong - match reference style more closely')" style="padding:5px 8px;font-size:9px;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.25);border-radius:4px;cursor:pointer;">🎨 Wrong Style</button>
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', 'Layout/composition is off - better balance between elements')" style="padding:5px 8px;font-size:9px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:4px;cursor:pointer;">📐 Bad Layout</button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="test-fix-${formatId}" placeholder="Or describe the issue..." style="flex:1;padding:6px 8px;font-size:9px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-secondary);border-radius:4px;" onkeypress="if(event.key==='Enter')regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', this.value)">
+            <button onclick="regenerateTestFormatWithFix('${esc(formatId)}', '${ratio}', document.getElementById('test-fix-${formatId}').value)" style="padding:6px 10px;font-size:9px;font-weight:600;background:linear-gradient(135deg, #f59e0b, #d97706);color:white;border:none;border-radius:4px;cursor:pointer;">Fix</button>
+          </div>
+        </div>
+      `;
+      container.style.display = 'block';
     }
 
-    // Regenerate a single format with optional reason
-    async function regenerateSingleFormat(formatId) {
+    // Regenerate test static with fix instruction
+    async function regenerateTestFormatWithFix(formatId, ratio, fixInstruction) {
+      if (!fixInstruction || !fixInstruction.trim()) {
+        toast('Please describe what needs to be fixed', 'error');
+        return;
+      }
+
       const testData = window._currentTestData;
       if (!testData) {
         toast('No test data found', 'error');
         return;
       }
 
-      // Show prompt for regeneration reason/direction
-      const reason = await showRegenPrompt(formatId);
-      if (reason === null) return; // User cancelled
-
-      // Find the format card and show loading
-      const formatCard = document.querySelector(`[data-format="${formatId}"]`);
-      if (formatCard) {
-        formatCard.style.opacity = '0.5';
-        formatCard.querySelector('button[onclick*="regenerateSingleFormat"]')?.setAttribute('disabled', 'true');
+      const container = document.getElementById(`test-regen-${formatId}`);
+      if (container) {
+        container.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;margin-top:8px;">
+            <div style="width:16px;height:16px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:#f59e0b;">Regenerating ${formatId}...</div>
+              <div style="font-size:9px;color:var(--text-muted);">${fixInstruction.substring(0, 40)}${fixInstruction.length > 40 ? '...' : ''}</div>
+            </div>
+          </div>
+        `;
       }
 
-      toast(`Regenerating ${formatId}...`, 'info');
-
       try {
-        // Build the request with optional reason appended to visual direction
+        // Build the request with fix instruction appended to visual direction
         const visualDir = testData.hypothesis?.visual_direction || testData.visual_direction || '';
-        const enhancedVisualDir = reason ? `${visualDir}\n\nREGEN DIRECTION: ${reason}` : visualDir;
+        const enhancedVisualDir = `${visualDir}\n\nFIX INSTRUCTION: ${fixInstruction}`;
 
         const res = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
           method: 'POST',
@@ -5798,8 +5787,8 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
               copyDirection: testData.hypothesis?.copy_direction || testData.copy_direction || '',
               visualDirection: enhancedVisualDir,
               persona: testData.persona?.id || testData.persona || 'general',
-              formats: [formatId], // Only regenerate this one format
-              regenReason: reason, // Pass reason separately too
+              formats: [formatId],
+              fixInstruction: fixInstruction,
             },
             aspectRatios: ['4:5', '9:16'],
             variants: 1,
@@ -5831,15 +5820,13 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
 
           toast(`${formatId} regenerated!`, 'success');
         } else {
-          throw new Error(data.error || 'Regeneration failed');
+          if (container) container.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;margin-top:8px;">❌ ${data.error || 'Regeneration failed'}</div>`;
+          toast('Regeneration failed', 'error');
         }
       } catch (err) {
         console.error('Regenerate error:', err);
+        if (container) container.innerHTML = `<div style="font-size:10px;color:#ef4444;padding:8px;margin-top:8px;">❌ Error: ${err.message}</div>`;
         toast('Failed to regenerate: ' + err.message, 'error');
-        if (formatCard) {
-          formatCard.style.opacity = '1';
-          formatCard.querySelector('button')?.removeAttribute('disabled');
-        }
       }
     }
 
