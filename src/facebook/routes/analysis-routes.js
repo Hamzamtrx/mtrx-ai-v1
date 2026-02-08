@@ -10,6 +10,7 @@ const { detectPatterns } = require('../analysis/pattern-detector');
 const { generateBrief } = require('../analysis/brief-generator');
 const { generateStrategicInsights } = require('../analysis/strategic-insights');
 const { generateTestSuggestions, generateDoubleDownVariations } = require('../analysis/test-suggestions');
+const { clearUsedThreads } = require('../analysis/reddit-research');
 const { buildTestStaticPrompt, buildTestStaticPromptAsync, getAvailableFormats } = require('../analysis/test-static-builder');
 const { generateAICopy } = require('../analysis/copy-generator');
 const { generateAdName, addNamesToStatics } = require('../analysis/naming-convention');
@@ -418,9 +419,24 @@ router.get('/static-copy/:brandId', (req, res) => {
  * Body (optional):
  * - externalSignals: { reddit, tiktok, facebookComments, articles, accountChanges }
  */
+/**
+ * POST /api/facebook/analysis/clear-reddit-cache/:brandId
+ * Clear used Reddit threads for a brand to get fresh ideas
+ */
+router.post('/clear-reddit-cache/:brandId', async (req, res) => {
+  try {
+    const brandId = parseInt(req.params.brandId);
+    clearUsedThreads(brandId);
+    res.json({ success: true, message: 'Reddit thread history cleared. Next research will return fresh threads.' });
+  } catch (err) {
+    console.error('[Clear Reddit Cache] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/test-suggestions/:brandId', async (req, res) => {
-  req.setTimeout(120000);
-  res.setTimeout(120000);
+  req.setTimeout(300000); // 5 minute timeout for Reddit research + Claude + double-downs
+  res.setTimeout(300000);
   try {
     const brandId = parseInt(req.params.brandId);
     const force = req.query.force === 'true';

@@ -1323,6 +1323,7 @@
                 Refresh
               </button>
               <button class="btn btn-primary btn-sm" onclick="loadTestSuggestions(true)" id="loadTestsBtn">Generate Test Ideas</button>
+              <button class="btn btn-sm" onclick="clearRedditHistory()" title="Clear Reddit history to get fresh threads" style="background:#ef4444;color:white;font-size:11px;">🔄 Fresh Reddit</button>
             </div>
           </div>
 
@@ -3086,6 +3087,32 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
     let cachedTestSuggestions = null;
     let selectedTestIndex = null;
 
+    // Clear Reddit thread history and generate fresh ideas
+    async function clearRedditHistory() {
+      if (!currentBrandId) {
+        toast('Please select a brand first', 'error');
+        return;
+      }
+
+      try {
+        // First clear the cache
+        const res = await fetch(`/api/facebook/analysis/clear-reddit-cache/${currentBrandId}`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast('Reddit history cleared! Generating fresh ideas...', 'success');
+          // Now automatically generate new test suggestions with fresh Reddit threads
+          loadTestSuggestions(true);
+        } else {
+          throw new Error(data.error || 'Failed to clear');
+        }
+      } catch (err) {
+        console.error('Clear Reddit history error:', err);
+        toast('Failed to clear: ' + err.message, 'error');
+      }
+    }
+
     async function loadTestSuggestions(force = false) {
       const btn = document.getElementById('loadTestsBtn');
       const refreshBtn = document.getElementById('refreshTestsBtn');
@@ -3654,7 +3681,10 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
             ${sourceObj.evidence ? `
             <div class="detail-row">
               <span class="detail-label">Source</span>
-              <span class="detail-value">${esc(sourceObj.evidence)}</span>
+              <span class="detail-value">
+                ${esc(sourceObj.evidence)}
+                ${sourceObj.url ? `<br><a href="${esc(sourceObj.url)}" target="_blank" style="color:#a78bfa;font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:4px;">View thread <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>` : ''}
+              </span>
             </div>
             ` : ''}
           </div>
@@ -5634,6 +5664,7 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
                   <div style="font-size:11px;color:var(--text-muted);">${esc(formatData.description || '')}</div>
                 </div>
                 <div style="display:flex;gap:6px;">
+                  <button onclick="saveIndividualStatic('${esc(formatId)}', '${ratio}')" style="background:#28a745;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Save this static">💾</button>
                   <button onclick="regenerateSingleFormat('${esc(formatId)}')" style="background:#555;color:white;padding:6px 10px;border-radius:6px;font-size:11px;border:none;cursor:pointer;" title="Regenerate this format">🔄</button>
                   ${s.imageUrl ? `<a href="${esc(s.imageUrl)}" download="${s.adName ? esc(s.adName) + '.png' : ''}" style="background:#333;color:white;padding:6px 10px;border-radius:6px;font-size:11px;text-decoration:none;">⬇</a>` : ''}
                 </div>
@@ -5678,7 +5709,58 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
       document.getElementById('staticsGalleryGrid').innerHTML = renderGalleryForRatio(ratio, data.byFormat, data.formats);
     }
 
-    // Regenerate a single format
+    // Show prompt for regeneration reason
+    function showRegenPrompt(formatId) {
+      return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'video-lightbox';
+        modal.id = 'regenPromptModal';
+        modal.onclick = (e) => { if (e.target === modal) { modal.remove(); resolve(null); } };
+
+        modal.innerHTML = `
+          <div style="background:var(--bg-card);border-radius:12px;padding:24px;max-width:450px;width:90%;">
+            <h3 style="margin:0 0 16px;font-size:16px;">🔄 Regenerate: ${formatId}</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+              What would you like to change? (optional)
+            </p>
+            <textarea id="regenReasonInput" placeholder="e.g., Make it more premium, use darker colors, add more contrast, show the product bigger..."
+              style="width:100%;height:80px;padding:12px;border:1px solid var(--border-primary);border-radius:8px;background:var(--bg-input);color:var(--text-primary);font-size:13px;resize:none;box-sizing:border-box;"></textarea>
+            <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+              <button onclick="document.getElementById('regenPromptModal').remove();"
+                style="padding:10px 16px;background:var(--bg-input);border:1px solid var(--border-primary);border-radius:8px;color:var(--text-primary);font-size:13px;cursor:pointer;">
+                Cancel
+              </button>
+              <button id="regenSubmitBtn"
+                style="padding:10px 16px;background:var(--accent);border:none;border-radius:8px;color:white;font-size:13px;font-weight:600;cursor:pointer;">
+                Regenerate
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Focus the textarea
+        setTimeout(() => document.getElementById('regenReasonInput')?.focus(), 100);
+
+        // Handle submit
+        document.getElementById('regenSubmitBtn').onclick = () => {
+          const reason = document.getElementById('regenReasonInput').value.trim();
+          modal.remove();
+          resolve(reason); // Empty string is valid (no specific direction)
+        };
+
+        // Handle enter key
+        document.getElementById('regenReasonInput').onkeydown = (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('regenSubmitBtn').click();
+          }
+        };
+      });
+    }
+
+    // Regenerate a single format with optional reason
     async function regenerateSingleFormat(formatId) {
       const testData = window._currentTestData;
       if (!testData) {
@@ -5686,16 +5768,24 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
         return;
       }
 
+      // Show prompt for regeneration reason/direction
+      const reason = await showRegenPrompt(formatId);
+      if (reason === null) return; // User cancelled
+
       // Find the format card and show loading
       const formatCard = document.querySelector(`[data-format="${formatId}"]`);
       if (formatCard) {
         formatCard.style.opacity = '0.5';
-        formatCard.querySelector('button')?.setAttribute('disabled', 'true');
+        formatCard.querySelector('button[onclick*="regenerateSingleFormat"]')?.setAttribute('disabled', 'true');
       }
 
       toast(`Regenerating ${formatId}...`, 'info');
 
       try {
+        // Build the request with optional reason appended to visual direction
+        const visualDir = testData.hypothesis?.visual_direction || testData.visual_direction || '';
+        const enhancedVisualDir = reason ? `${visualDir}\n\nREGEN DIRECTION: ${reason}` : visualDir;
+
         const res = await fetch(`/api/facebook/analysis/generate-test-statics/${currentBrandId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -5706,9 +5796,10 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
               hook: testData.hook,
               angle: testData.hypothesis?.angle || testData.angle || testData.title,
               copyDirection: testData.hypothesis?.copy_direction || testData.copy_direction || '',
-              visualDirection: testData.hypothesis?.visual_direction || testData.visual_direction || '',
+              visualDirection: enhancedVisualDir,
               persona: testData.persona?.id || testData.persona || 'general',
               formats: [formatId], // Only regenerate this one format
+              regenReason: reason, // Pass reason separately too
             },
             aspectRatios: ['4:5', '9:16'],
             variants: 1,
@@ -5749,6 +5840,83 @@ Example: Male, early 30s, slim face shape, light brown hair swept to the side, s
           formatCard.style.opacity = '1';
           formatCard.querySelector('button')?.removeAttribute('disabled');
         }
+      }
+    }
+
+    // Save individual static to campaigns
+    async function saveIndividualStatic(formatId, ratio) {
+      const data = window._staticsGalleryData;
+      const testData = window._currentTestData;
+      const campaignCode = window._currentCampaignCode;
+
+      if (!data || !testData) {
+        toast('No data to save', 'error');
+        return;
+      }
+
+      const formatData = data.byFormat[formatId];
+      const staticItem = formatData[ratio];
+
+      if (!staticItem || !staticItem.imageUrl) {
+        toast('No image to save', 'error');
+        return;
+      }
+
+      // Find the button and show loading
+      const formatCard = document.querySelector(`[data-format="${formatId}"]`);
+      const saveBtn = formatCard?.querySelector('button[onclick*="saveIndividualStatic"]');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '...';
+      }
+
+      try {
+        const res = await fetch(`/api/facebook/campaigns/${currentBrandId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: testData.title + ' - ' + (formatData.type || formatId),
+            hook: testData.hook,
+            angle: testData.angle,
+            hypothesis: testData.hypothesis?.angle || testData.angle,
+            copyDirection: testData.hypothesis?.copy_direction || testData.copy_direction,
+            visualDirection: testData.hypothesis?.visual_direction || testData.visual_direction,
+            priority: testData.priority,
+            rationale: testData.rationale,
+            basedOn: testData.based_on,
+            recommendedFormats: [formatId],
+            campaignCode: campaignCode,
+            statics: [{
+              type: formatData.type || formatId,
+              format: formatId,
+              aspectRatio: ratio,
+              imageUrl: staticItem.imageUrl,
+              description: formatData.description,
+              adName: staticItem.adName,
+            }],
+            status: 'ready',
+          }),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          if (saveBtn) {
+            saveBtn.innerHTML = '✅';
+            saveBtn.style.background = '#218838';
+          }
+          toast(`Saved: ${formatData.type || formatId}`, 'success');
+          loadCampaigns();
+          loadCampaignStats();
+        } else {
+          throw new Error(result.error || 'Save failed');
+        }
+      } catch (err) {
+        console.error('Save individual static error:', err);
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '💾';
+        }
+        toast('Failed to save: ' + err.message, 'error');
       }
     }
 

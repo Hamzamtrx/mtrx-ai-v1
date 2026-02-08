@@ -1409,8 +1409,8 @@ async function generateTestSuggestions(brandId, options = {}) {
     try {
       console.log(`[Test Suggestions] Fetching Reddit research for ${brand.name}...`);
       const redditResearch = await researchReddit(brand, {
-        maxThreads: 15,
-        maxCommentsPerThread: 8,
+        maxThreads: 20,
+        maxCommentsPerThread: 20,
         searchQueries: [
           // Add brand-specific queries based on category
           brand.category === 'apparel' ? 'quality clothing lasts' : null,
@@ -1423,10 +1423,23 @@ async function generateTestSuggestions(brandId, options = {}) {
       redditSignals = formatForPrompt(redditResearch);
       console.log(`[Test Suggestions] Reddit research: ${redditSignals.length} threads, ${redditResearch.painPoints?.length || 0} pain points`);
 
-      // Add pain points and desires to externalSignals for the prompt
+      // Add pain points, desires, and nuggets to externalSignals for the prompt
       externalSignals.reddit = redditSignals;
       externalSignals.redditPainPoints = redditResearch.painPoints || [];
       externalSignals.redditDesires = redditResearch.desires || [];
+      externalSignals.redditNuggets = redditResearch.nuggets || [];
+
+      // Add brand context for relevance filtering
+      externalSignals.brandName = brand.name;
+      externalSignals.brandCategory = brand.category;
+      // Brand-specific angles based on category
+      if (brand.category === 'apparel') {
+        externalSignals.brandAngles = 'clothing quality, fit, confidence, natural materials (hemp/organic), health/testosterone benefits, anti-plastic/synthetic, durability, looking good, transformation';
+      } else if (brand.category === 'supplement') {
+        externalSignals.brandAngles = 'health benefits, energy, focus, wellness, clean ingredients, results';
+      } else {
+        externalSignals.brandAngles = 'quality, results, transformation, confidence';
+      }
     } catch (err) {
       console.error(`[Test Suggestions] Reddit research failed:`, err.message);
       // Continue without Reddit data
@@ -1660,36 +1673,101 @@ function buildExternalSignalsSection(signals = {}) {
 
   // Reddit discussions
   if (signals.reddit && signals.reddit.length > 0) {
+    // Get brand info for context
+    const brandContext = `
+BRAND CONTEXT FOR RELEVANCE:
+- Brand: ${signals.brandName || 'Unknown'}
+- Category: ${signals.brandCategory || 'apparel'}
+- Key angles: ${signals.brandAngles || 'health, quality, natural materials, testosterone/hormone health, anti-plastic'}
+`;
+
     sections.push(`
 ═══════════════════════════════════════════════════════════════
-🔴 REDDIT RESEARCH — CUSTOMER VOICE & PAIN POINTS
+🔴 ACTUAL REDDIT DATA — YOUR HOOKS MUST COME FROM HERE
 ═══════════════════════════════════════════════════════════════
+${brandContext}
 
-${signals.reddit.slice(0, 10).map((thread, i) => `
-[Reddit ${i + 1}] r/${thread.subreddit || 'unknown'}
+⚠️ CRITICAL: QUOTES MUST BE PRODUCT-SPECIFIC
+
+✅ VALID QUOTES (mention the product category or specific attributes):
+- "My body cannot handle polyester" → mentions FABRIC
+- "Not loose, not snug. They just fit." → mentions FIT
+- "The collar doesn't stretch out after washing" → mentions QUALITY/DURABILITY
+- "I stopped sweating through my shirts" → mentions PHYSICAL EFFECT of clothes
+- "People started asking where I got my shirt" → mentions CLOTHING specifically
+
+❌ INVALID QUOTES (generic emotions with no product connection):
+- "Life is just so much better now" → about WHAT? Could be anything
+- "Like, I'm happy again" → no product mentioned
+- "What a difference" → difference in WHAT?
+- "I feel like myself" → too vague, no product tie
+- "Everything changed" → WHAT changed? Be specific
+
+THE TEST: Can you insert "[because of the clothes/fabric/fit]" and have it make sense?
+- "I stopped sweating through my shirts [because of the fabric]" ✅ makes sense
+- "Life is just so much better now [because of the clothes]" ❌ doesn't work - too disconnected
+
+ONLY use quotes that explicitly mention: clothing, shirts, fabric, fit, wearing, dressed, wardrobe, polyester, cotton, quality, durability, comfort (in clothing context), or body/health changes RELATED to what they wear.
+
+${signals.reddit.slice(0, 12).map((thread, i) => `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[THREAD ${i + 1}] r/${thread.subreddit || 'unknown'}
+URL: ${thread.url || 'N/A'}
 Title: "${thread.title}"
-Snippet: ${thread.snippet || 'N/A'}
-Engagement: ${thread.engagement?.score || 0} upvotes, ${thread.engagement?.comments || 0} comments
-${thread.top_comments?.length > 0 ? `Top comments:\n${thread.top_comments.slice(0, 3).map(c => `  • "${c.substring(0, 150)}..."`).join('\n')}` : ''}`).join('\n')}
+${thread.snippet ? `\nPOST CONTENT:\n${thread.snippet}` : ''}
+${thread.top_comments?.length > 0 ? `\nCOMMENTS:\n${thread.top_comments.slice(0, 6).map((c, j) => `[${i + 1}.${j + 1}] ${c}`).join('\n\n')}` : ''}`).join('\n')}
 `);
+
+    // Add quotable nuggets section - these are GOLD for ad copy
+    if (signals.redditNuggets && signals.redditNuggets.length > 0) {
+      sections.push(`
+💎💎💎 GOLDEN CUSTOMER QUOTES — THIS IS YOUR HOOK LIBRARY 💎💎💎
+These are VERBATIM quotes from real customers. COPY THEM DIRECTLY as hooks:
+
+${signals.redditNuggets.slice(0, 15).map((n, i) => `${i + 1}. "${n}"`).join('\n')}
+
+⚡ Each of these is a potential hook. Don't rewrite them. Don't polish them.
+The raw, emotional language IS the power. Use them EXACTLY as written.`);
+    }
 
     // Add pain points if available
     if (signals.redditPainPoints && signals.redditPainPoints.length > 0) {
       sections.push(`
-💢 CUSTOMER PAIN POINTS (extracted from Reddit):
-${signals.redditPainPoints.slice(0, 10).map((p, i) => `${i + 1}. "${p}"`).join('\n')}
-
-Use these EXACT pain points in ad hooks. Customers said these words themselves.`);
+💢 CUSTOMER PAIN POINTS:
+${signals.redditPainPoints.slice(0, 10).map((p, i) => `${i + 1}. "${p}"`).join('\n')}`);
     }
 
     // Add desires if available
     if (signals.redditDesires && signals.redditDesires.length > 0) {
       sections.push(`
-✨ CUSTOMER DESIRES (what they're looking for):
-${signals.redditDesires.slice(0, 10).map((d, i) => `${i + 1}. "${d}"`).join('\n')}
-
-Position your product as the solution to these desires.`);
+✨ CUSTOMER DESIRES:
+${signals.redditDesires.slice(0, 10).map((d, i) => `${i + 1}. "${d}"`).join('\n')}`);
     }
+
+    sections.push(`
+🚨 CRITICAL RULES FOR REDDIT-SOURCED TESTS 🚨
+
+1. YOUR HOOK MUST COME FROM THE ACTUAL COMMENTS ABOVE
+   - Find a real phrase from the Reddit data
+   - Use it as-is or adapt it slightly to be a hook
+   - DO NOT invent marketing-speak phrases
+
+2. CITE YOUR SOURCE
+   - In source.quote: Include the EXACT text from the comment (copy-paste it)
+   - In source.evidence: Say which thread/comment it came from, e.g. "Comment [3.2] in r/malefashionadvice"
+
+3. SOUND LIKE A REAL PERSON, NOT A COPYWRITER
+   ❌ WRONG: "Stop thinking price, think cost per use" — sounds like a tagline
+   ✅ RIGHT: "I stopped looking at the price tag. Now I think about how many times I'll actually wear it."
+
+   ❌ WRONG: "Command Respect With Your Wardrobe" — corporate garbage
+   ✅ RIGHT: "People started taking me more seriously. I don't know if it's the clothes or just how I carry myself now."
+
+   ❌ WRONG: "Transform Your Confidence Today" — every ad says this
+   ✅ RIGHT: "I used to change 3 times before leaving. Now I just grab something and go."
+
+4. THE TEST IS: Would a real person actually say this to their friend?
+   If it sounds like ad copy, rewrite it to sound like conversation.`);
   }
 
   // TikTok trends
@@ -1951,7 +2029,32 @@ CRITICAL RULES:
 4. Each test must target a DIFFERENT persona OR test a different angle
 5. If you can't articulate what you LEARN from a win vs loss, it's not a real test
 6. EVERY test must have a clear SOURCE with specific evidence
-7. **REDDIT RULE**: If Reddit research is provided, AT LEAST 4 tests MUST source from Reddit pain points or discussions. Use the EXACT customer language from Reddit threads. Set source.type to "reddit" for these. Reddit angles are GOLD - they come directly from real customer conversations.
+7. **REDDIT RULE - CRITICAL**: If Reddit research is provided, AT LEAST 4 of your 6 tests MUST have source.type = "reddit". These tests MUST:
+   - Use EXACT customer language from the Reddit threads/comments/nuggets provided
+   - Include the thread URL in source.url
+   - Include a verbatim quote in source.quote
+   Reddit angles are GOLD because they use real customer voice. DO NOT skip this requirement.
+
+8. **RAW LANGUAGE RULE - ABSOLUTELY CRITICAL**:
+   DO NOT sanitize, corporate-ize, or polish Reddit language. The ENTIRE POINT of Reddit research is to capture HOW CUSTOMERS ACTUALLY TALK.
+
+   ❌ WRONG (corporate/sanitized):
+   - "I Thought This Was Just Another DTC Scam"
+   - "Sick of trying to find shirts that fit properly?"
+   - "For Guys Who Actually Work For A Living"
+   - "Finally Found My Perfect Fit"
+   - "Transform Your Wardrobe Today"
+
+   ✅ RIGHT (raw customer voice):
+   - "I feel invisible in my own clothes"
+   - "Nothing beats the feeling of wearing tailored clothes. The way it boosts your confidence is unlike anything else"
+   - "I look okay but I feel like shit"
+   - "My wife actually complimented my shirt for the first time in 10 years"
+   - "Stop thinking price, think cost per use"
+
+   The hooks should sound like someone VENTING on Reddit, not like a copywriter wrote them.
+   Look for: emotional confessions, specific frustrations, relationship impacts, physical sensations, confidence language.
+   Copy these phrases VERBATIM. Do not clean them up.
 
 TEST TYPES (only use these two):
 - new_territory: Untested angle or fresh direction
@@ -1960,11 +2063,25 @@ TEST TYPES (only use these two):
 TONE & LANGUAGE RULES (CRITICAL):
 - Write like a real person, not a copywriter. No marketing speak.
 - Hooks should sound like something a guy would actually say to his friend
-- BAD: "I Thought This Was Just Another DTC Scam" — sounds fake, manufactured
+
+FOR REDDIT-SOURCED TESTS:
+- Copy the EXACT phrases from comments. Don't paraphrase.
+- If someone wrote "I feel invisible in my own clothes" — USE THAT EXACT PHRASE
+- If someone wrote "Nothing beats the feeling of wearing tailored clothes. The way it boosts your confidence is unlike anything else" — THAT'S YOUR HOOK
+- Look for: confessions, rants, emotional outbursts, relationship impacts, physical descriptions
+- The rawer and more specific, the better. That's the GOLD.
+
+LANGUAGE EXAMPLES:
+- BAD: "I Thought This Was Just Another DTC Scam" — sounds fake, manufactured, corporate headline
 - GOOD: "My wife stopped complaining about my shirts" — real, specific, casual
 - BAD: "For Guys Who Actually Work For A Living" — vague identity posturing
 - GOOD: "Doesn't fall apart after 10 washes" — specific, tangible benefit
-- Titles should be DIRECT — say what you mean. Don't hide behind clever phrasing.
+- BAD: "Sick of trying to find shirts that fit?" — generic marketing question
+- GOOD: "The way it boosts your confidence is unlike anything else" — direct quote from real person
+- BAD: "Finally Found My Perfect Fit" — sounds like an ad headline
+- GOOD: "I actually feel like myself again" — sounds like a real confession
+
+Titles should be DIRECT — say what you mean. Don't hide behind clever phrasing.
 - BAD TITLE: "Skeptic Conversion Story" — what does this even mean?
 - GOOD TITLE: "Prove It With Numbers" — clear what we're testing
 - If an iteration, be EXPLICIT: "Doubling down on [X], but changing [Y]"
@@ -1977,6 +2094,17 @@ DATA LIMITATIONS:
 You MUST respond with this EXACT JSON structure:
 
 {
+  "reddit_gold": {
+    "mined_quotes": [
+      "List 5-8 ACTUAL quotes you found in the Reddit comments above",
+      "Format: '[Thread#.Comment#] exact quote from the comment'",
+      "These must be REAL text from the data - do not invent quotes"
+    ],
+    "quote_to_hook_mapping": [
+      "For each quote, show how you'd turn it into a hook",
+      "Format: 'Original: [quote] → Hook: [your hook version]'"
+    ]
+  },
   "batch_analysis": {
     "territory_coverage": {
       "materials_health": ["list test titles in this territory"],
@@ -2016,7 +2144,9 @@ You MUST respond with this EXACT JSON structure:
       "why_untested": "What makes this different from current winners (required if type=new_territory)",
       "source": {
         "type": "facebook_data | reddit | trend",
-        "evidence": "Specific evidence: 'Winner #3 transcript mentions X' or 'r/malefashionadvice thread about Y' or 'GQ article on Z'"
+        "evidence": "For reddit: 'Comment [X.Y] from r/[subreddit] - [context] which makes sense for [BRAND] because [specific product reason]' e.g. 'Comment [2.1] from r/malefashionadvice - user describing softness loss over time which makes sense for Undrdog because hemp maintains softness better than synthetic fabrics'",
+        "url": "(REQUIRED for reddit) The thread URL from the data above",
+        "quote": "(REQUIRED for reddit) The ACTUAL quote - must mention clothing/fabric/fit/body or related topic"
       },
       "confidence": {
         "spend_likelihood": "high | medium | low",
@@ -2054,7 +2184,9 @@ EXAMPLE OF A GOOD NEW TERRITORY TEST:
   "hook": "Do the math. I'll wait.",
   "source": {
     "type": "reddit",
-    "evidence": "r/BuyItForLife top posts use cost-per-wear math. 'Stop thinking price, think cost per use.'"
+    "evidence": "r/BuyItForLife thread about clothing value",
+    "url": "https://www.reddit.com/r/BuyItForLife/comments/example",
+    "quote": "Stop thinking price, think cost per use. My $80 shirt at 200 wears costs less than my $15 shirt at 10 wears."
   },
   "confidence": {
     "spend_likelihood": "medium",
@@ -2062,6 +2194,38 @@ EXAMPLE OF A GOOD NEW TERRITORY TEST:
     "learning_reasoning": "New variable — tests if VALUE works without HEALTH"
   }
 }
+
+EXAMPLE OF PROPER REDDIT-SOURCED TEST:
+{
+  "title": "Test: Polyester Intolerance",
+  "type": "new_territory",
+  "hypothesis": {
+    "learning": "If this wins: fabric sensitivity is a strong pain point. If it loses: health angle needs more proof.",
+    "vehicle": "testimonial",
+    "angle": "Lead with the PHYSICAL PROBLEM that synthetic fabrics cause."
+  },
+  "persona": {
+    "id": "health_switcher",
+    "description": "Guy whose body reacts badly to synthetic fabrics - sweating, irritation, discomfort"
+  },
+  "hook": "My body just can't handle polyester anymore.",
+  "source": {
+    "type": "reddit",
+    "evidence": "Comment [3.2] from r/malefashionadvice - user describing fabric sensitivity which makes sense for Undrdog because their hemp fabric is positioned as the natural alternative to synthetic polyester that causes these issues",
+    "url": "https://www.reddit.com/r/malefashionadvice/comments/abc123/...",
+    "quote": "My body cannot handle polyester. I sweat like crazy and it just feels wrong on my skin."
+  },
+  "confidence": {
+    "spend_likelihood": "high",
+    "learning_value": "high"
+  }
+}
+
+KEY POINTS:
+- The quote mentions a SPECIFIC PRODUCT ATTRIBUTE (polyester/fabric)
+- The evidence includes "which makes sense for [BRAND] because [reason]"
+- The hook sounds like a real person ("My body just can't handle...")
+- NOT vague emotion ("I feel so much better now")
 
 EXAMPLE OF A GOOD ITERATION TEST:
 {
